@@ -6,7 +6,7 @@ matlabbatch{1}.spm.spatial.normalise.write.subj.def = '<UNDEFINED>';
 matlabbatch{1}.spm.spatial.normalise.write.subj.resample = '<UNDEFINED>';
 matlabbatch{1}.spm.spatial.normalise.write.woptions.bb = [-78 -112 -70
                                                           78 76 85];
-matlabbatch{1}.spm.spatial.normalise.write.woptions.vox = [1.4 1.4 1.4];
+matlabbatch{1}.spm.spatial.normalise.write.woptions.vox = [1.5 1.5 1.5];
 matlabbatch{1}.spm.spatial.normalise.write.woptions.interp = 4;
 matlabbatch{1}.spm.spatial.normalise.write.woptions.prefix = 'w';
 matlabbatch{2}.spm.spatial.smooth.data(1) = cfg_dep('Normalise: Write: Normalised Images (Subj 1)', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
