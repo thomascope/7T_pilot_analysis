@@ -2,6 +2,7 @@
 % Written by TEC Feb 2018
 
 %% Setup environment
+clear all
 rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
 %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
 addpath /group/language/data/thomascope/spm12_fil_r6906/
@@ -9,7 +10,7 @@ spm fmri
 scriptdir = '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/';
 
 %% Define parameters
-pilot_7T_subjects_parameters
+PINFA_subjects_parameters
 
 %% Options to skip steps
 applytopup = 1;
