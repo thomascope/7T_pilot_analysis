@@ -1,6 +1,6 @@
-function [avgRDM, stats_p_r] = module_run_rsa(crun,cond_num,mask_name,condition,data_smoo)
+function [avgRDM, stats_p_r] = module_run_rsa(crun,cond_num,mask_name,condition,data_smoo,setup_file)
 
-pilot_7T_subjects_parameters
+eval(setup_file)
 
 data_path = [preprocessedpathstem subjects{crun} '/stats_multi_3_nowritten2/'];
 mask_path = [preprocessedpathstem subjects{crun} '/' mask_name];

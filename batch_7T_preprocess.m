@@ -10,13 +10,15 @@ spm fmri
 scriptdir = '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/';
 
 %% Define parameters
-PINFA_subjects_parameters
+setup_file = 'PINFA_subjects_parameters';
+eval(setup_file)
 
 %% Options to skip steps
 applytopup = 1;
-opennewanalysispool = 1;
+opennewanalysispool = 0;
 
 %% Open a worker pool
+if opennewanalysispool == 1
 if size(subjects,2) > 96
     workersrequested = 96;
     fprintf([ '\n\nUnable to ask for a worker per run; asking for 96 instead\n\n' ]);
@@ -80,7 +82,7 @@ catch
         end
     end
 end
-
+end
 
 %% Skullstrip structural
 nrun = size(subjects,2); % enter the number of runs here
@@ -115,6 +117,10 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(skullstripworkedcorrectly)
+    error('failed at skullstrip');
+end
+
 %% Now apply topup to distortion correct the EPI
 
 if applytopup == 1
@@ -138,6 +144,10 @@ if applytopup == 1
         
     end
 end
+
+if ~all(topupworkedcorrectly)
+    error('failed at topup');
+end
 %% Now realign the EPIs
 
 realignworkedcorrectly = zeros(1,nrun);
@@ -158,6 +168,9 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(realignworkedcorrectly)
+    error('failed at realign');
+end
 %% Now reslice the mean image
 
 resliceworkedcorrectly = zeros(1,nrun);
@@ -176,6 +189,10 @@ parfor crun = 1:nrun
     catch
         resliceworkedcorrectly(crun) = 0;
     end
+end
+
+if ~all(resliceworkedcorrectly)
+    error('failed at reslice');
 end
 
 %% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
@@ -217,6 +234,11 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(coregisterworkedcorrectly)
+    error('failed at coregister');
+end
+
+
 %% Now do cat12 normalisation of the structural to create deformation fields (works better than SPM segment deformation fields, which sometimes produce too-small brains)
 
 nrun = size(subjects,2); % enter the number of runs here
@@ -241,6 +263,9 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(cat12workedcorrectly)
+    error('failed at cat12');
+end
 
 %% Now normalise write for visualisation and smooth at 3 and 8
 nrun = size(subjects,2); % enter the number of runs here
@@ -288,6 +313,10 @@ parfor crun = 1:nrun
     end
 end
 
+if ~all(normalisesmoothworkedcorrectly)
+    error('failed at normalise and smooth');
+end
+
 %% Now do a univariate SPM analysis (currently only implemented for 3 or 4 runs)
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {};
@@ -330,6 +359,10 @@ parfor crun = 1:nrun
     catch
         SPMworkedcorrectly(crun) = 0;
     end
+end
+
+if ~all(SPMworkedcorrectly)
+    error('failed at SPM 8mm');
 end
 
 %% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs)
@@ -1056,9 +1089,9 @@ parfor thisone = 1:size(all_combs,1)
     smo = all_smos(all_combs(thisone,4));
     switch type
         case 't-pat'
-            module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) % Run based on the t-patterns
+            module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo,setup_file) % Run based on the t-patterns
         case 'beta'
-            module_run_rsa_beta(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo) %Run based on the beta patterns
+            module_run_rsa_beta(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo,setup_file) %Run based on the beta patterns
     end
     %module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},data_smoo)
     %module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},['Subj_' num2str(crun) '_mask_' mask_cond{mask_cond_num} '_cond_' conditions{cond_num} '_smo_' num2str(data_smoo)],data_smoo)

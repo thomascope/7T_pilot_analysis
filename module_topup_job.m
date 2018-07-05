@@ -15,7 +15,7 @@ system(cmd)
 %flip for phase encoding)
 base_head = spm_vol(base_image_path);
 reversed_head = spm_vol(reversed_image_path);
-if base_head.private.diminfo.slice_time.duration ~= reversed_head.private.diminfo.slice_time.duration
+if ~(abs(base_head.private.diminfo.slice_time.duration-reversed_head.private.diminfo.slice_time.duration) < 0.0001)
     error('Something went wrong - acquisition parameters are not the same in the two images')
 end
 epi_params = [0 -1 0 base_head.private.diminfo.slice_time.duration; 0 1 0 reversed_head.private.diminfo.slice_time.duration]; 
