@@ -1,4 +1,4 @@
-function [startpulses,stimType,stimNumber,stimName] = extract_pulsenumbers_from_AFC_paradigm(fileName,runI)
+function [startpulses,stimType,stimNumber,stimName] = extract_pulsenumbers_from_AFC4_paradigm(fileName,runI)
 
 %A function for outputting the values required for MVPA. 
 %Stilltodo: Divide mismatches by vowel transition. 
@@ -7,6 +7,11 @@ function [startpulses,stimType,stimNumber,stimName] = extract_pulsenumbers_from_
 load(fileName)
 
 startpulses = [imputed_pulse_numbers_at_normal_trialstart, imputed_pulse_numbers_at_writtenonly_trialstart, imputed_pulse_numbers_at_response_trialstart];
+
+if length(this_cue_types) ~= length(imputed_pulse_numbers_at_normal_trialstart)
+    warning('The length of the cue and imputed pulsenumbers do not match - assuming truncated acquisition')
+    this_cue_types = this_cue_types(1:length(imputed_pulse_numbers_at_normal_trialstart));
+end
 
 % there were 8 conditions - Match low, Match high, Mismatch low, Mismatch high, Neutral low, Neutral high, Writtenonly, Response
 stimType = zeros(1,length(startpulses));
@@ -37,7 +42,7 @@ stimType(i+1:i+length(imputed_pulse_numbers_at_writtenonly_trialstart)) = 7;
 stimType(i+1+length(imputed_pulse_numbers_at_writtenonly_trialstart):end) = 8;
 
 % there were 16 words 
-stimNumber = [this_word written_trial_word]; %Easy for the normal and written only trials as recorded by the delivery script
+stimNumber = [this_word(1:length(imputed_pulse_numbers_at_normal_trialstart)) written_trial_word(1:length(imputed_pulse_numbers_at_writtenonly_trialstart))]; %Easy for the normal and written only trials as recorded by the delivery script
 
 response_indexC = strfind(trialtype,'Response Trial');
 response_index = find(not(cellfun('isempty', response_indexC)));
