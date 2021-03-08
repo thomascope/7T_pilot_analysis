@@ -1,4 +1,4 @@
-function tempDesign = module_get_complex_event_times(subj_initials,testing_date,nRuns,nVolumes)
+function tempDesign = module_get_complex_event_times_AFC4(subj_initials,testing_date,nRuns,nVolumes)
 
 
 %clear all

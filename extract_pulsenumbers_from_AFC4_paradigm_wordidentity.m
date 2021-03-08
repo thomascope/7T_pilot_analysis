@@ -42,16 +42,16 @@ stimType(i+1:i+length(imputed_pulse_numbers_at_writtenonly_trialstart)) = 7;
 stimType(i+1+length(imputed_pulse_numbers_at_writtenonly_trialstart):end) = 8;
 
 % there were 16 words 
-stimNumber = [this_word(1:length(imputed_pulse_numbers_at_normal_trialstart)) written_trial_word(1:length(imputed_pulse_numbers_at_writtenonly_trialstart))]; %Easy for the normal and written only trials as recorded by the delivery script
-
-stimNumber = this_word(1:length(imputed_pulse_numbers_at_normal_trialstart)); %Easy for the normal trials as recorded by the delivery script
+this_word = this_word(1:length(imputed_pulse_numbers_at_normal_trialstart)); % Account for trunkated run
+this_mismatch_cue = this_mismatch_cue(1:length(imputed_pulse_numbers_at_normal_trialstart)); % Account for trunkated run
+stimNumber = this_word; %Easy for the normal trials as recorded by the delivery script
 writtenNumber = this_mismatch_cue; %First mismatch trials
 writtenNumber(isnan(this_mismatch_cue))=this_word(isnan(this_mismatch_cue)); %Then match trials
 
 %Now do written trials
 
-writtenNumber = [writtenNumber written_trial_word];
-stimNumber = [stimNumber zeros(size(written_trial_word))];
+writtenNumber = [writtenNumber written_trial_word(1:length(imputed_pulse_numbers_at_writtenonly_trialstart))];
+stimNumber = [stimNumber zeros(size(written_trial_word(1:length(imputed_pulse_numbers_at_writtenonly_trialstart))))];
 
 response_indexC = strfind(trialtype,'Response Trial');
 response_index = find(not(cellfun('isempty', response_indexC)));
