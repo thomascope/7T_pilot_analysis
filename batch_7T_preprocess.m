@@ -51,6 +51,10 @@ for crun = 1:nrun
     end
     inputs{6, crun} = 'structural_csf';
     inputs{7, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
+    inputs{8, crun} = 'c1structural';
+    inputs{9, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
+    inputs{10, crun} = 'c2structural';
+    inputs{11, crun} = cellstr([preprocessedpathstem subjects{crun} '/']);
 end
 
 skullstripworkedcorrectly = zeros(1,nrun);
@@ -70,10 +74,6 @@ end
 if ~all(skullstripworkedcorrectly)
     error('failed at skullstrip');
 end
-
-%% Now run a VBM on the structurals
-
-
 
 %% Now apply topup to distortion correct the EPI
 
@@ -221,6 +221,45 @@ if ~all(cat12workedcorrectly)
     error('failed at cat12');
 end
 
+
+%% Now run a VBM on the structurals
+age_lookup = readtable('Pinfa_ages.csv');
+visual_check = 0;
+nrun = size(subjects,2); % enter the number of runs here
+%jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
+group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
+group1_ages = [];
+group2_mrilist = {};
+group2_ages = [];
+this_scan = {};
+this_segmented = {};
+segmented = 1;
+
+for crun = 1:nrun
+    this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
+    this_scan(crun) = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    %this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} '/structural.nii']);
+    if segmented
+        this_segmented(crun) = cellstr([rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'structural'))} '/c1' blocksin{crun}{find(strcmp(blocksout{crun},'structural'))}]);
+    end
+    if group(crun) == 1 % Controls
+        group2_mrilist(end+1) = this_scan(crun);
+        group2_ages(end+1) = this_age;
+    elseif group(crun) == 2 % Patients
+        group1_mrilist(end+1) = this_scan(crun);
+        group1_ages(end+1) = this_age;
+    end
+end
+if visual_check
+    if segmented
+        spm_check_registration(this_segmented{:}) 
+    else
+        spm_check_registration(this_scan{:}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
+    end
+end
+
+module_vbm_job(group1_mrilist, group1_ages, group2_mrilist, group2_ages, preprocessedpathstem, segmented)
+
 %% Now normalise write for visualisation and smooth at 3 and 8
 nrun = size(subjects,2); % enter the number of runs here
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
@@ -318,6 +357,70 @@ end
 if ~all(SPMworkedcorrectly)
     error('failed at SPM 8mm');
 end
+
+%% Now create a univariate second level SPM with Age as a covariate - one per condition of interest
+age_lookup = readtable('Pinfa_ages.csv');
+all_conditions = {
+    'con_0005.nii','Match > Mismatch';
+    'con_0010.nii','Mismatch > Match';
+    'con_0015.nii','Normal > Written';
+    'con_0020.nii','Written > Normal';
+    'con_0025.nii','Normal > Silence';
+    'con_0030.nii','Clear > Unclear';
+    'con_0035.nii','Unclear > Clear'};
+
+visual_check = 0;
+nrun = size(all_conditions,1); % enter the number of runs here
+%jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
+
+this_scan = {};
+this_t_scan = {};
+firstlevel_folder = 'stats2_8';
+
+jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_secondlevel_job.m'};
+jobs = repmat(jobfile, 1, nrun);
+inputs = cell(4, nrun);
+
+for this_condition = 1:nrun
+    group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
+    group1_ages = [];
+    group2_mrilist = {};
+    group2_ages = [];
+    for crun = 1:size(subjects,2)
+        inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder filesep all_conditions{this_condition,2}]);
+        this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
+        this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep all_conditions{this_condition,1}]);
+        this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(all_conditions{this_condition,1},'con','spmT')]);
+        if group(crun) == 1 % Controls
+            group2_mrilist(end+1) = this_scan(crun);
+            group2_ages(end+1) = this_age;
+        elseif group(crun) == 2 % Patients
+            group1_mrilist(end+1) = this_scan(crun);
+            group1_ages(end+1) = this_age;
+        end
+    end
+    inputs{2, this_condition} = group1_mrilist';
+    inputs{3, this_condition} = group2_mrilist';
+    inputs{4, this_condition} = [group1_ages';group2_ages'];
+    if visual_check
+        spm_check_registration(this_t_scan{:}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
+        input('Press any key to proceed to second level with these scans')
+    end
+end
+
+secondlevelworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs{crun}, inputs{:,crun});
+        secondlevelworkedcorrectly(crun) = 1;
+    catch
+        secondlevelworkedcorrectly(crun) = 0;
+    end
+end
+
+
 
 %% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs)
 nrun = size(subjects,2); % enter the number of runs here
