@@ -35,8 +35,8 @@ end
 oldfilenames = cell(length(scan_paths),1);
 newfilenames = cell(length(scan_paths),1);
 for i = 1:length(scan_paths)
-    oldfilenames{i}= cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/wc2' split_stem{i}{end}]);
-    newfilenames{i}= cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/s_0_wc2' split_stem{i}{end}]);
+    oldfilenames{i}= cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/wc2' split_stem{i}{end}]);
+    newfilenames{i}= cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/s_0_wc2' split_stem{i}{end}]);
     try
         movefile(char(oldfilenames{i}),char(newfilenames{i}));
     catch

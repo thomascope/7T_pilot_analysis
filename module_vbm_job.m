@@ -508,7 +508,7 @@ end
 if exist('tiv_filename','var')
     filename =tiv_filename;
 else
-    filename = [preprocessedpathstem filesep 'volumes_VBM.csv'];
+    filename = [preprocessfolder filesep 'volumes_VBM.csv'];
 end
 delimiter = ',';
 startRow = 2;
@@ -557,8 +557,8 @@ catch
     tiv= dataArray{2}+dataArray{3}+dataArray{4};
     inputs{4, 1} = tiv;
 end
-load('VBM_ages.mat')
-inputs{5, 1} = [group1_ages; controlages];
+
+inputs{5, 1} = [group1_ages; group2_ages];
 inputs{6, 1} = {'control_majority_unsmoothed_mask_c2_thr0.05_cons0.8.img'};
 
 if ~exist(char(inputs{6, 1}),'file')
