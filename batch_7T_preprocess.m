@@ -75,6 +75,36 @@ if ~all(skullstripworkedcorrectly)
     error('failed at skullstrip');
 end
 
+%% Now realign the EPIs
+
+realignworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    base_image_path = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'Pos_topup'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'Pos_topup'))}];
+    reversed_image_path = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{find(strcmp(blocksout{crun},'Neg_topup'))} '/' blocksin{crun}{find(strcmp(blocksout{crun},'Neg_topup'))}];
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    filestorealign = cell(1,length(theseepis));
+    for i = 1:length(theseepis)
+        outpath = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{theseepis(i)} '/'];
+        filestorealign{i} = spm_select('ExtFPList',outpath,['^' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+    end
+    filestorealign{i+1} = base_image_path
+    filestorealign{i+2} = reversed_image_path
+    
+    flags = struct;
+    flags.fhwm = 3;
+    flags.interp = 5
+    try
+        spm_realign(filestorealign,flags)
+        realignworkedcorrectly(crun) = 1;
+    catch
+        realignworkedcorrectly(crun) = 0;
+    end
+end
+
+if ~all(realignworkedcorrectly)
+    error('failed at realign');
+end
+
 %% Now apply topup to distortion correct the EPI
 
 if applytopup == 1
@@ -102,30 +132,32 @@ end
 if ~all(topupworkedcorrectly)
     error('failed at topup');
 end
-%% Now realign the EPIs
 
-realignworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    theseepis = find(strncmp(blocksout{crun},'Run',3))
-    filestorealign = cell(1,length(theseepis));
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    for i = 1:length(theseepis)
-        filestorealign{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
-    end
-    flags = struct;
-    flags.fhwm = 3;
-    try
-        spm_realign(filestorealign,flags)
-        realignworkedcorrectly(crun) = 1;
-    catch
-        realignworkedcorrectly(crun) = 0;
-    end
-end
+% %% Now realign the EPIs % Now moved to before topup
+% 
+% realignworkedcorrectly = zeros(1,nrun);
+% parfor crun = 1:nrun
+%     theseepis = find(strncmp(blocksout{crun},'Run',3))
+%     filestorealign = cell(1,length(theseepis));
+%     outpath = [preprocessedpathstem subjects{crun} '/'];
+%     for i = 1:length(theseepis)
+%         filestorealign{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+%     end
+%     flags = struct;
+%     flags.fhwm = 3;
+%     try
+%         spm_realign(filestorealign,flags)
+%         realignworkedcorrectly(crun) = 1;
+%     catch
+%         realignworkedcorrectly(crun) = 0;
+%     end
+% end
+% 
+% if ~all(realignworkedcorrectly)
+%     error('failed at realign');
+% end
 
-if ~all(realignworkedcorrectly)
-    error('failed at realign');
-end
-%% Now reslice the mean image
+%% Now reslice the mean image 
 
 resliceworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
@@ -1156,11 +1188,13 @@ parfor thisone = 1:size(all_combs,1)
     mask_cond_num = all_combs(thisone,2);
     cond_num = all_combs(thisone,3);
     smo = all_smos(all_combs(thisone,4));
+    try
     switch type
         case 't-pat'
             module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo,setup_file) % Run based on the t-patterns
         case 'beta'
             module_run_rsa_beta(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo,setup_file) %Run based on the beta patterns
+    end
     end
     %module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},data_smoo)
     %module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},['Subj_' num2str(crun) '_mask_' mask_cond{mask_cond_num} '_cond_' conditions{cond_num} '_smo_' num2str(data_smoo)],data_smoo)
@@ -1171,6 +1205,7 @@ for crun = 1:size(subjects,2)
     for mask_cond_num = 1:length(mask_cond)
         for cond_num = 1:length(conditions)
             for smo = 1:length(all_smos)
+                try
                 mask_name = mask_cond{mask_cond_num};
                 mask_short_name = mask_short_cond{mask_cond_num};
                 switch type
@@ -1186,6 +1221,7 @@ for crun = 1:size(subjects,2)
                 this_cond_name = strrep(this_cond_name,'RDM across sessions | condition ','');
                 avgRDM{crun,mask_cond_num,cond_num,smo}.name = ['S' num2str(crun) this_cond_name '_' mask_short_name '_sm' num2str(all_smos(smo))];
                 stats_p_r{crun,mask_cond_num,cond_num,smo} = thesedata.stats_p_r;
+                end
             end
         end
     end
@@ -1217,10 +1253,80 @@ userOptions.figureIndex = [260, 360];
 
 for crun = 1:size(subjects,2)
     for smo = 1:length(all_smos)
-userOptions.figureIndex = [base_figureindex+10*crun+smo, base_figureindex+200+10*crun+smo];
+        try
+            userOptions.figureIndex = [base_figureindex+10*crun+smo, base_figureindex+200+10*crun+smo];
+            
+            subj_stats_p_r{crun,smo}=compareRefRDM2candRDMs(judgmentRDM, avgRDM(crun,:,:,smo), userOptions);
+        end
         
-subj_stats_p_r{crun,smo}=compareRefRDM2candRDMs(judgmentRDM, avgRDM(crun,:,:,smo), userOptions);
-
-
     end
 end
+
+%% Analyse in scanner behaviour
+
+cd('./behavioural_data')
+control_response_averages = [];
+control_rt_averages = [];
+control_rt_medians = [];
+control_AFCs = [];
+patient_response_averages = [];
+patient_rt_averages = [];
+patient_rt_medians = [];
+patient_AFCs = [];
+graph_this = 0;
+for crun = 1:length(subjects)
+    
+    [all_response_averages(crun,:), all_rt_averages(crun,:), all_rt_medians(crun,:), AFCs(crun,:)] = AFC_graph_this_subject_2021(subjects{crun}, dates{crun}, graph_this);
+    
+    if group(crun) == 1 % Controls
+        control_response_averages(end+1,:) = all_response_averages(crun,:);
+        control_rt_averages(end+1,:) = all_rt_averages(crun,:);
+        control_rt_medians(end+1,:) = all_rt_medians(crun,:);
+        control_AFCs(end+1,:) = AFCs(crun,:);
+    elseif group(crun) == 2 % Patients
+        patient_response_averages(end+1,:) = all_response_averages(crun,:);
+        patient_rt_averages(end+1,:) = all_rt_averages(crun,:);
+        patient_rt_medians(end+1,:) = all_rt_medians(crun,:);
+        patient_AFCs(end+1,:) = AFCs(crun,:);
+    end
+end
+cd('../')
+
+figure
+%cmap = colormap(parula(2));
+colormap(jet)
+set(gcf,'Position',[100 100 1600 800]);
+subplot(3,1,1)
+hold on
+for this_x = 1:size(patient_response_averages,2)
+    scatter(repmat(this_x+0.1,size(patient_response_averages,1),1)+rand(size(patient_response_averages,1),1)/30-(1/60),patient_response_averages(:,this_x),16,patient_AFCs/2)
+    scatter(repmat(this_x-0.1,size(control_response_averages,1),1)+rand(size(control_response_averages,1),1)/30-(1/60),control_response_averages(:,this_x),16,control_AFCs/2)
+end
+xlim([0 6])
+ylim([0 100])
+title('Percent Correct')
+set(gca,'XTick',[0:1:6])
+set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
+
+subplot(3,1,2)
+hold on
+for this_x = 1:size(patient_response_averages,2)
+    scatter(repmat(this_x+0.1,size(patient_rt_averages,1),1)+rand(size(patient_rt_averages,1),1)/30-(1/60),patient_rt_averages(:,this_x),16,patient_AFCs/2+1)
+    scatter(repmat(this_x-0.1,size(control_rt_averages,1),1)+rand(size(control_rt_averages,1),1)/30-(1/60),control_rt_averages(:,this_x),16,control_AFCs/2+1)
+end
+xlim([0 6])
+title('Mean RT')
+set(gca,'XTick',[0:1:6])
+set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
+
+subplot(3,1,3)
+hold on
+for this_x = 1:size(patient_rt_medians,2)
+    scatter(repmat(this_x+0.1,size(patient_rt_medians,1),1)+rand(size(patient_rt_medians,1),1)/30-(1/60),patient_rt_medians(:,this_x),16,patient_AFCs/2)
+    scatter(repmat(this_x-0.1,size(control_rt_medians,1),1)+rand(size(control_rt_medians,1),1)/30-(1/60),control_rt_medians(:,this_x),16,control_AFCs/2)
+end
+xlim([0 6])
+title('Median RT')
+set(gca,'XTick',[0:1:6])
+set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
+    
