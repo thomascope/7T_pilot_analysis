@@ -84,20 +84,25 @@ parfor crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3));
     filestorealign = cell(1,length(theseepis));
     for i = 1:length(theseepis)
-        outpath = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{theseepis(i)} '/'];
-        filestorealign{i} = spm_select('ExtFPList',outpath,['^' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+        inpath = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{theseepis(i)} '/'];
+        filestorealign{i} = spm_select('ExtFPList',inpath,['^' blocksin{crun}{theseepis(i)}],1:minvols(crun));
     end
     filestorealign{i+1} = base_image_path
     filestorealign{i+2} = reversed_image_path
     
     flags = struct;
     flags.fhwm = 3;
-    flags.interp = 5
+    flags.interp = 5; % Improve quality by using 5th degree B-spline interpolation
     try
         spm_realign(filestorealign,flags)
         realignworkedcorrectly(crun) = 1;
     catch
         realignworkedcorrectly(crun) = 0;
+    end
+    for i = 1:length(theseepis) %Now move movement parameters
+        inpath = [rawpathstem basedir{crun} '/' fullid{crun} '/' blocksin_folders{crun}{theseepis(i)} '/'];
+        outpath = [preprocessedpathstem subjects{crun} '/'];
+        copyfile([inpath 'rp_' blocksin{crun}{theseepis(i)}(1:end-4) '.txt'],[outpath 'rp_' blocksin{crun}{theseepis(i)}(1:end-4) '.txt'])
     end
 end
 
@@ -157,7 +162,7 @@ end
 %     error('failed at realign');
 % end
 
-%% Now reslice the mean image 
+%% Now reslice all the images
 
 resliceworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
@@ -168,7 +173,7 @@ parfor crun = 1:nrun
         filestorealign{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
     end
     flags = struct
-    flags.which = 0;
+    flags.which = 2;
     try
         spm_reslice(filestorealign,flags)
         resliceworkedcorrectly(crun) = 1;
@@ -179,6 +184,44 @@ end
 
 if ~all(resliceworkedcorrectly)
     error('failed at reslice');
+end
+
+%% Now smooth the realigned, undistorted, resliced native space functionals at 3 and 8
+nrun = size(subjects,2); % enter the number of runs here
+%jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
+jobfile = {[scriptdir 'module_smooth_job.m']};
+inputs = cell(2, nrun);
+
+for crun = 1:nrun
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+  
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    filestosmooth = cell(1,length(theseepis));
+    filestosmooth_list = [];
+    for i = 1:length(theseepis)
+        filestosmooth{i} = spm_select('ExtFPList',outpath,['^rtopup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+        filestosmooth_list = [filestosmooth_list; filestosmooth{i}];
+    end
+    inputs{1, crun} = cellstr(filestosmooth_list); % Needs to be twice, once for each smoothing kernel
+    inputs{2, crun} = cellstr(filestosmooth_list);
+end
+
+smoothworkedcorrectly = zeros(1,nrun);
+jobs = repmat(jobfile, 1, 1);
+
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs, inputs{:,crun});
+        smoothworkedcorrectly(crun) = 1;
+    catch
+        smoothworkedcorrectly(crun) = 0;
+    end
+end
+
+if ~all(smoothworkedcorrectly)
+    error('failed at native space smooth');
 end
 
 %% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
@@ -356,7 +399,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats2_8']);
+    inputs{1, crun} = cellstr([outpath 'stats3_8']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(8*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -407,7 +450,7 @@ nrun = size(all_conditions,1); % enter the number of runs here
 
 this_scan = {};
 this_t_scan = {};
-firstlevel_folder = 'stats2_8';
+firstlevel_folder = 'stats3_8';
 
 jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_secondlevel_job.m'};
 jobs = repmat(jobfile, 1, nrun);
@@ -468,9 +511,9 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats2_multi_3']);
+    inputs{1, crun} = cellstr([outpath 'stats3_multi_3']);
     for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3, standard space is s3w
         inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         for cond_num = 1:80
             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
@@ -519,9 +562,9 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats2_multi_8']);
+    inputs{1, crun} = cellstr([outpath 'stats3_multi_8']);
     for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         for cond_num = 1:80
             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
@@ -576,7 +619,7 @@ end
 %     
 %     inputs{1, crun, this_aro} = cellstr([outpath 'stats3_multi_AR' num2str(aro)]);
 %     for sess = 1:length(theseepis)
-%         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+%         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3topup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
 %         inputs{(100*(sess-1))+2, crun, this_aro} = cellstr(filestoanalyse{sess});
 %         for cond_num = 1:80
 %             inputs{(100*(sess-1))+2+cond_num, crun, this_aro} = cat(2, tempDesign{sess}{cond_num})';
@@ -645,9 +688,9 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats_multi_3_nowritten2']);
+    inputs{1, crun} = cellstr([outpath 'stats3_multi_3_nowritten2']);
     for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         for cond_num = 1:80
             inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
@@ -678,6 +721,51 @@ parfor crun = 1:nrun
     end
 end
 
+nrun = size(subjects,2); % enter the number of runs here
+jobfile = {};
+jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_job.m']};
+jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_job.m']};
+inputs = cell(0, nrun);
+
+for crun = 1:nrun
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    filestoanalyse = cell(1,length(theseepis));
+    
+    tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    
+    inputs{1, crun} = cellstr([outpath 'stats3_multi_8_nowritten2']);
+    for sess = 1:length(theseepis)
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+        inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        for cond_num = 1:80
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
+        end
+        for cond_num = 81:96 %Response trials
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
+        end
+        for cond_num = 97 %Button press
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
+        end
+        inputs{(99*(sess-1))+100, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+    end
+    jobs{crun} = jobfile{length(theseepis)};
+    if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
+        inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+    end
+end
+
+SPMworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    try
+        spm_jobman('run', jobs{crun}, inputs{:,crun});
+        SPMworkedcorrectly(crun) = 1;
+    catch
+        SPMworkedcorrectly(crun) = 0;
+    end
+end
 
 %% Now create univariate masks for later MVPA
 
@@ -686,14 +774,14 @@ smoothing_kernels = [3, 8];
 
 for smoo = smoothing_kernels
     for crun = 1:nrun
-        spmpath = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(smoo) '/'];
+        spmpath = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(smoo) '/'];
         outpath = [preprocessedpathstem subjects{crun} '/'];
         thisSPM = load([spmpath 'SPM.mat']);
         writtenindex = structfind(thisSPM.SPM.xCon,'name','Normal<Written - All Sessions');
         if numel(writtenindex) ~= 1
             error('Something went wrong with finding the written mask condition')
         end
-        soundindex = structfind(thisSPM.SPM.xCon,'name','Normal>silence - All Sessions');
+        soundindex = structfind(thisSPM.SPM.xCon,'name','Normal>Written - All Sessions');
         if numel(soundindex) ~= 1
             error('Something went wrong with finding the sound mask condition')
         end
@@ -900,7 +988,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -923,7 +1011,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -947,7 +1035,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -975,7 +1063,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats2_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/' mask_cond{mask_cond_num}];

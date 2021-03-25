@@ -163,4 +163,7 @@ matlabbatch{3}.spm.stats.con.consess{6}.tcon.sessrep = 'bothsc';
 matlabbatch{3}.spm.stats.con.consess{7}.tcon.name = 'Unclear>Clear';
 matlabbatch{3}.spm.stats.con.consess{7}.tcon.weights = [1 -1 1 -1 0 0 0 0 0 0 0 0];
 matlabbatch{3}.spm.stats.con.consess{7}.tcon.sessrep = 'bothsc';
+matlabbatch{3}.spm.stats.con.consess{8}.fcon.name = 'Clarity Congruency Interaction';
+matlabbatch{3}.spm.stats.con.consess{8}.fcon.weights = [1 -1 -1 1 0 0 0 0 0 0 0 0];
+matlabbatch{3}.spm.stats.con.consess{8}.fcon.sessrep = 'bothsc';
 matlabbatch{3}.spm.stats.con.delete = 0;
