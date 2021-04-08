@@ -1,6 +1,6 @@
 % List of open inputs
 nrun = 1; % enter the number of runs here
-jobfile = {'/imaging/tc02/7T_full_paradigm_pilot_second_am/Preprocessed_Images/AM_univariate_timederivatives_job.m'};
+jobfile = {'/imaging/mlr/users/tc02/7T_full_paradigm_pilot_second_am/Preprocessed_Images/AM_univariate_timederivatives_job.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(0, nrun);
 for crun = 1:nrun

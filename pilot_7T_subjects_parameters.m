@@ -12,8 +12,8 @@ addpath(pwd);
 % addpath('/opt/neuromag/meg_pd_1.2/');
 
 % define paths
-rawpathstem = '/imaging/tc02/';
-preprocessedpathstem = '/imaging/tc02/7T_pilot_preprocessed/';
+rawpathstem = '/imaging/mlr/users/tc02/';
+preprocessedpathstem = '/imaging/mlr/users/tc02/7T_pilot_preprocessed/';
 
 % % define conditions
 % 16M4 16M12 16MM4 16MM12 16WO 16R BP Null 6Mov

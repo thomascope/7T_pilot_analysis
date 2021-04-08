@@ -68,7 +68,7 @@ analyse.lSVM=1;
 analyse.RSA=0;
 analyse.searchlight=0;
 
-addpath(genpath('/imaging/tc02/toolboxes'));
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes'));
 
 %% control parameters
 
@@ -524,7 +524,7 @@ if analyse.searchlight
     end
     clear wholebrain_tpatterns %For memory
 
-    addpath('/imaging/tc02/7T_full_paradigm_pilot_second_am/Preprocessed_Images')
+    addpath('/imaging/mlr/users/tc02/7T_full_paradigm_pilot_second_am/Preprocessed_Images')
     for condJ = 1:nTrialtypes
         %Define matrix based on shared features
         theseBrainVols.subj1 = fullBrainVols.subj1(:,1+((condJ-1)*9):9+((condJ-1)*9),:);
@@ -577,10 +577,10 @@ if analyse.searchlight
         betaCorrespondence.identifier = '0001';
         betaCorrespondence = repmat(betaCorrespondence,[size(fullBrainVols.subj1,3),nobjects]);
         
-        userOptions.betaPath = '/imaging/tc02/7T_full_paradigm_pilot_second_am/Preprocessed_Images/am_univariate_gmmasked/beta_[[betaIdentifier]].nii';
+        userOptions.betaPath = '/imaging/mlr/users/tc02/7T_full_paradigm_pilot_second_am/Preprocessed_Images/am_univariate_gmmasked/beta_[[betaIdentifier]].nii';
         %userOptions.subjectNames = {subj_initials};
         userOptions.analysisName = ['Condition_' num2str(condJ)];
-        userOptions.rootPath = '/imaging/tc02/7T_full_paradigm_pilot_second_am/Preprocessed_Images/Searchlight';
+        userOptions.rootPath = '/imaging/mlr/users/tc02/7T_full_paradigm_pilot_second_am/Preprocessed_Images/Searchlight';
         if ~exist(userOptions.rootPath,'dir')
             mkdir(userOptions.rootPath)
         end

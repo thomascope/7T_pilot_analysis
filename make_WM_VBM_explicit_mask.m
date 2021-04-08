@@ -2,7 +2,7 @@
 function make_VBM_explicit_mask(scan_paths, path_to_template_6, prefix)
 
 nrun = length(scan_paths);
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise_unmodulated_unsmoothed.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise_unmodulated_unsmoothed.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(3, nrun);
 
@@ -52,7 +52,7 @@ make_majority_mask([0.2 0.1 0.05 0.001], 0.8, [prefix '_majority_unsmoothed_mask
 
 
 nrun = length(scan_paths);
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise_unmodulated_smoothed.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise_unmodulated_smoothed.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(3, nrun);
 

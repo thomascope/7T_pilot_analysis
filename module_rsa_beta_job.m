@@ -2,7 +2,7 @@ function [avgRDM, stats_p_r] = module_rsa_beta_job(betapattern_numbers,mask_path
 
 condJ = condition_number+100; %To avoid figure numbers over-writing open SPM windows
 
-addpath(genpath('/imaging/tc02/toolboxes')); %Where is the RSA toolbox?
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
 
 
 %Define matrices based on shared features

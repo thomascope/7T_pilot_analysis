@@ -32,7 +32,7 @@
 % fMRI model specification: Onsets - cfg_entry
 % fMRI model specification: Onsets - cfg_entry
 nrun = X; % enter the number of runs here
-jobfile = {'/imaging/tc02/7T_full_paradigm_pilot_second/Preprocessed_Images/second_WRBJ_univariate_withestimateandcontrast_job.m'};
+jobfile = {'/imaging/mlr/users/tc02/7T_full_paradigm_pilot_second/Preprocessed_Images/second_WRBJ_univariate_withestimateandcontrast_job.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(32, nrun);
 for crun = 1:nrun

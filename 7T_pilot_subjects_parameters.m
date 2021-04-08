@@ -12,8 +12,8 @@ addpath(pwd);
 % addpath('/opt/neuromag/meg_pd_1.2/');
 
 % define paths
-rawpathstem = '/imaging/tc02/';
-preprocessedpathstem = '/imaging/tc02/7T_pilot_preprocessed/';
+rawpathstem = '/imaging/mlr/users/tc02/';
+preprocessedpathstem = '/imaging/mlr/users/tc02/7T_pilot_preprocessed/';
 
 % % define conditions
 % conditions = {'Mismatch_4' 'Match_4' 'Mismatch_8' 'Match_8' 'Mismatch_16' 'Match_16'};

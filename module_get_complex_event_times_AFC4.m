@@ -5,7 +5,7 @@ function tempDesign = module_get_complex_event_times_AFC4(subj_initials,testing_
 [workingdir,file,ext] = fileparts(which('module_get_event_times.m'));
 behaviour_folder = [workingdir '/behavioural_data'];
 
-addpath(genpath('/imaging/tc02/toolboxes'));
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes'));
 
 %% control parameters
 

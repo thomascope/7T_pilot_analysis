@@ -37,7 +37,7 @@ end
 %% First segment all the images
 if ~segmented
 nrun = length(mrilist);
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_segment.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_segment.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(1, nrun);
 
@@ -65,7 +65,7 @@ end
 end
 %% Now calculate the TIV and then rename all of the mc files as will be overwritten by DARTEL (if not smoothed)
 nrun = 1;
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_TIV.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_TIV.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(2, nrun);
 
@@ -113,7 +113,7 @@ end
 core_imagepaths = [group1_mrilist; group2_mrilist(1:length(group1_mrilist))];
 
 nrun = 1; % enter the number of runs here
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_dartel.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_dartel.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(2,1);
 inputs{1,1} = cell(length(core_imagepaths),1);
@@ -149,7 +149,7 @@ indexes_to_process = setdiff(total_control_numbers,ia);
 remaining_control_imagepaths = group2_mrilist(indexes_to_process);
 
 nrun = 1; % enter the number of runs here
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_templated_dartel.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_templated_dartel.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(8, nrun);
 inputs{1,1} = cell(length(remaining_control_imagepaths),1);
@@ -189,7 +189,7 @@ end
 %% Now normalise all scans
 
 nrun = length(mrilist);
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(3, nrun);
 
@@ -237,7 +237,7 @@ tiv= dataArray{2}+dataArray{3}+dataArray{4};
 
 %% Now do group stats with TIV and age file as covariates in the ANOVA
 nrun = 1;
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_factorial_TIV_age.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_factorial_TIV_age.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(6, nrun);
 
@@ -295,24 +295,24 @@ spm_jobman('run', jobs, inputs{:});
 inputs = cell(1, nrun);
 inputs{1, 1} =  {[char(stats_folder) '/SPM.mat']};
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_estimate.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_estimate.m'};
 jobs = repmat(jobfile, 1, nrun);
 
 spm_jobman('run', jobs, inputs{:});
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_contrast.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_contrast.m'};
 jobs = repmat(jobfile, 1, nrun);
 
 spm_jobman('run', jobs, inputs{:});
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_results.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_results.m'};
 jobs = repmat(jobfile, 1, nrun);
 
 spm_jobman('run', jobs, inputs{:});
 
 %% Now do single subject stats with TIV file and age covariates in the ANOVA - for later correlation against behavioural measures
 nrun = length(group1_mrilist);
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_factorial_TIV_age_singlesubj.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_factorial_TIV_age_singlesubj.m'};
 jobs = repmat(jobfile, 1, 1);
 inputs = cell(6, nrun);
 
@@ -366,7 +366,7 @@ for i = 1:nrun
     inputs{1,i} = {[char(inputs{1,i}) '/SPM.mat']};
 end
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_estimate.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_estimate.m'};
 jobs = repmat(jobfile, 1, 1);
 
 parfor crun = 1:nrun
@@ -378,7 +378,7 @@ parfor crun = 1:nrun
     end
 end
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_contrast.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_contrast.m'};
 jobs = repmat(jobfile, 1, 1);
 
 parfor crun = 1:nrun
@@ -390,7 +390,7 @@ parfor crun = 1:nrun
     end
 end
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_results.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_results.m'};
 jobs = repmat(jobfile, 1, 1);
 
 parfor crun = 1:nrun
@@ -405,7 +405,7 @@ end
 %% Make average brain by normalising MPRAGES to template and then averaging them
 
 nrun = length(mrilist);
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise_unmodulated_unsmoothed.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise_unmodulated_unsmoothed.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(3, nrun);
 
@@ -440,7 +440,7 @@ parfor crun = 1:nrun
 end
 
 nrun = 1;
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_imcalc_average.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_imcalc_average.m'};
 inputs = cell(2, nrun);
 
 split_stem = regexp(core_imagepaths, '/', 'split');
@@ -471,7 +471,7 @@ end
 %% Now normalise all white matter scans
 
 nrun = length(mrilist);
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_normalise.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(3, nrun);
 
@@ -521,7 +521,7 @@ tiv= dataArray{2}+dataArray{3}+dataArray{4};
 
 %% Now do white matter group stats with TIV and age file as covariates in the ANOVA
 nrun = 1;
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_factorial_TIV_age.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_factorial_TIV_age.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(6, nrun);
 
@@ -573,17 +573,17 @@ spm_jobman('run', jobs, inputs{:});
 inputs = cell(1, nrun);
 inputs{1, 1} =  {[char(stats_folder) '/SPM.mat']};
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_estimate.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_estimate.m'};
 jobs = repmat(jobfile, 1, nrun);
 
 spm_jobman('run', jobs, inputs{:});
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_contrast.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_contrast.m'};
 jobs = repmat(jobfile, 1, nrun);
 
 spm_jobman('run', jobs, inputs{:});
 
-jobfile = {'/imaging/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_results.m'};
+jobfile = {'/imaging/mlr/users/tc02/vespa/scans/PNFA_VBM/tom/VBM_batch_results.m'};
 jobs = repmat(jobfile, 1, nrun);
 
 spm_jobman('run', jobs, inputs{:});

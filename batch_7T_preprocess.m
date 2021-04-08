@@ -1,6 +1,6 @@
 % Batch script for preprocessing of pilot 7T data
 % Written by TEC Feb 2018 and updated 2021
-% 
+%
 %% Setup environment
 clear all
 rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
@@ -139,7 +139,7 @@ if ~all(topupworkedcorrectly)
 end
 
 % %% Now realign the EPIs % Now moved to before topup
-% 
+%
 % realignworkedcorrectly = zeros(1,nrun);
 % parfor crun = 1:nrun
 %     theseepis = find(strncmp(blocksout{crun},'Run',3))
@@ -157,7 +157,7 @@ end
 %         realignworkedcorrectly(crun) = 0;
 %     end
 % end
-% 
+%
 % if ~all(realignworkedcorrectly)
 %     error('failed at realign');
 % end
@@ -194,7 +194,7 @@ inputs = cell(2, nrun);
 
 for crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
-  
+    
     theseepis = find(strncmp(blocksout{crun},'Run',3));
     filestosmooth = cell(1,length(theseepis));
     filestosmooth_list = [];
@@ -327,7 +327,7 @@ for crun = 1:nrun
 end
 if visual_check
     if segmented
-        spm_check_registration(this_segmented{:}) 
+        spm_check_registration(this_segmented{:})
     else
         spm_check_registration(this_scan{:}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
     end
@@ -386,112 +386,133 @@ if ~all(normalisesmoothworkedcorrectly)
 end
 
 %% Now do a univariate SPM analysis (currently only implemented for 3 or 4 runs)
-nrun = size(subjects,2); % enter the number of runs here
-jobfile = {};
-jobfile{3} = {[scriptdir 'module_univariate_3runs_noneutral_job.m']};
-jobfile{4} = {[scriptdir 'module_univariate_4runs_noneutral_job.m']};
-inputs = cell(0, nrun);
-
-for crun = 1:nrun
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    filestoanalyse = cell(1,length(theseepis));
+for this_smooth = [3,8];
+    nrun = size(subjects,2); % enter the number of runs here
+    jobfile = {};
+    jobfile{3} = {[scriptdir 'module_univariate_3runs_noneutral_job.m']};
+    jobfile{4} = {[scriptdir 'module_univariate_4runs_noneutral_job.m']};
+    inputs = cell(0, nrun);
     
-    tempDesign = module_get_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-    
-    inputs{1, crun} = cellstr([outpath 'stats3_8']);
-    for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(8*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        inputs{(8*(sess-1))+3, crun} = cat(2, tempDesign{sess}{1:16})';
-        inputs{(8*(sess-1))+4, crun} = cat(2, tempDesign{sess}{17:32})';
-        inputs{(8*(sess-1))+5, crun} = cat(2, tempDesign{sess}{33:48})';
-        inputs{(8*(sess-1))+6, crun} = cat(2, tempDesign{sess}{49:64})';
-        %         inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{65:80})';
-        %         inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{81:96})';
-        inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{[97:112, 129]})';
-        inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{[113:128, 130]})';
-        inputs{(8*(sess-1))+9, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+    for crun = 1:nrun
+        theseepis = find(strncmp(blocksout{crun},'Run',3));
+        outpath = [preprocessedpathstem subjects{crun} '/'];
+        filestoanalyse = cell(1,length(theseepis));
+        
+        tempDesign = module_get_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+        
+        inputs{1, crun} = cellstr([outpath 'stats3_' num2str(this_smooth)]);
+        for sess = 1:length(theseepis)
+            filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s' num2str(this_smooth) 'wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+            inputs{(8*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+            inputs{(8*(sess-1))+3, crun} = cat(2, tempDesign{sess}{1:16})';
+            inputs{(8*(sess-1))+4, crun} = cat(2, tempDesign{sess}{17:32})';
+            inputs{(8*(sess-1))+5, crun} = cat(2, tempDesign{sess}{33:48})';
+            inputs{(8*(sess-1))+6, crun} = cat(2, tempDesign{sess}{49:64})';
+            %         inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{65:80})';
+            %         inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{81:96})';
+            inputs{(8*(sess-1))+7, crun} = cat(2, tempDesign{sess}{[97:112, 129]})';
+            inputs{(8*(sess-1))+8, crun} = cat(2, tempDesign{sess}{[113:128, 130]})';
+            inputs{(8*(sess-1))+9, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        end
+        jobs{crun} = jobfile{length(theseepis)};
+        
     end
-    jobs{crun} = jobfile{length(theseepis)};
     
-end
-
-SPMworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
-    try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
-        SPMworkedcorrectly(crun) = 1;
-    catch
-        SPMworkedcorrectly(crun) = 0;
+    SPMworkedcorrectly = zeros(1,nrun);
+    parfor crun = 1:nrun
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobs{crun}, inputs{:,crun});
+            SPMworkedcorrectly(crun) = 1;
+        catch
+            SPMworkedcorrectly(crun) = 0;
+        end
     end
-end
-
-if ~all(SPMworkedcorrectly)
-    error('failed at SPM 8mm');
+    
+    if ~all(SPMworkedcorrectly)
+        error(['failed at SPM ' num2str(this_smooth) 'mm');
+    end
 end
 
 %% Now create a univariate second level SPM with Age as a covariate - one per condition of interest
-age_lookup = readtable('Pinfa_ages.csv');
-all_conditions = {
-    'con_0005.nii','Match > Mismatch';
-    'con_0010.nii','Mismatch > Match';
-    'con_0015.nii','Normal > Written';
-    'con_0020.nii','Written > Normal';
-    'con_0025.nii','Normal > Silence';
-    'con_0030.nii','Clear > Unclear';
-    'con_0035.nii','Unclear > Clear'};
-
-visual_check = 0;
-nrun = size(all_conditions,1); % enter the number of runs here
-%jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
-
-this_scan = {};
-this_t_scan = {};
-firstlevel_folder = 'stats3_8';
-
-jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_secondlevel_job.m'};
-jobs = repmat(jobfile, 1, nrun);
-inputs = cell(4, nrun);
-
-for this_condition = 1:nrun
-    group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
-    group1_ages = [];
-    group2_mrilist = {};
-    group2_ages = [];
-    for crun = 1:size(subjects,2)
-        inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder filesep all_conditions{this_condition,2}]);
-        this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
-        this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep all_conditions{this_condition,1}]);
-        this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(all_conditions{this_condition,1},'con','spmT')]);
-        if group(crun) == 1 % Controls
-            group2_mrilist(end+1) = this_scan(crun);
-            group2_ages(end+1) = this_age;
-        elseif group(crun) == 2 % Patients
-            group1_mrilist(end+1) = this_scan(crun);
-            group1_ages(end+1) = this_age;
+for this_smooth = [3,8];
+    exclude_bad = 1;
+    bad_scans = {
+        'P7P16' % Left frontal hole
+        'P7C18' % Bilateral frontal holes
+        };
+    
+    age_lookup = readtable('Pinfa_ages.csv');
+    all_conditions = {
+        'con_0005.nii','Match > Mismatch';
+        'con_0010.nii','Mismatch > Match';
+        'con_0015.nii','Normal > Written';
+        'con_0020.nii','Written > Normal';
+        'con_0025.nii','Normal > Silence';
+        'con_0030.nii','Clear > Unclear';
+        'con_0035.nii','Unclear > Clear';
+        'con_0035.nii','Clarity Congruency Interaction'};
+    
+    visual_check = 0;
+    nrun = size(all_conditions,1); % enter the number of runs here
+    %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
+    
+    this_scan = {};
+    this_t_scan = {};
+    firstlevel_folder = ['stats3_' num2str(this_smooth)];
+    
+    jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_secondlevel_job.m'};
+    jobs = repmat(jobfile, 1, nrun);
+    inputs = cell(4, nrun);
+    
+    for this_condition = 1:nrun
+        group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
+        group1_ages = [];
+        group2_mrilist = {};
+        group2_ages = [];
+        
+        if exclude_bad
+            inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder '_nobad' filesep all_conditions{this_condition,2}]);
+        else
+            inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder filesep all_conditions{this_condition,2}]);
+        end
+        for crun = 1:size(subjects,2)
+            if exclude_bad
+                if any(strcmp(bad_scans,subjects{crun}))
+                    continue
+                end
+            end
+            this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
+            this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep all_conditions{this_condition,1}]);
+            this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(all_conditions{this_condition,1},'con','spmT')]);
+            if group(crun) == 1 % Controls
+                group2_mrilist(end+1) = this_scan(crun);
+                group2_ages(end+1) = this_age;
+            elseif group(crun) == 2 % Patients
+                group1_mrilist(end+1) = this_scan(crun);
+                group1_ages(end+1) = this_age;
+            end
+        end
+        inputs{2, this_condition} = group1_mrilist';
+        inputs{3, this_condition} = group2_mrilist';
+        inputs{4, this_condition} = [group1_ages';group2_ages'];
+        if visual_check
+            spm_check_registration(this_t_scan{~cellfun(@isempty,this_t_scan)}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
+            input('Press any key to proceed to second level with these scans')
         end
     end
-    inputs{2, this_condition} = group1_mrilist';
-    inputs{3, this_condition} = group2_mrilist';
-    inputs{4, this_condition} = [group1_ages';group2_ages'];
-    if visual_check
-        spm_check_registration(this_t_scan{:}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
-        input('Press any key to proceed to second level with these scans')
-    end
-end
-
-secondlevelworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
-    try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
-        secondlevelworkedcorrectly(crun) = 1;
-    catch
-        secondlevelworkedcorrectly(crun) = 0;
+    
+    secondlevelworkedcorrectly = zeros(1,nrun);
+    parfor crun = 1:nrun
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobs{crun}, inputs{:,crun});
+            secondlevelworkedcorrectly(crun) = 1;
+        catch
+            secondlevelworkedcorrectly(crun) = 0;
+        end
     end
 end
 
@@ -599,24 +620,24 @@ parfor crun = 1:nrun
 end
 
 % %% Now create a more complex SPM with variable levels of AR whitening, with word omissions specified
-% 
+%
 % jobfile = {};
 % jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_AR_job.m']};
 % jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_AR_job.m']};
-% 
+%
 % all_aros = [1 3 6 12]; %Autoregressive model order
 % nrun = size(subjects,2)*length(all_aros); % enter the number of runs here
 % inputs = cell(0, size(subjects,2),length(all_aros));
 % for this_aro = 1:length(all_aros);
 % for crun = 1:size(subjects,2)
 %     aro = all_aros(this_aro);
-%     
+%
 %     theseepis = find(strncmp(blocksout{crun},'Run',3));
 %     outpath = [preprocessedpathstem subjects{crun} '/'];
 %     filestoanalyse = cell(1,length(theseepis));
-%     
+%
 %     tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-%     
+%
 %     inputs{1, crun, this_aro} = cellstr([outpath 'stats3_multi_AR' num2str(aro)]);
 %     for sess = 1:length(theseepis)
 %         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3topup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
@@ -638,18 +659,18 @@ end
 %     %inputs{(100*(sess-1))+102, crun, this_aro} = 'AR(1)';
 %     inputs{(100*(sess-1))+102, crun, this_aro} = aro;
 %     jobs{crun} = jobfile{length(theseepis)};
-%     
+%
 % end
 % end
-% 
-% 
+%
+%
 % try
 %     matlabpool 'close'
 % catch
 %     delete(gcp)
 % end
-% 
-% 
+%
+%
 % workersrequested = 24;
 % workerpool = cbupool(workersrequested);
 % workerpool.ResourceTemplate=['-l nodes=^N^,mem=768GB,walltime=168:00:00'];
@@ -658,7 +679,7 @@ end
 % catch
 %     parpool(workerpool,workerpool.NumWorkers)
 % end
-%         
+%
 % all_combs = combvec(1:size(subjects,2),1:length(all_aros))';
 % SPMworkedcorrectly = zeros(1,size(all_combs,1));
 % for thisone = 1:size(all_combs,1)
@@ -863,9 +884,9 @@ parfor crun = 1:nrun
         %inflate the ROIs a bit to account for smaller brains than template
         for thisone=3:size(P,1)
             dilate_image_spm(P(thisone,:),5)
-%             spm_imcalc(P(thisone,:), P(thisone,:), 'i1*10');
-%             spm_smooth(P(thisone,:),P(thisone,:),10);
-%             spm_imcalc(P(thisone,:),P(thisone,:),'i1>1');
+            %             spm_imcalc(P(thisone,:), P(thisone,:), 'i1*10');
+            %             spm_smooth(P(thisone,:),P(thisone,:),10);
+            %             spm_imcalc(P(thisone,:),P(thisone,:),'i1>1');
         end
         flags=struct;
         flags.interp = 0;
@@ -958,13 +979,13 @@ parfor crun = 1:nrun
         %spm_run_coreg(job)
         
         P = char(job.ref{:},job.source{:},job.other{:});
-%         %inflate the ROIs a bit to account for smaller brains than template
-%         for thisone=3:size(P,1)
-%             dilate_image_spm(P(thisone,:),5)
-% %             spm_imcalc(P(thisone,:), P(thisone,:), 'i1*10');
-% %             spm_smooth(P(thisone,:),P(thisone,:),10);
-% %             spm_imcalc(P(thisone,:),P(thisone,:),'i1>1');
-%         end
+        %         %inflate the ROIs a bit to account for smaller brains than template
+        %         for thisone=3:size(P,1)
+        %             dilate_image_spm(P(thisone,:),5)
+        % %             spm_imcalc(P(thisone,:), P(thisone,:), 'i1*10');
+        % %             spm_smooth(P(thisone,:),P(thisone,:),10);
+        % %             spm_imcalc(P(thisone,:),P(thisone,:),'i1>1');
+        %         end
         flags=struct;
         flags.interp = 0;
         spm_reslice(P,flags)
@@ -1077,7 +1098,7 @@ all_avgRDM{4} = avgRDM;
 all_stats{4} = stats_p_r;
 
 %% Try again with parallelisation of different AR model orders
-addpath(genpath('/imaging/tc02/toolboxes')); %Where is the RSA toolbox?
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
 
 %data_smoo = 3; %Smoothing on MVPA data
 all_aros = [1 3 6 12];
@@ -1114,17 +1135,17 @@ type = 'beta'; % Run based on the beta-patterns
 
 switch type
     case 'beta'
-%First denan the beta images
-for thisone = 1:size(pat_aro_combs,1)
-    crun = pat_aro_combs(thisone,1);
-aro = all_aros(pat_aro_combs(thisone,2));
-data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_AR' num2str(aro) '/'];
-beta_files = dir([data_path '/Cbeta_0*']);
-
-parfor i = 1:size(beta_files,1)
-module_fslmaths_job([data_path 'Cbeta_' sprintf('%04d',i) '.nii'],'-nan',[data_path 'Cbeta_denan_' sprintf('%04d',i) '.nii']); %Account for the fact that spm_read_vols crashes with nan
-end
-end
+        %First denan the beta images
+        for thisone = 1:size(pat_aro_combs,1)
+            crun = pat_aro_combs(thisone,1);
+            aro = all_aros(pat_aro_combs(thisone,2));
+            data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_AR' num2str(aro) '/'];
+            beta_files = dir([data_path '/Cbeta_0*']);
+            
+            parfor i = 1:size(beta_files,1)
+                module_fslmaths_job([data_path 'Cbeta_' sprintf('%04d',i) '.nii'],'-nan',[data_path 'Cbeta_denan_' sprintf('%04d',i) '.nii']); %Account for the fact that spm_read_vols crashes with nan
+            end
+        end
 end
 
 parfor thisone = 1:size(all_combs,1)
@@ -1193,16 +1214,16 @@ userOptions.figureIndex = [260, 360];
 
 for crun = 1:size(subjects,2)
     for aro = 1:length(all_aros)
-userOptions.figureIndex = [base_figureindex+10*crun+aro, base_figureindex+200+10*crun+aro];
+        userOptions.figureIndex = [base_figureindex+10*crun+aro, base_figureindex+200+10*crun+aro];
         
-subj_stats_p_r{crun,aro}=compareRefRDM2candRDMs(judgmentRDM, avgRDM(crun,:,:,aro), userOptions);
-
-
+        subj_stats_p_r{crun,aro}=compareRefRDM2candRDMs(judgmentRDM, avgRDM(crun,:,:,aro), userOptions);
+        
+        
     end
 end
 
 %% Analyse by condition and brain region
-addpath(genpath('/imaging/tc02/toolboxes')); %Where is the RSA toolbox?
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
 
 if opennewanalysispool == 1
     %Re-open Parpool with larger worker pool
@@ -1258,17 +1279,17 @@ type = 't-pat'; % Run based on the t-patterns
 
 switch type
     case 'beta'
-%First denan the beta images
-for thisone = 1:size(pat_smo_combs,1)
-    crun = pat_smo_combs(thisone,1);
-smo = all_smos(pat_smo_combs(thisone,2));
-data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(smo) '_nowritten/'];
-beta_files = dir([data_path '/Cbeta_0*']);
-
-parfor i = 1:size(beta_files,1)
-module_fslmaths_job([data_path 'Cbeta_' sprintf('%04d',i) '.nii'],'-nan',[data_path 'Cbeta_denan_' sprintf('%04d',i) '.nii']); %Account for the fact that spm_read_vols crashes with nan
-end
-end
+        %First denan the beta images
+        for thisone = 1:size(pat_smo_combs,1)
+            crun = pat_smo_combs(thisone,1);
+            smo = all_smos(pat_smo_combs(thisone,2));
+            data_path = [preprocessedpathstem subjects{crun} '/stats_multi_' num2str(smo) '_nowritten/'];
+            beta_files = dir([data_path '/Cbeta_0*']);
+            
+            parfor i = 1:size(beta_files,1)
+                module_fslmaths_job([data_path 'Cbeta_' sprintf('%04d',i) '.nii'],'-nan',[data_path 'Cbeta_denan_' sprintf('%04d',i) '.nii']); %Account for the fact that spm_read_vols crashes with nan
+            end
+        end
 end
 
 parfor thisone = 1:size(all_combs,1)
@@ -1277,12 +1298,12 @@ parfor thisone = 1:size(all_combs,1)
     cond_num = all_combs(thisone,3);
     smo = all_smos(all_combs(thisone,4));
     try
-    switch type
-        case 't-pat'
-            module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo,setup_file) % Run based on the t-patterns
-        case 'beta'
-            module_run_rsa_beta(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo,setup_file) %Run based on the beta patterns
-    end
+        switch type
+            case 't-pat'
+                module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo,setup_file) % Run based on the t-patterns
+            case 'beta'
+                module_run_rsa_beta(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},smo,setup_file) %Run based on the beta patterns
+        end
     end
     %module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},conditions{cond_num},data_smoo)
     %module_run_rsa(crun,cond_num,mask_cond{mask_cond_num},['Subj_' num2str(crun) '_mask_' mask_cond{mask_cond_num} '_cond_' conditions{cond_num} '_smo_' num2str(data_smoo)],data_smoo)
@@ -1294,21 +1315,21 @@ for crun = 1:size(subjects,2)
         for cond_num = 1:length(conditions)
             for smo = 1:length(all_smos)
                 try
-                mask_name = mask_cond{mask_cond_num};
-                mask_short_name = mask_short_cond{mask_cond_num};
-                switch type
-                    case 't-pat'
-                        thesedata = load(['./RSA_results/RSA_results_nowritten2_subj' num2str(crun) '_' conditions{cond_num} '_mask_' mask_name(1:end-4) '_smooth_' num2str(all_smos(smo))],'avgRDM','stats_p_r');
-                    case 'beta'
-                        thesedata = load(['./RSA_results/RSA_results_beta_nowritten2_subj' num2str(crun) '_' conditions{cond_num} '_mask_' mask_name(1:end-4) '_smooth_' num2str(all_smos(smo))],'avgRDM','stats_p_r');
-                end
-                %thesedata = load(['./RSA_results/RSA_results_subj' num2str(crun) '_' 'Subj_' num2str(crun) '_mask_' mask_cond{mask_cond_num} '_cond_' conditions{cond_num} '_smo_' num2str(data_smoo) '_mask_' mask_name(1:end-4) '_smooth_' num2str(data_smoo)],'avgRDM','stats_p_r');
-                avgRDM{crun,mask_cond_num,cond_num,smo} = thesedata.avgRDM;
-                this_cond_name = strrep(avgRDM{crun,mask_cond_num,cond_num,smo}.name,'Mismatch ','MM');
-                this_cond_name = strrep(this_cond_name,'Match ','M');
-                this_cond_name = strrep(this_cond_name,'RDM across sessions | condition ','');
-                avgRDM{crun,mask_cond_num,cond_num,smo}.name = ['S' num2str(crun) this_cond_name '_' mask_short_name '_sm' num2str(all_smos(smo))];
-                stats_p_r{crun,mask_cond_num,cond_num,smo} = thesedata.stats_p_r;
+                    mask_name = mask_cond{mask_cond_num};
+                    mask_short_name = mask_short_cond{mask_cond_num};
+                    switch type
+                        case 't-pat'
+                            thesedata = load(['./RSA_results/RSA_results_nowritten2_subj' num2str(crun) '_' conditions{cond_num} '_mask_' mask_name(1:end-4) '_smooth_' num2str(all_smos(smo))],'avgRDM','stats_p_r');
+                        case 'beta'
+                            thesedata = load(['./RSA_results/RSA_results_beta_nowritten2_subj' num2str(crun) '_' conditions{cond_num} '_mask_' mask_name(1:end-4) '_smooth_' num2str(all_smos(smo))],'avgRDM','stats_p_r');
+                    end
+                    %thesedata = load(['./RSA_results/RSA_results_subj' num2str(crun) '_' 'Subj_' num2str(crun) '_mask_' mask_cond{mask_cond_num} '_cond_' conditions{cond_num} '_smo_' num2str(data_smoo) '_mask_' mask_name(1:end-4) '_smooth_' num2str(data_smoo)],'avgRDM','stats_p_r');
+                    avgRDM{crun,mask_cond_num,cond_num,smo} = thesedata.avgRDM;
+                    this_cond_name = strrep(avgRDM{crun,mask_cond_num,cond_num,smo}.name,'Mismatch ','MM');
+                    this_cond_name = strrep(this_cond_name,'Match ','M');
+                    this_cond_name = strrep(this_cond_name,'RDM across sessions | condition ','');
+                    avgRDM{crun,mask_cond_num,cond_num,smo}.name = ['S' num2str(crun) this_cond_name '_' mask_short_name '_sm' num2str(all_smos(smo))];
+                    stats_p_r{crun,mask_cond_num,cond_num,smo} = thesedata.stats_p_r;
                 end
             end
         end
@@ -1417,4 +1438,4 @@ xlim([0 6])
 title('Median RT')
 set(gca,'XTick',[0:1:6])
 set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
-    
+
