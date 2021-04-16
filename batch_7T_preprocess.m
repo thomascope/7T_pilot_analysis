@@ -518,7 +518,7 @@ end
 
 
 
-%% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs)
+%% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {};
 jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
@@ -534,7 +534,7 @@ for crun = 1:nrun
     
     inputs{1, crun} = cellstr([outpath 'stats3_multi_3']);
     for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3, standard space is s3w
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3r, standard space is s3w
         inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         for cond_num = 1:80
             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
@@ -694,8 +694,8 @@ end
 %         SPMworkedcorrectly(thisone) = 0;
 %     end
 % end
-
-%% Now create a ReML SPM without modelling the written word separately for future multivariate analysis (currently only implemented for 3 or 4 runs)
+ 
+%% Now create a ReML SPM without modelling the written word separately for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {};
 jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_job.m']};

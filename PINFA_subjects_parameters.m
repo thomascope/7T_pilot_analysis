@@ -407,4 +407,21 @@ blocksout{cnt} = {'structural','INV2','Run_1','Run_2','Run_3','Run_4','Pos_topup
 minvols(cnt) = 238; 
 group(cnt) = 1; 
 
+%% Add here any bad EPI runs for exclusion, see check_epi_quality.m for a way to look at this from your first level SPM
+Bad_run_subj_pairs = {'P7P16' , 4;
+'P7C17', 4
+'P7C18', 3}; %P7P01 has a frontal dropout on all scans, but probably outside of area of interest, so let him stand.
+
+for i = 1:length(subjects)
+    if ~strcmp(subjects{i},Bad_run_subj_pairs(:,1))
+        continue
+    else
+        TF = strcmp(subjects{i},Bad_run_subj_pairs(:,1));
+        theseepis = find(strncmp(blocksout{i},'Run',3));
+        badepi = theseepis(Bad_run_subj_pairs{TF,2});
+        blocksout{i}(badepi) = [];
+        blocksin{i}(badepi) = [];
+        blocksin_folders{i}(badepi) = [];
+    end
+end
 
