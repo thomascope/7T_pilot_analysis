@@ -1,13 +1,13 @@
-function []=TDTCrossnobisAnalysis_1Subj(SubjID,GLMAnalPD,ProcDataDir,TempPD)
+function []=TDTCrossnobisAnalysis_1Subj(GLMDir)
 
 addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI')
 addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/decoding_toolbox_v3.999')
 addpath(genpath('/group/language/data/ediz.sohoglu/matlab/rsatoolbox'));
 
 %GLMDir = fullfile(GLMAnalPD,SubjID);
-GLMDir = '/imaging/mlr/users/tc02/PINFA_preprocessed_2021/P7C05/stats3_multi_3'; %For testing
+%GLMDir = '/imaging/mlr/users/tc02/PINFA_preprocessed_2021/P7C05/stats4_multi_3_nowritten2'; %For testing
 
-StrDir = fullfile(ProcDataDir,SubjID,'Structural');
+%StrDir = fullfile(ProcDataDir,SubjID,'Structural');
 
 %% Compute searchlight crossnobis distance
 
@@ -90,10 +90,11 @@ cfg.searchlight.unit = 'mm';
 cfg.searchlight.radius = 8; % this will yield a searchlight radius of 12mm.
 cfg.searchlight.spherical = 1;
 cfg.verbose = 2; % you want all information to be printed on screen
-% cfg.searchlight.subset = 1:1000:100000;
+downsamp_ratio = 1;
+cfg.searchlight.subset = 1:downsamp_ratio:1000000;
 
 % Decide whether you want to see the searchlight/ROI/... during decoding
-cfg.plot_selected_voxels = 0; % 0: no plotting, 1: every step, 2: every second step, 100: every hundredth step...
+cfg.plot_selected_voxels = 100; % 0: no plotting, 1: every step, 2: every second step, 100: every hundredth step...
 
 %% Nothing needs to be changed below for standard dissimilarity estimates using all data
 
@@ -108,7 +109,12 @@ cfg = decoding_describe_data(cfg,labelnames,labels,regressor_names,beta_loc);
 cfg.design = make_design_similarity_cv(cfg);
 
 % Run decoding
-results = decoding(cfg,[],misc);
+cfg.results.overwrite = 1;
+try
+    results = decoding(cfg,[],misc);
+catch
+    assert(~~exist([cfg.results.dir filesep 'res_other_average.mat'],'file'),'Something went wrong with the decoding - the results do not exist')
+end
 
 %% Make effect-maps (by correlating neural RDMs to model RDMs)
 
@@ -118,10 +124,41 @@ outputDir = fullfile(GLMDir,'TDTcrossnobis',version);
 if exist(outputDir,'dir'); rmdir(outputDir,'s'); mkdir(outputDir); else; mkdir(outputDir); end
 
 clear models
-models = modelRDMs; close all
-%modelNames = fieldnames(models);
-modelNames = {'Syl2StrongM' 'Syl2WeakM' 'Syl2StrongMM' 'Syl2WeakMM'};
-%modelNames = {'ProbM' 'ProbMM' 'EntropyM' 'EntropyMM'};
+
+basemodels.vowels = zeros(16,16);
+basemodels.vowels(1:17:end) = 1;
+basemodels.vowels(2:68:end) = 1/3;
+basemodels.vowels(3:68:end) = 1/3;
+basemodels.vowels(4:68:end) = 1/3;
+basemodels.vowels(17:68:end) = 1/3;
+basemodels.vowels(19:68:end) = 1/3;
+basemodels.vowels(20:68:end) = 1/3;
+basemodels.vowels(33:68:end) = 1/3;
+basemodels.vowels(34:68:end) = 1/3;
+basemodels.vowels(36:68:end) = 1/3;
+basemodels.vowels(49:68:end) = 1/3;
+basemodels.vowels(50:68:end) = 1/3;
+basemodels.vowels(51:68:end) = 1/3;
+basemodels.vowels = 1-basemodels.vowels;
+basemodelNames = {'vowels'};
+
+modeltemplate = NaN(size(results.other_average.output{1}));
+
+labelnames_denumbered = {};
+for i = 1:length(labelnames)
+    labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
+end
+modelNames = unique(labelnames_denumbered,'stable');
+
+for i = 1:length(modelnames)
+    models{i} = modeltemplate;
+    models{i}(strcmp(modelnames{i},labelnames_denumbered),strcmp(modelnames{i},labelnames_denumbered))=basemodels.vowels
+end
+
+% % models = modelRDMs; close all
+% %modelNames = fieldnames(models);
+% 
+% %modelNames = {'ProbM' 'ProbMM' 'EntropyM' 'EntropyMM'};
 
 load(fullfile(GLMDir,'TDTcrossnobis','res_other_average.mat'));
 data = results.other_average.output;
@@ -135,10 +172,15 @@ clear results % to free memory
 for m=1:length(modelNames)
     fprintf('\nComputing effect-map for model %s\n',modelNames{m});
     
-    modelRDM = vectorizeRDMs(models.(modelNames{m}))';
+    modelRDM = vectorizeRDMs(models{m})';
     effectMap = NaN(size(mask));
     for vx=1:numel(data)
         neuralRDM = vectorizeRDMs(data{vx})';
+        if isempty(neuralRDM)
+            effectMap(mask_index(vx)) = effectMap(mask_index(notempty)); %Duplicate values for downsampled searchlight.
+            continue
+        end
+        notempty = vx;
         if ~isempty(strfind(version,'pearson'))
             effectMap(mask_index(vx)) = fisherTransform(corr(modelRDM,neuralRDM,'type','Pearson','Rows','pairwise'));
         elseif ~isempty(strfind(version,'spearman'))
@@ -147,88 +189,91 @@ for m=1:length(modelNames)
             %effectMap(mask_index(vx)) = mean(neuralRDM(find(~isnan(modelRDM)),:),1);
             effectMap(mask_index(vx)) = mean(neuralRDM(find(modelRDM==1),:),1);
         end
+        if ~mod(vx,100)
+            disp(['Processing voxel ' num2str(vx) ' of ' num2str(numel(data))])
+        end
     end
     saveMRImage(effectMap,fullfile(outputDir,['effect-map_' modelNames{m} '.nii']),V.mat);
 end
 
 %% Normalise effect-maps to MNI template
-
-clear version
-
-cnt = 0;
-
-cnt = cnt + 1;
-version{cnt} = 'spearman';
-
-spm('FMRI');
-
-for v=1:length(version)
-    
-    versionCurrent = version{v};
-    
-    clear matlabbatch
-    
-    load([TempPD '/Normalize.mat']);
-    
-    % Gather images for current subject
-    images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^effect-map_.*.nii'));
-    
-    % Write out masks
-    images_mask = {};
-    for i=1:length(images)
-        V = spm_vol(images{i});
-        Y = spm_read_vols(V);
-        Y(~isnan(Y)) = 1;
-        Y(isnan(Y)) = 0;
-        images_mask{i,1} = strrep(images{i},'effect-map','nativeSpaceMask');
-        saveMRImage(Y,images_mask{i,1},V.mat);
-    end
-    
-    % Normalize
-    DefFile = cellstr(spm_select('FPList', StrDir, '^y.*.nii'));
-    matlabbatch{1}.spm.spatial.normalise.write.subj.resample = [images; images_mask];
-    matlabbatch{1}.spm.spatial.normalise.write.subj.def = DefFile;
-    
-    save(fullfile(GLMDir,'TDTcrossnobis',versionCurrent,'NormalizeTDTcrossnobis.mat'), 'matlabbatch');
-    spm_jobman('initcfg')
-    spm_jobman('run', matlabbatch);
-    
-    clear images images_mask
-    
-    % Smooth, mask and write out normalised images
-    
-    % Gather images for current subject
-    images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^weffect-map_.*.nii'));
-    images_mask = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^wnativeSpaceMask_.*.nii'));
-    
-    % Mask and smooth normalised data
-    mask_threshold = .05;
-    for i=1:length(images)
-        % Fix normalised mask
-        V = spm_vol(images_mask{i});
-        fname_mask = V.fname;
-        Y_mask = spm_read_vols(V);
-        Y_mask(Y_mask<mask_threshold) = 0;
-        Y_mask(isnan(Y_mask)) = 0;
-        saveMRImage(Y_mask,fname_mask,V.mat);
-        
-        % Fix normalised r-map
-        V = spm_vol(images{i});
-        fname_image = V.fname;
-        Y = spm_read_vols(V);
-        Y(Y_mask<mask_threshold) = 0;
-        Y_mask(isnan(Y_mask)) = 0;
-        saveMRImage(Y,fname_image,V.mat);
-        
-        % Smooth and (re)mask normalised r-map
-        fname_smoothed = strrep(images{i},'weffect-map_','sweffect-map_');
-        spm_smooth(images{i},fname_smoothed,[6 6 6]);
-        V = spm_vol(fname_smoothed);
-        Y = spm_read_vols(V);
-        Y(Y_mask<mask_threshold) = NaN;
-        saveMRImage(Y,fname_smoothed,V.mat);
-    end
-    
-end
-    
+% 
+% clear version
+% 
+% cnt = 0;
+% 
+% cnt = cnt + 1;
+% version{cnt} = 'spearman';
+% 
+% spm('FMRI');
+% 
+% for v=1:length(version)
+%     
+%     versionCurrent = version{v};
+%     
+%     clear matlabbatch
+%     
+%     load([TempPD '/Normalize.mat']);
+%     
+%     % Gather images for current subject
+%     images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^effect-map_.*.nii'));
+%     
+%     % Write out masks
+%     images_mask = {};
+%     for i=1:length(images)
+%         V = spm_vol(images{i});
+%         Y = spm_read_vols(V);
+%         Y(~isnan(Y)) = 1;
+%         Y(isnan(Y)) = 0;
+%         images_mask{i,1} = strrep(images{i},'effect-map','nativeSpaceMask');
+%         saveMRImage(Y,images_mask{i,1},V.mat);
+%     end
+%     
+%     % Normalize
+%     DefFile = cellstr(spm_select('FPList', StrDir, '^y.*.nii'));
+%     matlabbatch{1}.spm.spatial.normalise.write.subj.resample = [images; images_mask];
+%     matlabbatch{1}.spm.spatial.normalise.write.subj.def = DefFile;
+%     
+%     save(fullfile(GLMDir,'TDTcrossnobis',versionCurrent,'NormalizeTDTcrossnobis.mat'), 'matlabbatch');
+%     spm_jobman('initcfg')
+%     spm_jobman('run', matlabbatch);
+%     
+%     clear images images_mask
+%     
+%     % Smooth, mask and write out normalised images
+%     
+%     % Gather images for current subject
+%     images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^weffect-map_.*.nii'));
+%     images_mask = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^wnativeSpaceMask_.*.nii'));
+%     
+%     % Mask and smooth normalised data
+%     mask_threshold = .05;
+%     for i=1:length(images)
+%         % Fix normalised mask
+%         V = spm_vol(images_mask{i});
+%         fname_mask = V.fname;
+%         Y_mask = spm_read_vols(V);
+%         Y_mask(Y_mask<mask_threshold) = 0;
+%         Y_mask(isnan(Y_mask)) = 0;
+%         saveMRImage(Y_mask,fname_mask,V.mat);
+%         
+%         % Fix normalised r-map
+%         V = spm_vol(images{i});
+%         fname_image = V.fname;
+%         Y = spm_read_vols(V);
+%         Y(Y_mask<mask_threshold) = 0;
+%         Y_mask(isnan(Y_mask)) = 0;
+%         saveMRImage(Y,fname_image,V.mat);
+%         
+%         % Smooth and (re)mask normalised r-map
+%         fname_smoothed = strrep(images{i},'weffect-map_','sweffect-map_');
+%         spm_smooth(images{i},fname_smoothed,[6 6 6]);
+%         V = spm_vol(fname_smoothed);
+%         Y = spm_read_vols(V);
+%         Y(Y_mask<mask_threshold) = NaN;
+%         saveMRImage(Y,fname_smoothed,V.mat);
+%     end
+%     
+% end
+%     
     

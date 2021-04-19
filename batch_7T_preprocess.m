@@ -400,7 +400,7 @@ for this_smooth = [3,8];
         
         tempDesign = module_get_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
         
-        inputs{1, crun} = cellstr([outpath 'stats3_' num2str(this_smooth)]);
+        inputs{1, crun} = cellstr([outpath 'stats4_' num2str(this_smooth)]);
         for sess = 1:length(theseepis)
             filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s' num2str(this_smooth) 'wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
             inputs{(8*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -431,13 +431,13 @@ for this_smooth = [3,8];
     end
     
     if ~all(SPMworkedcorrectly)
-        error(['failed at SPM ' num2str(this_smooth) 'mm');
+        error(['failed at SPM ' num2str(this_smooth) 'mm']);
     end
 end
 
 %% Now create a univariate second level SPM with Age as a covariate - one per condition of interest
 for this_smooth = [3,8];
-    exclude_bad = 1;
+    exclude_bad = 0; % I have now excluded only the relevant EPI sequences above.
     bad_scans = {
         'P7P16' % Left frontal hole
         'P7C18' % Bilateral frontal holes
@@ -453,6 +453,7 @@ for this_smooth = [3,8];
         'con_0030.nii','Clear > Unclear';
         'con_0035.nii','Unclear > Clear';
         'con_0035.nii','Clarity Congruency Interaction'};
+    expected_sessions = 4;
     
     visual_check = 0;
     nrun = size(all_conditions,1); % enter the number of runs here
@@ -460,7 +461,7 @@ for this_smooth = [3,8];
     
     this_scan = {};
     this_t_scan = {};
-    firstlevel_folder = ['stats3_' num2str(this_smooth)];
+    firstlevel_folder = ['stats4_' num2str(this_smooth)];
     
     jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_secondlevel_job.m'};
     jobs = repmat(jobfile, 1, nrun);
@@ -484,8 +485,19 @@ for this_smooth = [3,8];
                 end
             end
             this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
+            this_spm_temp = load([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep 'SPM.mat']);
+            if length(this_spm_temp.SPM.Sess)~=expected_sessions
+                disp([subjects{crun} ' has ' num2str(length(this_spm_temp.SPM.Sess)) ' sessions when ' num2str(expected_sessions) ' expected. Check this is what you want'])
+                con_num = str2num(all_conditions{this_condition,1}(5:8));
+                new_con_num = (con_num/(expected_sessions+1))*(length(this_spm_temp.SPM.Sess)+1);
+                disp(['Replacing contrast ' num2str(con_num,'%04.f') ' with ' num2str(new_con_num,'%04.f')])
+                new_contrast_name = strrep(all_conditions{this_condition,1},num2str(con_num,'%04.f'),num2str(new_con_num,'%04.f'));
+                this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep new_contrast_name]);
+                this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(new_contrast_name,'con','spmT')]);
+            else
             this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep all_conditions{this_condition,1}]);
             this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(all_conditions{this_condition,1},'con','spmT')]);
+            end
             if group(crun) == 1 % Controls
                 group2_mrilist(end+1) = this_scan(crun);
                 group2_ages(end+1) = this_age;
@@ -518,106 +530,106 @@ end
 
 
 
-%% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
-nrun = size(subjects,2); % enter the number of runs here
-jobfile = {};
-jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
-jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_job.m']};
-inputs = cell(0, nrun);
-
-for crun = 1:nrun
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    filestoanalyse = cell(1,length(theseepis));
-    
-    tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-    
-    inputs{1, crun} = cellstr([outpath 'stats3_multi_3']);
-    for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3r, standard space is s3w
-        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        for cond_num = 1:80
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
-        end
-        for cond_num = 81:96 %Response trials
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
-        end
-        for cond_num = 97 %Button press
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
-        end
-        for cond_num = 98 %Absent sound (written only)
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
-        end
-        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
-    end
-    jobs{crun} = jobfile{length(theseepis)};
-    if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
-        inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
-    end
-end
-
-SPMworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
-    if exist([inputs{1,crun}{1} '/SPM.mat']) && ~SPMworkedcorrectly(crun)
-        delete([inputs{1,crun}{1} '/SPM.mat'])
-    elseif exist([inputs{1,crun}{1} '/SPM.mat']) && SPMworkedcorrectly(crun)
-        continue
-    end
-    
-    try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
-        SPMworkedcorrectly(crun) = 1;
-    catch
-        SPMworkedcorrectly(crun) = 0;
-    end
-end
-
-%Now repeat with 8mm smoothing
-
-for crun = 1:nrun
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    filestoanalyse = cell(1,length(theseepis));
-    
-    tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-    
-    inputs{1, crun} = cellstr([outpath 'stats3_multi_8']);
-    for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
-        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        for cond_num = 1:80
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
-        end
-        for cond_num = 81:96 %Response trials
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
-        end
-        for cond_num = 97 %Button press
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
-        end
-        for cond_num = 98 %Absent sound (written only)
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
-        end
-        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
-    end
-    jobs{crun} = jobfile{length(theseepis)};
-    if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
-        inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
-    end
-end
-
-SPMworkedcorrectly = zeros(1,nrun);
-parfor crun = 1:nrun
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
-    try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
-        SPMworkedcorrectly(crun) = 1;
-    catch
-        SPMworkedcorrectly(crun) = 0;
-    end
-end
+% %% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
+% nrun = size(subjects,2); % enter the number of runs here
+% jobfile = {};
+% jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
+% jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_job.m']};
+% inputs = cell(0, nrun);
+% 
+% for crun = 1:nrun
+%     theseepis = find(strncmp(blocksout{crun},'Run',3));
+%     outpath = [preprocessedpathstem subjects{crun} '/'];
+%     filestoanalyse = cell(1,length(theseepis));
+%     
+%     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+%     
+%     inputs{1, crun} = cellstr([outpath 'stats4_multi_3']);
+%     for sess = 1:length(theseepis)
+%         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3r, standard space is s3w
+%         inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+%         for cond_num = 1:80
+%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
+%         end
+%         for cond_num = 81:96 %Response trials
+%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
+%         end
+%         for cond_num = 97 %Button press
+%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
+%         end
+%         for cond_num = 98 %Absent sound (written only)
+%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
+%         end
+%         inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+%     end
+%     jobs{crun} = jobfile{length(theseepis)};
+%     if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
+%         inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+%     end
+% end
+% 
+% SPMworkedcorrectly = zeros(1,nrun);
+% parfor crun = 1:nrun
+%     spm('defaults', 'fMRI');
+%     spm_jobman('initcfg')
+%     if exist([inputs{1,crun}{1} '/SPM.mat']) && ~SPMworkedcorrectly(crun)
+%         delete([inputs{1,crun}{1} '/SPM.mat'])
+%     elseif exist([inputs{1,crun}{1} '/SPM.mat']) && SPMworkedcorrectly(crun)
+%         continue
+%     end
+%     
+%     try
+%         spm_jobman('run', jobs{crun}, inputs{:,crun});
+%         SPMworkedcorrectly(crun) = 1;
+%     catch
+%         SPMworkedcorrectly(crun) = 0;
+%     end
+% end
+% 
+% %Now repeat with 8mm smoothing
+% 
+% for crun = 1:nrun
+%     theseepis = find(strncmp(blocksout{crun},'Run',3));
+%     outpath = [preprocessedpathstem subjects{crun} '/'];
+%     filestoanalyse = cell(1,length(theseepis));
+%     
+%     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+%     
+%     inputs{1, crun} = cellstr([outpath 'stats4_multi_8']);
+%     for sess = 1:length(theseepis)
+%         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+%         inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+%         for cond_num = 1:80
+%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
+%         end
+%         for cond_num = 81:96 %Response trials
+%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
+%         end
+%         for cond_num = 97 %Button press
+%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
+%         end
+%         for cond_num = 98 %Absent sound (written only)
+%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
+%         end
+%         inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+%     end
+%     jobs{crun} = jobfile{length(theseepis)};
+%     if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
+%         inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+%     end
+% end
+% 
+% SPMworkedcorrectly = zeros(1,nrun);
+% parfor crun = 1:nrun
+%     spm('defaults', 'fMRI');
+%     spm_jobman('initcfg')
+%     try
+%         spm_jobman('run', jobs{crun}, inputs{:,crun});
+%         SPMworkedcorrectly(crun) = 1;
+%     catch
+%         SPMworkedcorrectly(crun) = 0;
+%     end
+% end
 
 % %% Now create a more complex SPM with variable levels of AR whitening, with word omissions specified
 %
@@ -638,7 +650,7 @@ end
 %
 %     tempDesign = module_get_complex_event_times(subjects{crun},dates{crun},length(theseepis),minvols(crun));
 %
-%     inputs{1, crun, this_aro} = cellstr([outpath 'stats3_multi_AR' num2str(aro)]);
+%     inputs{1, crun, this_aro} = cellstr([outpath 'stats4_multi_AR' num2str(aro)]);
 %     for sess = 1:length(theseepis)
 %         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3topup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
 %         inputs{(100*(sess-1))+2, crun, this_aro} = cellstr(filestoanalyse{sess});
@@ -709,7 +721,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats3_multi_3_nowritten2']);
+    inputs{1, crun} = cellstr([outpath 'stats4_multi_3_nowritten2']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -723,11 +735,11 @@ for crun = 1:nrun
             inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
         end
         inputs{(99*(sess-1))+100, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        if any(cellfun(@isempty,inputs(1:(99*(sess-1))+100,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
+            inputs{find(cellfun(@isempty,inputs(1:(99*(sess-1))+100,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+        end
     end
     jobs{crun} = jobfile{length(theseepis)};
-    if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
-        inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
-    end
 end
 
 SPMworkedcorrectly = zeros(1,nrun);
@@ -755,7 +767,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats3_multi_8_nowritten2']);
+    inputs{1, crun} = cellstr([outpath 'stats4_multi_8_nowritten2']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -769,11 +781,11 @@ for crun = 1:nrun
             inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
         end
         inputs{(99*(sess-1))+100, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        if any(cellfun(@isempty,inputs(1:(99*(sess-1))+100,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
+            inputs{find(cellfun(@isempty,inputs(1:(99*(sess-1))+100,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+        end
     end
     jobs{crun} = jobfile{length(theseepis)};
-    if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
-        inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
-    end
 end
 
 SPMworkedcorrectly = zeros(1,nrun);
@@ -788,6 +800,17 @@ parfor crun = 1:nrun
     end
 end
 
+%% Now run the cross validated Mahalanobis distance and RSM on each subject 
+nrun = size(subjects,2); % enter the number of runs here
+
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+    TDTCrossnobisAnalysis_1Subj(GLMDir)
+end
+
+
+
 %% Now create univariate masks for later MVPA
 
 t_thresh = 3.11; % p<0.001 uncorrected
@@ -795,7 +818,7 @@ smoothing_kernels = [3, 8];
 
 for smoo = smoothing_kernels
     for crun = 1:nrun
-        spmpath = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(smoo) '/'];
+        spmpath = [preprocessedpathstem subjects{crun} '/stats4_multi_' num2str(smoo) '/'];
         outpath = [preprocessedpathstem subjects{crun} '/'];
         thisSPM = load([spmpath 'SPM.mat']);
         writtenindex = structfind(thisSPM.SPM.xCon,'name','Normal<Written - All Sessions');
@@ -1009,7 +1032,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats4_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -1032,7 +1055,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats4_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -1056,7 +1079,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats4_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/mask_' num2str(mask_smoo) '_' mask_cond{mask_cond_num} '_001.nii'];
@@ -1084,7 +1107,7 @@ stats_p_r = cell(size(subjects,2),length(mask_cond),length(conditions));
 
 for crun = 1:nrun
     
-    data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_' num2str(data_smoo) '/'];
+    data_path = [preprocessedpathstem subjects{crun} '/stats4_multi_' num2str(data_smoo) '/'];
     
     for mask_cond_num = 1:length(mask_cond)
         mask_path = [preprocessedpathstem subjects{crun} '/' mask_cond{mask_cond_num}];
@@ -1139,7 +1162,7 @@ switch type
         for thisone = 1:size(pat_aro_combs,1)
             crun = pat_aro_combs(thisone,1);
             aro = all_aros(pat_aro_combs(thisone,2));
-            data_path = [preprocessedpathstem subjects{crun} '/stats3_multi_AR' num2str(aro) '/'];
+            data_path = [preprocessedpathstem subjects{crun} '/stats4_multi_AR' num2str(aro) '/'];
             beta_files = dir([data_path '/Cbeta_0*']);
             
             parfor i = 1:size(beta_files,1)
