@@ -89,7 +89,7 @@ cfg.scale.shrinkage = 'lw2'; % Ledoit-Wolf shrinkage retaining variances
 cfg.searchlight.unit = 'mm';
 cfg.searchlight.radius = 8; % this will yield a searchlight radius of 12mm.
 cfg.searchlight.spherical = 1;
-cfg.verbose = 2; % you want all information to be printed on screen
+cfg.verbose = 1; % you want all information to be printed on screen
 downsamp_ratio = 1;
 cfg.searchlight.subset = 1:downsamp_ratio:1000000;
 

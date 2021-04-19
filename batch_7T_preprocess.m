@@ -802,11 +802,16 @@ end
 
 %% Now run the cross validated Mahalanobis distance and RSM on each subject 
 nrun = size(subjects,2); % enter the number of runs here
-
+mahalanobisworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
-    TDTCrossnobisAnalysis_1Subj(GLMDir)
+    try
+        TDTCrossnobisAnalysis_1Subj(GLMDir)
+        mahalanobisworkedcorrectly(crun) = 1;
+    catch
+        mahalanobisworkedcorrectly(crun) = 0;
+    end
 end
 
 
