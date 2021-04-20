@@ -815,6 +815,38 @@ parfor crun = 1:nrun
     end
 end
 
+%% Do an RSA analysis separately if you want (already integrated into previous step, but now can compare new models etc without repeating the time consuming cross-nobis
+nrun = size(subjects,2); % enter the number of runs here
+RSAnobisworkedcorrectly = zeros(1,nrun);
+downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 times faster than 1 (2 cubed). 
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+    try
+        module_make_effect_maps(GLMDir,downsamp_ratio)
+        RSAnobisworkedcorrectly(crun) = 1;
+    catch
+        RSAnobisworkedcorrectly(crun) = 0;
+    end
+end
+
+
+%% Now normalise the native space RSA maps into template space with CAT12 deformation fields calculated earlier
+nrun = size(subjects,2); % enter the number of runs here
+native2templateworkedcorrectly = zeros(1,nrun);
+downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 times faster than 1 (2 cubed). 
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    try
+        module_nativemap_2_template(GLMDir,downsamp_ratio,outpath)
+        native2templateworkedcorrectly(crun) = 1;
+    catch
+        native2templateworkedcorrectly(crun) = 0;
+    end
+end
+
 
 
 %% Now create univariate masks for later MVPA
