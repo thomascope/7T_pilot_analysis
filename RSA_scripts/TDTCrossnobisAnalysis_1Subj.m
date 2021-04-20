@@ -1,4 +1,9 @@
-function []=TDTCrossnobisAnalysis_1Subj(GLMDir)
+function []=TDTCrossnobisAnalysis_1Subj(GLMDir,downsamp_ratio)
+% TDTCrossnobisAnalysis_1Subj('/imaging/mlr/users/tc02/PINFA_preprocessed_2021/P7C05/stats4_multi_3_nowritten2')
+
+if ~exist('downsamp_ratio','var')
+    downsamp_ratio = 1;
+end
 
 addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI')
 addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/decoding_toolbox_v3.999')
@@ -28,7 +33,11 @@ cfg = decoding_defaults;
 cfg.analysis = 'searchlight';
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis');
+if downsamp_ratio == 1
+    cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis');
+else
+    cfg.results.dir = fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)]);
+end
 
 % Set the filepath where your SPM.mat and all related betas are, e.g. 'c:\exp\glm\model_button'
 beta_loc = GLMDir;
@@ -90,8 +99,6 @@ cfg.searchlight.unit = 'mm';
 cfg.searchlight.radius = 8; % this will yield a searchlight radius of 12mm.
 cfg.searchlight.spherical = 1;
 cfg.verbose = 1; % you want all information to be printed on screen
-downsamp_ratio = 1;
-cfg.searchlight.subset = 1:downsamp_ratio:1000000;
 
 % Decide whether you want to see the searchlight/ROI/... during decoding
 cfg.plot_selected_voxels = 100; % 0: no plotting, 1: every step, 2: every second step, 100: every hundredth step...
@@ -108,8 +115,13 @@ cfg = decoding_describe_data(cfg,labelnames,labels,regressor_names,beta_loc);
 % This creates a design in which cross-validation is done between the distance estimates
 cfg.design = make_design_similarity_cv(cfg);
 
+if downsamp_ratio ~= 1
+    [passed_data, misc, cfg] = decoding_load_data(cfg, misc);
+    cfg.searchlight.subset = combvec(1:downsamp_ratio:passed_data.dim(1),1:downsamp_ratio:passed_data.dim(2),1:downsamp_ratio:passed_data.dim(3))';
+end
+
 % Run decoding
-cfg.results.overwrite = 1;
+cfg.results.overwrite = 0;
 try
     results = decoding(cfg,[],misc);
 catch
@@ -120,6 +132,11 @@ end
 
 version = 'spearman'; % how to assess accuracy of model RDMs (pearson, spearman, weighted average)
 
+if downsamp_ratio == 1
+    outputDir = fullfile(GLMDir,'TDTcrossnobis',version);
+else
+    outputDir = fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)],version);
+end
 outputDir = fullfile(GLMDir,'TDTcrossnobis',version);
 if exist(outputDir,'dir'); rmdir(outputDir,'s'); mkdir(outputDir); else; mkdir(outputDir); end
 
@@ -160,7 +177,7 @@ end
 % 
 % %modelNames = {'ProbM' 'ProbMM' 'EntropyM' 'EntropyMM'};
 
-load(fullfile(GLMDir,'TDTcrossnobis','res_other_average.mat'));
+load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
 
 V = spm_vol(fullfile(GLMDir,'mask.nii'));

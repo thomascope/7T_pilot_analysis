@@ -16,7 +16,7 @@ tr=2.5;
 
 %% Options to skip steps
 applytopup = 1;
-opennewanalysispool = 0;
+opennewanalysispool = 1;
 
 %% Open a worker pool
 if opennewanalysispool == 1
@@ -803,11 +803,12 @@ end
 %% Now run the cross validated Mahalanobis distance and RSM on each subject 
 nrun = size(subjects,2); % enter the number of runs here
 mahalanobisworkedcorrectly = zeros(1,nrun);
+downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 times faster than 1 (2 cubed). 
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     try
-        TDTCrossnobisAnalysis_1Subj(GLMDir)
+        TDTCrossnobisAnalysis_1Subj(GLMDir,downsamp_ratio)
         mahalanobisworkedcorrectly(crun) = 1;
     catch
         mahalanobisworkedcorrectly(crun) = 0;
