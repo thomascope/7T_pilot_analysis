@@ -898,7 +898,7 @@ parfor crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     reslice_template = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/mask.nii']; %Template for reslicing
     try
-        module_template_2_nativemap(images2normalise,outpath,1,template)
+        module_template_2_nativemap(images2normalise,outpath,1,template);
         template2nativeworkedcorrectly(crun) = 1;
     catch
         template2nativeworkedcorrectly(crun) = 0;
@@ -908,13 +908,13 @@ end
 %% Analyse by condition and brain region
 addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
 
-masks = {
-    'wblank_mask'
-    'wLeft_STG'
-    'wLeft_PT'
-    'wLeft_PrG'
-    'wLeft_FO'
-    'wLeft_TrIFG'
+masks = { %rw for re-sliced after warping into native space (I have also re-binarised). Underscores for spaces in the atlas search above.
+    'rwblank_mask'
+    'rwLeft_STG'
+    'rwLeft_PT'
+    'rwLeft_PrG'
+    'rwLeft_FO'
+    'rwLeft_TrIFG'
     };
 
 GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
@@ -948,8 +948,22 @@ parfor crun = 1:nrun
     end
 end
 
+%% Now do RSA on ROI data
+nrun = size(subjects,2); % enter the number of runs here
+RSAroiworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Where is the SPM model?
+    mask_dir = [preprocessedpathstem subjects{crun}]; %Where are the native space ROI masks?
+    try
+        module_roi_RSA(GLMDir)
+        RSAroiworkedcorrectly(crun) = 1;
+    catch
+        RSAroiworkedcorrectly(crun) = 0;
+    end
+end
 
-
+%% Now compare across ROI and condition
 
 
 %% Analyse in scanner behaviour
