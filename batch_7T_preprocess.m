@@ -896,8 +896,9 @@ template2nativeworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     outpath = [preprocessedpathstem subjects{crun} '/'];
+    reslice_template = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/mask.nii']; %Template for reslicing
     try
-        module_template_2_nativemap(images2normalise,outpath)
+        module_template_2_nativemap(images2normalise,outpath,1,template)
         template2nativeworkedcorrectly(crun) = 1;
     catch
         template2nativeworkedcorrectly(crun) = 0;
@@ -909,15 +910,12 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 
 masks = {
     'wblank_mask'
-    'wLeft STG'
-    'wLeft PT'
-    'wLeft PrG'
-    'wLeft FO'
-    'wLeft TrIFG'
+    'wLeft_STG'
+    'wLeft_PT'
+    'wLeft_PrG'
+    'wLeft_FO'
+    'wLeft_TrIFG'
     };
-
-
-
 
 GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
 temp = load([GLMDir filesep 'SPM.mat']);
@@ -935,6 +933,21 @@ for i = 1:length(labelnames)
 end
 conditionnames = unique(labelnames_denumbered,'stable');
 clear temp labelnames_denumbered labelnames
+
+nrun = size(subjects,2); % enter the number of runs here
+mahalanobisroiworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Where is the SPM model?
+    mask_dir = [preprocessedpathstem subjects{crun}]; %Where are the native space ROI masks?
+    try
+        TDTCrossnobisAnalysis_roi(GLMDir,mask_dir,masks)
+        mahalanobisroiworkedcorrectly(crun) = 1;
+    catch
+        mahalanobisroiworkedcorrectly(crun) = 0;
+    end
+end
+
 
 
 

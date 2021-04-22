@@ -1,4 +1,4 @@
-function images_warped = module_template_2_nativemap(images,StrDir,ismasks)
+function images_warped = module_template_2_nativemap(images,StrDir,ismasks,reslice_template)
 % Normalise masks or other images to native space
 % Specify 0 for normal images, or 1 for masks (needs to be re-thresholded and binarised)
 
@@ -23,30 +23,34 @@ matlabbatch{1}.spm.spatial.normalise.write.subj.def =  cellstr([StrDir 'mri/iy_s
 spm_jobman('initcfg')
 spm_jobman('run', matlabbatch);
 
-for i=1:length(images_copied)
-    [base_stem, image_name, image_extension] = fileparts(images_copied{i});
-    images_warped{i} = fullfile(StrDir,['w' image_name image_extension]);
-end
+% Reslice into functional space
 
-% % Re-binarise mask data % Not actually needed, as not resliced.
-% if ismask
-%     for i=1:length(images_copied)
-%         [base_stem, image_name, image_extension] = fileparts(images_copied{i});
-%         images_warped{i} = fullfile(StrDir,['w' image_name image_extension]);
-%     end
-%     
-%     % spm_check_registration(char(images_warped'),[StrDir,'structural_csf.nii']) %For debugging check
-%     
-%     mask_threshold = .05;
-%     for i=1:length(images_warped)
-%         % Binarise normalised mask
-%         V = spm_vol(images_warped{i});
-%         fname_mask = V.fname;
-%         Y_mask = spm_read_vols(V);
-%         Y_mask(Y_mask<mask_threshold) = 0;
-%         Y_mask(isnan(Y_mask)) = 0;
-%         Y_mask(Y_mask>mask_threshold) = 1;
-%         saveMRImage(Y_mask,fname_mask,V.mat);
-%     end
-% end
+if exist('reslice_template','var')
+    flags.interp = 7; %Best quality
+    flags.which = 1; % Don't reslice the template image
+    flags.mean = 0; %Don't output the mean
+    flags.mask = 0; %Don't implicitly mask the images
+    for i=1:length(images_copied)
+        [base_stem, image_name, image_extension] = fileparts(images_copied{i});
+        images_warped{i} = fullfile(StrDir,['w' image_name image_extension]);
+        spm_reslice({reslice_template;images_warped{i}},flags)
+        images_resliced{i} = fullfile(StrDir,['rw' image_name image_extension]);
+    end
     
+    % Re-binarise mask data % Not actually needed, as not resliced.
+    if ismasks
+
+        mask_threshold = .05;
+        for i=1:length(images_warped)
+            % Binarise normalised mask
+            V = spm_vol(images_resliced{i});
+            fname_mask = V.fname;
+            Y_mask = spm_read_vols(V);
+            Y_mask(Y_mask<mask_threshold) = 0;
+            Y_mask(isnan(Y_mask)) = 0;
+            Y_mask(Y_mask>=mask_threshold) = 1;
+            saveMRImage(Y_mask,fname_mask,V.mat);
+        end
+    end
+     % spm_check_registration(char(images_resliced'),[StrDir,'structural_csf.nii']) %For debugging check
+end
