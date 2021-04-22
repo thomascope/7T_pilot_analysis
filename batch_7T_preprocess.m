@@ -904,7 +904,37 @@ parfor crun = 1:nrun
     end
 end
 
+%% Analyse by condition and brain region
+addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
 
+masks = {
+    'wblank_mask'
+    'wLeft STG'
+    'wLeft PT'
+    'wLeft PrG'
+    'wLeft FO'
+    'wLeft TrIFG'
+    };
+
+
+
+
+GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
+temp = load([GLMDir filesep 'SPM.mat']);
+labelnames = {};
+for i = 1:length(temp.SPM.Sess(1).U)
+    if ~strncmp(temp.SPM.Sess(1).U(i).name,{'Match','Mismatch','Written'},5)
+        continue
+    else
+        labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
+    end
+end        
+labelnames_denumbered = {};
+for i = 1:length(labelnames)
+    labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
+end
+conditionnames = unique(labelnames_denumbered,'stable');
+clear temp labelnames_denumbered labelnames
 
 
 
