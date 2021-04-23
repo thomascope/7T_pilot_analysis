@@ -452,7 +452,7 @@ for this_smooth = [3,8];
         'con_0025.nii','Normal > Silence';
         'con_0030.nii','Clear > Unclear';
         'con_0035.nii','Unclear > Clear';
-        'con_0035.nii','Clarity Congruency Interaction'};
+        'con_0040.nii','Clarity Congruency Interaction'}; %NB: INTERACTION DOES NOT WORK AT PRESENT XXX TOFIX
     expected_sessions = 4;
     
     visual_check = 0;
@@ -863,15 +863,33 @@ searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,ag
 
 images2normalise = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'}; %Blank and Davis 2018 mask
 
+% search_labels = {
+%     'Left STG'
+%     'Left PT'
+%     'Left PrG'
+%     'Left FO'
+%     'Left TrIFG'
+%     };
+
+% xA=spm_atlas('load','Neuromorphometrics');
+
 search_labels = {
-    'Left STG'
-    'Left PT'
-    'Left PrG'
-    'Left FO'
-    'Left TrIFG'
+    'Left Superior Temporal Gyrus'
+    'Left Angular Gyrus'
+    'Left Precentral Gyrus'
+    'Left Frontal Operculum'
+    'Left Inferior Frontal Angular Gyrus'
+    'Right Superior Temporal Gyrus'
+    'Right Angular Gyrus'
+    'Right Precentral Gyrus'
+    'Right Frontal Operculum'
+    'Right Inferior Frontal Angular Gyrus'
+    'Left Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+    'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
     };
 
-xA=spm_atlas('load','Neuromorphometrics');
+cat_install_atlases
+xA=spm_atlas('load','dartel_neuromorphometrics');
 for i = 1:size(xA.labels,2)
     all_labels{i} = xA.labels(i).name;
 end
@@ -908,13 +926,26 @@ end
 %% Analyse by condition and brain region
 addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox?
 
-masks = { %rw for re-sliced after warping into native space (I have also re-binarised). Underscores for spaces in the atlas search above.
-    'rwblank_mask'
-    'rwLeft_STG'
-    'rwLeft_PT'
-    'rwLeft_PrG'
-    'rwLeft_FO'
-    'rwLeft_TrIFG'
+% masks = { %rw for re-sliced after warping into native space (I have also re-binarised). Underscores for spaces in the atlas search above.
+%     'rwblank_mask'
+%     'rwLeft_STG'
+%     'rwLeft_PT'
+%     'rwLeft_PrG'
+%     'rwLeft_FO'
+%     'rwLeft_TrIFG'
+%     };
+
+masks = {
+    'rwLeft_Superior_Temporal_Gyrus'
+    'rwLeft_Angular_Gyrus'
+    'rwLeft_Precentral_Gyrus'
+    'rwLeft_Frontal_Operculum'
+    'rwLeft_Inferior_Frontal_Angular_Gyrus'
+    'rwRight_Superior_Temporal_Gyrus'
+    'rwRight_Angular_Gyrus'
+    'rwRight_Precentral_Gyrus'
+    'rwRight_Frontal_Operculum'
+    'rwRight_Inferior_Frontal_Angular_Gyrus'
     };
 
 GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
@@ -963,74 +994,121 @@ parfor crun = 1:nrun
     end
 end
 
-%% Now compare across ROI and condition
+%% Compare across conditions in STG as a sanity check
+GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
+temp = load([GLMDir filesep 'SPM.mat']);
+labelnames = {};
+for i = 1:length(temp.SPM.Sess(1).U)
+    if ~strncmp(temp.SPM.Sess(1).U(i).name,{'Match','Mismatch','Written'},5)
+        continue
+    else
+        labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
+    end
+end        
+labelnames_denumbered = {};
+for i = 1:length(labelnames)
+    labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
+end
+conditionnames = unique(labelnames_denumbered,'stable');
 
+clear temp labelnames_denumbered labelnames
 
-%% Analyse in scanner behaviour
-
-cd('./behavioural_data')
-control_response_averages = [];
-control_rt_averages = [];
-control_rt_medians = [];
-control_AFCs = [];
-patient_response_averages = [];
-patient_rt_averages = [];
-patient_rt_medians = [];
-patient_AFCs = [];
-graph_this = 0;
-for crun = 1:length(subjects)
-    
-    [all_response_averages(crun,:), all_rt_averages(crun,:), all_rt_medians(crun,:), AFCs(crun,:)] = AFC_graph_this_subject_2021(subjects{crun}, dates{crun}, graph_this);
-    
-    if group(crun) == 1 % Controls
-        control_response_averages(end+1,:) = all_response_averages(crun,:);
-        control_rt_averages(end+1,:) = all_rt_averages(crun,:);
-        control_rt_medians(end+1,:) = all_rt_medians(crun,:);
-        control_AFCs(end+1,:) = AFCs(crun,:);
-    elseif group(crun) == 2 % Patients
-        patient_response_averages(end+1,:) = all_response_averages(crun,:);
-        patient_rt_averages(end+1,:) = all_rt_averages(crun,:);
-        patient_rt_medians(end+1,:) = all_rt_medians(crun,:);
-        patient_AFCs(end+1,:) = AFCs(crun,:);
+nrun = size(subjects,2); % enter the number of runs here
+% First load in the similarities
+RSA_ROI_data_exist = zeros(1,nrun);
+all_data = [];
+for crun = 1:nrun
+    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+    for m = 1:length(conditionnames)
+        try
+            temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' conditionnames{m} '.mat']));
+            all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+            RSA_ROI_data_exist(crun) = 1;
+        catch
+            warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+            RSA_ROI_data_exist(crun) = 0;
+            continue
+        end
     end
 end
-cd('../')
+roi_names = temp_data.roi_names;
+clear temp_data
+disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
+all_data(:,:,RSA_ROI_data_exist==0) = NaN;
 
+LSTG_ROI = find(strcmp('rwLeft_Superior_Temporal_Gyrus',roi_names));
 figure
-%cmap = colormap(parula(2));
-colormap(jet)
 set(gcf,'Position',[100 100 1600 800]);
-subplot(3,1,1)
+set(gcf, 'PaperPositionMode', 'auto');
 hold on
-for this_x = 1:size(patient_response_averages,2)
-    scatter(repmat(this_x+0.1,size(patient_response_averages,1),1)+rand(size(patient_response_averages,1),1)/30-(1/60),patient_response_averages(:,this_x),16,patient_AFCs/2)
-    scatter(repmat(this_x-0.1,size(control_response_averages,1),1)+rand(size(control_response_averages,1),1)/30-(1/60),control_response_averages(:,this_x),16,control_AFCs/2)
-end
-xlim([0 6])
-ylim([0 100])
-title('Percent Correct')
-set(gca,'XTick',[0:1:6])
-set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
+errorbar([1:length(conditionnames)]-0.1,mean(squeeze(all_data(:,LSTG_ROI,group==1&RSA_ROI_data_exist)),2),std(squeeze(all_data(:,LSTG_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
+errorbar([1:length(conditionnames)]+0.1,mean(squeeze(all_data(:,LSTG_ROI,group==2&RSA_ROI_data_exist)),2),std(squeeze(all_data(:,LSTG_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+xlim([0 length(conditionnames)+1])
+set(gca,'xtick',[1:length(conditionnames)],'xticklabels',conditionnames,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+plot([0 length(conditionnames)+1],[0,0],'k--')
+title('Left STG Vowel RSA','Interpreter','none')
+legend('Controls','Patients')
 
-subplot(3,1,2)
-hold on
-for this_x = 1:size(patient_response_averages,2)
-    scatter(repmat(this_x+0.1,size(patient_rt_averages,1),1)+rand(size(patient_rt_averages,1),1)/30-(1/60),patient_rt_averages(:,this_x),16,patient_AFCs/2+1)
-    scatter(repmat(this_x-0.1,size(control_rt_averages,1),1)+rand(size(control_rt_averages,1),1)/30-(1/60),control_rt_averages(:,this_x),16,control_AFCs/2+1)
+%% Now compare across ROI for each condition
+GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
+temp = load([GLMDir filesep 'SPM.mat']);
+labelnames = {};
+for i = 1:length(temp.SPM.Sess(1).U)
+    if ~strncmp(temp.SPM.Sess(1).U(i).name,{'Match','Mismatch','Written'},5)
+        continue
+    else
+        labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
+    end
+end        
+labelnames_denumbered = {};
+for i = 1:length(labelnames)
+    labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
 end
-xlim([0 6])
-title('Mean RT')
-set(gca,'XTick',[0:1:6])
-set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
+conditionnames = unique(labelnames_denumbered,'stable');
 
-subplot(3,1,3)
-hold on
-for this_x = 1:size(patient_rt_medians,2)
-    scatter(repmat(this_x+0.1,size(patient_rt_medians,1),1)+rand(size(patient_rt_medians,1),1)/30-(1/60),patient_rt_medians(:,this_x),16,patient_AFCs/2)
-    scatter(repmat(this_x-0.1,size(control_rt_medians,1),1)+rand(size(control_rt_medians,1),1)/30-(1/60),control_rt_medians(:,this_x),16,control_AFCs/2)
+clear temp labelnames_denumbered labelnames
+
+nrun = size(subjects,2); % enter the number of runs here
+% First load in the similarities
+RSA_ROI_data_exist = zeros(1,nrun);
+all_data = [];
+for crun = 1:nrun
+    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+    for m = 1:length(conditionnames)
+        try
+            temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' conditionnames{m} '.mat']));
+            all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+            RSA_ROI_data_exist(crun) = 1;
+        catch
+            warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+            RSA_ROI_data_exist(crun) = 0;
+            continue
+        end
+    end
 end
-xlim([0 6])
-title('Median RT')
-set(gca,'XTick',[0:1:6])
-set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
+roi_names = temp_data.roi_names;
+clear temp_data
+disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
+all_data(:,:,RSA_ROI_data_exist==0) = NaN;
 
+addpath('./plotting')
+for m = 1:length(conditionnames)
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    set(gcf, 'PaperPositionMode', 'auto');
+    hold on
+    %violin(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist))','x',[1:length(roi_names)]-0.1)
+    errorbar([1:length(roi_names)]-0.1,mean(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist)),2),std(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
+    errorbar([1:length(roi_names)]+0.1,mean(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist)),2),std(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+    %violin(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist))','x',[1:length(roi_names)]+0.1)
+    xlim([0 length(roi_names)+1])
+    set(gca,'xtick',[1:length(roi_names)],'xticklabels',roi_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+    data_bounds = [min(min(squeeze(all_data(m,:,:)))), max(max(squeeze(all_data(m,:,:))))];
+    %ylim([data_bounds(1) - (diff(data_bounds)/10) data_bounds(2) + (diff(data_bounds)/6)])
+    plot([0 length(roi_names)+1],[0,0],'k--')
+    title(conditionnames{m},'Interpreter','none')
+end
+
+%% Analyse in scanner behaviour
+graph_individuals = 0;
+plot_behavioural_data(subjects, dates, group, graph_individuals) % Requires matlab2016a or newer for movmean

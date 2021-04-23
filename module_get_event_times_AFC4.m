@@ -11,10 +11,10 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes'));
 
 nSessions=1;
 nWords  = 16;  % there were 16 different words presented in the experiment
-nTrialtypes = 8; % there were 8 conditions - Match low, Match high, Mismatch low, Mismatch high, Neutral low, Neutral high, Writtenonly, Response
-tr           = 2.5;   % the EPI volumes were acquired every 3 seconds
-stimdur      = 0.6;   % the audio stimuli lasted approx 0.5 seconds
-stimdelay    = 1.7; % the audio stimulus was presented 2200ms after the scanner pulse
+nTrialtypes = 8; % there were 8 possible conditions - Match low, Match high, Mismatch low, Mismatch high, Neutral low, Neutral high, Writtenonly, Response
+tr           = 2.5;   % the EPI volumes were acquired every 2.5 seconds
+stimdur      = 0.6;   % the audio stimuli lasted approx 0.6 seconds
+stimdelay    = 1.7; % the audio stimulus was presented 1700ms after the scanner pulse
 condition_order = {'Match low','Match high','Mismatch low','Mismatch high','Neutral low','Neutral high','Writtenonly','Response'}; %NB: In the new AFC there were no neutral trials, so these are zeros
 
 % % load the subject's image ordering (the same ordering is valid for both sessions)
