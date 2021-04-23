@@ -58,7 +58,63 @@ basemodels.vowels(49:68:end) = 1/3;
 basemodels.vowels(50:68:end) = 1/3;
 basemodels.vowels(51:68:end) = 1/3;
 basemodels.vowels = 1-basemodels.vowels;
-basemodelNames = {'vowels'};
+
+%Squares based on all shared features
+
+basemodels.shared_segments = zeros(16,16);
+basemodels.shared_segments(1:17:end) = 1;
+basemodels.shared_segments(2:68:end) = 2/3;
+basemodels.shared_segments(3:68:end) = 2/3;
+basemodels.shared_segments(4:68:end) = 1/3;
+basemodels.shared_segments(17:68:end) = 2/3;
+basemodels.shared_segments(19:68:end) = 1/3;
+basemodels.shared_segments(20:68:end) = 2/3;
+basemodels.shared_segments(33:68:end) = 2/3;
+basemodels.shared_segments(34:68:end) = 1/3;
+basemodels.shared_segments(36:68:end) = 2/3;
+basemodels.shared_segments(49:68:end) = 1/3;
+basemodels.shared_segments(50:68:end) = 2/3;
+basemodels.shared_segments(51:68:end) = 2/3;
+
+basemodels.shared_segments(1,16) = 1/3;
+basemodels.shared_segments(1,14) = 1/3;
+basemodels.shared_segments(16,1) = 1/3;
+basemodels.shared_segments(14,1) = 1/3;
+basemodels.shared_segments(3,16) = 1/3;
+basemodels.shared_segments(3,14) = 1/3;
+basemodels.shared_segments(16,3) = 1/3;
+basemodels.shared_segments(14,3) = 1/3;
+
+basemodels.shared_segments(5,9) = 1/3;
+basemodels.shared_segments(7,9) = 1/3;
+basemodels.shared_segments(9,5) = 1/3;
+basemodels.shared_segments(9,7) = 1/3;
+basemodels.shared_segments(5,11) = 1/3;
+basemodels.shared_segments(7,11) = 1/3;
+basemodels.shared_segments(11,5) = 1/3;
+basemodels.shared_segments(11,7) = 1/3;
+
+basemodels.shared_segments(6,10) = 1/3;
+basemodels.shared_segments(8,10) = 1/3;
+basemodels.shared_segments(10,6) = 1/3;
+basemodels.shared_segments(10,8) = 1/3;
+basemodels.shared_segments(6,12) = 1/3;
+basemodels.shared_segments(8,12) = 1/3;
+basemodels.shared_segments(12,6) = 1/3;
+basemodels.shared_segments(12,8) = 1/3;
+
+basemodels.shared_segments(15,3) = 1/3;
+basemodels.shared_segments(15,4) = 1/3;
+basemodels.shared_segments(16,4) = 1/3;
+basemodels.shared_segments(16,3) = 1/3;
+basemodels.shared_segments(3,16) = 1/3;
+basemodels.shared_segments(4,16) = 1/3;
+basemodels.shared_segments(4,15) = 1/3;
+basemodels.shared_segments(3,15) = 1/3;
+
+basemodels.shared_segments = 1-basemodels.shared_segments;
+
+basemodelNames = {'vowels','shared_segments'};
 
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
@@ -74,7 +130,15 @@ modelNames = unique(labelnames_denumbered,'stable');
 for i = 1:length(modelNames)
     models{i} = modeltemplate;
     models{i}(strcmp(modelNames{i},labelnames_denumbered),strcmp(modelNames{i},labelnames_denumbered))=basemodels.vowels;
+    this_model_name{i} = [modelNames{i} ' vowels'];
 end
+for i = length(modelNames)+1:2*length(modelNames)
+    models{i} = modeltemplate;
+    models{i}(strcmp(modelNames{i-length(modelNames)},labelnames_denumbered),strcmp(modelNames{i-length(modelNames)},labelnames_denumbered))=basemodels.shared_segments;
+    this_model_name{i} = [modelNames{i-length(modelNames)} ' shared_segments'];
+end
+
+
 
 % % models = modelRDMs; close all
 % %modelNames = fieldnames(models);
@@ -88,8 +152,8 @@ mask_index = results.mask_index;
 
 clear results % to free memory
 
-for m=1:length(modelNames)
-    fprintf('\nComputing effect-map for model %s\n',modelNames{m});
+for m=1:length(this_model_name)
+    fprintf('\nComputing effect-map for model %s\n',this_model_name{m});
     
     modelRDM = vectorizeRDMs(models{m})';
     effectMap = NaN(size(mask));
@@ -116,5 +180,5 @@ for m=1:length(modelNames)
     downsamped_V.mat = V.mat;
     downsamped_V.mat(1:3,1:3)=downsamped_V.mat(1:3,1:3)*downsamp_ratio;
     
-    saveMRImage(downsamped_effectMap,fullfile(outputDir,['effect-map_' modelNames{m} '.nii']),downsamped_V.mat);
+    saveMRImage(downsamped_effectMap,fullfile(outputDir,['effect-map_' this_model_name{m} '.nii']),downsamped_V.mat);
 end

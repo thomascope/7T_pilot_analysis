@@ -1011,6 +1011,13 @@ for i = 1:length(labelnames)
 end
 conditionnames = unique(labelnames_denumbered,'stable');
 
+for i = 1:length(conditionnames)
+    this_model_name{i} = [conditionnames{i} ' vowels'];
+end
+for i = length(conditionnames)+1:2*length(conditionnames)
+    this_model_name{i} = [conditionnames{i-length(conditionnames)} ' shared_segments'];
+end
+
 clear temp labelnames_denumbered labelnames
 
 nrun = size(subjects,2); % enter the number of runs here
@@ -1019,9 +1026,9 @@ RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 for crun = 1:nrun
     ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
-    for m = 1:length(conditionnames)
+    for m = 1:length(this_model_name)
         try
-            temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' conditionnames{m} '.mat']));
+            temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{m} '.mat']));
             all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
             RSA_ROI_data_exist(crun) = 1;
         catch
@@ -1041,11 +1048,11 @@ figure
 set(gcf,'Position',[100 100 1600 800]);
 set(gcf, 'PaperPositionMode', 'auto');
 hold on
-errorbar([1:length(conditionnames)]-0.1,mean(squeeze(all_data(:,LSTG_ROI,group==1&RSA_ROI_data_exist)),2),std(squeeze(all_data(:,LSTG_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
-errorbar([1:length(conditionnames)]+0.1,mean(squeeze(all_data(:,LSTG_ROI,group==2&RSA_ROI_data_exist)),2),std(squeeze(all_data(:,LSTG_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
-xlim([0 length(conditionnames)+1])
-set(gca,'xtick',[1:length(conditionnames)],'xticklabels',conditionnames,'XTickLabelRotation',45,'TickLabelInterpreter','none')
-plot([0 length(conditionnames)+1],[0,0],'k--')
+errorbar([1:length(this_model_name)]-0.1,mean(squeeze(all_data(:,LSTG_ROI,group==1&RSA_ROI_data_exist)),2),std(squeeze(all_data(:,LSTG_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
+errorbar([1:length(this_model_name)]+0.1,mean(squeeze(all_data(:,LSTG_ROI,group==2&RSA_ROI_data_exist)),2),std(squeeze(all_data(:,LSTG_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+xlim([0 length(this_model_name)+1])
+set(gca,'xtick',[1:length(this_model_name)],'xticklabels',this_model_name,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+plot([0 length(this_model_name)+1],[0,0],'k--')
 title('Left STG Vowel RSA','Interpreter','none')
 legend('Controls','Patients')
 
