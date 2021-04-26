@@ -127,17 +127,41 @@ for i = 1:length(labelnames)
 end
 modelNames = unique(labelnames_denumbered,'stable');
 
-for i = 1:length(modelNames)
-    models{i} = modeltemplate;
-    models{i}(strcmp(modelNames{i},labelnames_denumbered),strcmp(modelNames{i},labelnames_denumbered))=basemodels.vowels;
-    this_model_name{i} = [modelNames{i} ' vowels'];
-end
-for i = length(modelNames)+1:2*length(modelNames)
-    models{i} = modeltemplate;
-    models{i}(strcmp(modelNames{i-length(modelNames)},labelnames_denumbered),strcmp(modelNames{i-length(modelNames)},labelnames_denumbered))=basemodels.shared_segments;
-    this_model_name{i} = [modelNames{i-length(modelNames)} ' shared_segments'];
+for j = 1:length(basemodelNames)
+    for i = 1:length(modelNames)
+        this_model = ((j-1)*length(modelNames))+i;
+        models{this_model} = modeltemplate;
+        models{this_model}(strcmp(modelNames{i},labelnames_denumbered),strcmp(modelNames{i},labelnames_denumbered))=basemodels.(basemodelNames{j});
+        this_model_name{this_model} = [modelNames{i} ' ' basemodelNames{j}];
+        %Optional check - view matrix
+%         imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
+%         title(this_model_name{this_model})
+%         pause
+    end
 end
 
+%Now attempt cross-condition decoding, recognising that the MisMatch cue
+%was consistently 8 elements after/before the auditory word
+MisMatch_Cross_decode_base = zeros(16,16);
+MisMatch_Cross_decode_base(9:17:end/2) = 1;
+MisMatch_Cross_decode_base(end/2+1:17:end) = 1;
+
+cross_decode_label_pairs = {
+    'Match Unclear', 'Mismatch Unclear';
+    'Match Clear', 'Mismatch Unclear';
+    'Match Unclear', 'Mismatch Clear';
+    'Match Clear', 'Mismatch Clear'};
+
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end+1} = modeltemplate;
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = MisMatch_Cross_decode_base;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base;
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode'];
+    %Optional check - view matrix
+    %     imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %     title(this_model_name{end})
+    %     pause
+end
 
 
 % % models = modelRDMs; close all

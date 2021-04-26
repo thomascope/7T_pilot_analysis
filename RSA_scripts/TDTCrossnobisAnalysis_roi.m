@@ -1,4 +1,4 @@
-function []=TDTCrossnobisAnalysis_roi(GLMDir,mask_dir,mask_names)
+function results=TDTCrossnobisAnalysis_roi(GLMDir,mask_dir,mask_names)
 % TDTCrossnobisAnalysis_1Subj('/imaging/mlr/users/tc02/PINFA_preprocessed_2021/P7C05/stats4_multi_3_nowritten2')
 
 addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI')
@@ -22,20 +22,23 @@ cfg = decoding_defaults;
 
 % Set the analysis that should be performed (default is 'searchlight')
 cfg.analysis = 'ROI';
-cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis_ROI');
+%cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis_ROI');
 
 % Set the filepath where your SPM.mat and all related betas are, e.g. 'c:\exp\glm\model_button'
 beta_loc = GLMDir;
 
-% Set the filename of your brain mask (or your ROI masks as cell matrix)
-% for searchlight or wholebrain e.g. 'c:\exp\glm\model_button\mask.img' OR
-% for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
-% You can also use a mask file with multiple masks inside that are
-% separated by different integer values (a "multi-mask")
-cfg.files.mask = {};
-for i = 1:length(mask_names)
-    cfg.files.mask{i} = fullfile(mask_dir,[mask_names{i} '.nii']);
-end
+%Below removed, so masks are now assessed individually - slower, but means
+%that you don't lost a whole subject if they don't have data for a single
+%mask 
+% % Set the filename of your brain mask (or your ROI masks as cell matrix)
+% % for searchlight or wholebrain e.g. 'c:\exp\glm\model_button\mask.img' OR
+% % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
+% % You can also use a mask file with multiple masks inside that are
+% % separated by different integer values (a "multi-mask")
+% cfg.files.mask = {};
+% for i = 1:length(mask_names)
+%     cfg.files.mask{i} = fullfile(mask_dir,[mask_names{i} '.nii']);
+% end
 
 % Set the label names to the regressor names which you want to use for
 % your similarity analysis, e.g.
@@ -70,15 +73,6 @@ cfg.scale.method = 'cov'; % we scale by noise covariance
 cfg.scale.estimation = 'separate'; % we scale all data for each run separately while iterating across searchlight spheres
 cfg.scale.shrinkage = 'lw2'; % Ledoit-Wolf shrinkage retaining variances
 
-% The crossnobis distance is identical to the cross-validated Euclidean
-% distance after prewhitening (multivariate noise normalization). It has
-% been shown that a good estimate for the multivariate noise is provided
-% by the residuals of the first-level model, in addition with Ledoit-Wolf
-% regularization. Here we calculate those residuals. If you have them
-% available already, you can load them into misc.residuals using only the
-% voxels from cfg.files.mask
-[misc.residuals,cfg.files.residuals.chunk] = residuals_from_spm(fullfile(beta_loc,'SPM.mat'),cfg.files.mask); % this only needs to be run once and can be saved and loaded
-
 % Set additional parameters manually if you want (see decoding.m or
 % decoding_defaults.m). Below some example parameters that you might want
 % to use:
@@ -101,10 +95,21 @@ cfg.design = make_design_similarity_cv(cfg);
 
 % Run decoding
 cfg.results.overwrite = 1;
-try
-    results = decoding(cfg,[],misc);
-catch
-    assert(~~exist([cfg.results.dir filesep 'res_other_average.mat'],'file'),'Something went wrong with the decoding - the results do not exist')
+cfg.files.mask = {};
+for i = 1:length(mask_names)
+    cfg.files.mask = fullfile(mask_dir,[mask_names{i} '.nii']);
+    cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis_ROI',mask_names{i});
+    % The crossnobis distance is identical to the cross-validated Euclidean
+    % distance after prewhitening (multivariate noise normalization). It has
+    % been shown that a good estimate for the multivariate noise is provided
+    % by the residuals of the first-level model, in addition with Ledoit-Wolf
+    % regularization. Here we calculate those residuals. If you have them
+    % available already, you can load them into misc.residuals using only the
+    % voxels from cfg.files.mask
+    [misc.residuals,cfg.files.residuals.chunk] = residuals_from_spm(fullfile(beta_loc,'SPM.mat'),cfg.files.mask); % this only needs to be run once and can be saved and loaded
+    try %Will fail if no voxels in the mask, but that's ok.
+        results{i} = decoding(cfg,[],misc);
+    end
 end
 
 

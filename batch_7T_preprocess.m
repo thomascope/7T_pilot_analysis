@@ -815,7 +815,7 @@ parfor crun = 1:nrun
     end
 end
 
-%% Do an RSA analysis separately if you want (already integrated into previous step, but now can compare new models etc without repeating the time consuming cross-nobis
+%% Do an RSA analysis separately if you want (already integrated into previous step for vowels, but now can compare new models etc without repeating the time consuming cross-nobis)
 nrun = size(subjects,2); % enter the number of runs here
 RSAnobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 times faster than 1 (2 cubed). 
@@ -972,7 +972,7 @@ parfor crun = 1:nrun
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Where is the SPM model?
     mask_dir = [preprocessedpathstem subjects{crun}]; %Where are the native space ROI masks?
     try
-        TDTCrossnobisAnalysis_roi(GLMDir,mask_dir,masks)
+        TDTCrossnobisAnalysis_roi(GLMDir,mask_dir,masks);
         mahalanobisroiworkedcorrectly(crun) = 1;
     catch
         mahalanobisroiworkedcorrectly(crun) = 0;
@@ -982,12 +982,24 @@ end
 %% Now do RSA on ROI data
 nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
+masks = {
+    'rwLeft_Superior_Temporal_Gyrus'
+    'rwLeft_Angular_Gyrus'
+    'rwLeft_Precentral_Gyrus'
+    'rwLeft_Frontal_Operculum'
+    'rwLeft_Inferior_Frontal_Angular_Gyrus'
+    'rwRight_Superior_Temporal_Gyrus'
+    'rwRight_Angular_Gyrus'
+    'rwRight_Precentral_Gyrus'
+    'rwRight_Frontal_Operculum'
+    'rwRight_Inferior_Frontal_Angular_Gyrus'
+    };
+
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Where is the SPM model?
-    mask_dir = [preprocessedpathstem subjects{crun}]; %Where are the native space ROI masks?
     try
-        module_roi_RSA(GLMDir)
+        module_roi_RSA(GLMDir,masks)
         RSAroiworkedcorrectly(crun) = 1;
     catch
         RSAroiworkedcorrectly(crun) = 0;
@@ -1011,11 +1023,25 @@ for i = 1:length(labelnames)
 end
 conditionnames = unique(labelnames_denumbered,'stable');
 
-for i = 1:length(conditionnames)
-    this_model_name{i} = [conditionnames{i} ' vowels'];
+%basemodelNames = {'vowels','shared_segments','mismatch_cues','dummy_mismatch_cues_1','dummy_mismatch_cues_2'}; % This was incorrectly specified
+basemodelNames = {'vowels','shared_segments'};
+
+this_model_name = {};
+for j = 1:length(basemodelNames)
+    for i = 1:length(conditionnames)
+        this_model = ((j-1)*length(conditionnames))+i;
+        this_model_name{this_model} = [conditionnames{i} ' ' basemodelNames{j}];
+    end
 end
-for i = length(conditionnames)+1:2*length(conditionnames)
-    this_model_name{i} = [conditionnames{i-length(conditionnames)} ' shared_segments'];
+
+cross_decode_label_pairs = {
+    'Match Unclear', 'Mismatch Unclear';
+    'Match Clear', 'Mismatch Unclear';
+    'Match Unclear', 'Mismatch Clear';
+    'Match Clear', 'Mismatch Clear'};
+
+for i = 1:size(cross_decode_label_pairs,1)
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode'];
 end
 
 clear temp labelnames_denumbered labelnames
@@ -1053,7 +1079,7 @@ errorbar([1:length(this_model_name)]+0.1,mean(squeeze(all_data(:,LSTG_ROI,group=
 xlim([0 length(this_model_name)+1])
 set(gca,'xtick',[1:length(this_model_name)],'xticklabels',this_model_name,'XTickLabelRotation',45,'TickLabelInterpreter','none')
 plot([0 length(this_model_name)+1],[0,0],'k--')
-title('Left STG Vowel RSA','Interpreter','none')
+title('Left STG RSA','Interpreter','none')
 legend('Controls','Patients')
 
 %% Now compare across ROI for each condition
