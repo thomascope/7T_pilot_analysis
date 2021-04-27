@@ -33,7 +33,11 @@ end
 matlabbatch{1}.spm.spatial.normalise.write.subj.resample = [images; images_mask];
 matlabbatch{1}.spm.spatial.normalise.write.subj.def =  cellstr([StrDir 'mri/y_structural_csf.nii']);
 
+if downsamp_ratio == 1
 save(fullfile(GLMDir,'TDTcrossnobis',versionCurrent,'NormalizeTDTcrossnobis.mat'), 'matlabbatch');
+else
+    save(fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)],versionCurrent,'NormalizeTDTcrossnobis.mat'), 'matlabbatch');
+end
 spm_jobman('initcfg')
 spm_jobman('run', matlabbatch);
 
@@ -71,7 +75,7 @@ for i=1:length(images)
     
     % Smooth and (re)mask normalised r-map
     fname_smoothed = strrep(images{i},'weffect-map_','sweffect-map_');
-    spm_smooth(images{i},fname_smoothed,[6 6 6]);
+    spm_smooth(images{i},fname_smoothed,[8 8 8]);
     V = spm_vol(fname_smoothed);
     Y = spm_read_vols(V);
     Y(Y_mask<mask_threshold) = NaN;

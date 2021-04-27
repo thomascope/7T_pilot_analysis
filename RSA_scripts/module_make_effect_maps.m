@@ -27,7 +27,7 @@ for i = 1:length(temp.SPM.Sess(1).U)
     else
         labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
     end
-end        
+end
 labels = 1:length(labelnames);
 
 %% Make effect-maps (by correlating neural RDMs to model RDMs)
@@ -134,17 +134,16 @@ for j = 1:length(basemodelNames)
         models{this_model}(strcmp(modelNames{i},labelnames_denumbered),strcmp(modelNames{i},labelnames_denumbered))=basemodels.(basemodelNames{j});
         this_model_name{this_model} = [modelNames{i} ' ' basemodelNames{j}];
         %Optional check - view matrix
-%         imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
-%         title(this_model_name{this_model})
-%         pause
+        %         imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
+        %         title(this_model_name{this_model})
+        %         pause
     end
 end
 
-%Now attempt cross-condition decoding, recognising that the MisMatch cue
-%was consistently 8 elements after/before the auditory word
 MisMatch_Cross_decode_base = zeros(16,16);
 MisMatch_Cross_decode_base(9:17:end/2) = 1;
 MisMatch_Cross_decode_base(end/2+1:17:end) = 1;
+MisMatch_Cross_decode_base = 1-MisMatch_Cross_decode_base;
 
 cross_decode_label_pairs = {
     'Match Unclear', 'Mismatch Unclear';
@@ -158,15 +157,47 @@ for i = 1:size(cross_decode_label_pairs,1)
     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base;
     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode'];
     %Optional check - view matrix
-    %     imagesc(models{end},'AlphaData',~isnan(models{end}))
-    %     title(this_model_name{end})
-    %     pause
+    %             imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %             title(this_model_name{end})
+    %             pause
 end
+
+%Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
+%was consistently 8 elements after/before the auditory word
+basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); %I think this is correct, but need to 100% check the off-diagonals
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end+1} = modeltemplate;
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross';
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - cross'];
+    %Optional check - view matrix
+    %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %                     title(this_model_name{end})
+    %                     pause
+end
+
+
+%Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
+%was consistently 8 elements after/before the auditory word
+basemodels.shared_segments_cross_noself = basemodels.shared_segments;
+basemodels.shared_segments_cross_noself(1:17:end) = NaN;
+basemodels.shared_segments_cross_noself = circshift(basemodels.shared_segments_cross_noself,[8 0]);
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end+1} = modeltemplate;
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross_noself;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - no self'];
+    %Optional check - view matrix
+    %             imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %             title(this_model_name{end})
+    %             pause
+end
+
 
 
 % % models = modelRDMs; close all
 % %modelNames = fieldnames(models);
-% 
+%
 % %modelNames = {'ProbM' 'ProbMM' 'EntropyM' 'EntropyMM'};
 
 
