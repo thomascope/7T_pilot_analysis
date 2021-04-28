@@ -818,7 +818,14 @@ end
 %% Or run the cross validated Mahalanobis distance and RSM on each subject on the whole brain not downsampled, but in parallel over voxels (slow, and produces around 12Gb output data per subject) - the bigger the worker pool the better.
 nrun = size(subjects,2); % enter the number of runs here
 mahalanobisparallelworkedcorrectly = zeros(1,nrun);
+if opennewanalysispool == 1
+    delete(gcp) % Make a bigger pool for this step.
+end
 for crun = 1:nrun
+    if numel(gcp('nocreate')) == 0 % If parallel pool crashes, this should allow the loop to simply resume at the next subject
+        Poolinfo = cbupool(120,'--mem-per-cpu=1G --time=167:00:00 --exclude=node-i[01-15]');
+        parpool(Poolinfo,Poolinfo.NumWorkers);
+    end
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     try
@@ -828,6 +835,19 @@ for crun = 1:nrun
         mahalanobisparallelworkedcorrectly(crun) = 0;
     end
 end
+if opennewanalysispool == 1
+    delete(gcp)
+    if size(subjects,2) > 64
+        workersrequested = 64;
+        fprintf([ '\n\nUnable to ask for a worker per run; asking for 64 instead\n\n' ]);
+    else
+        workersrequested = size(subjects,2);
+    end
+    Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00 --exclude=node-i[01-15]');
+    parpool(Poolinfo,Poolinfo.NumWorkers);
+end
+
+
 
 %% Do an RSA analysis separately if you want (already integrated into previous step for vowels, but now can compare new models etc without repeating the time consuming cross-nobis)
 nrun = size(subjects,2); % enter the number of runs here
@@ -836,7 +856,7 @@ downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
-        try
+    try
         module_make_effect_maps(GLMDir,downsamp_ratio)
         RSAnobisworkedcorrectly(crun) = 1;
     catch
@@ -930,7 +950,7 @@ parfor crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     reslice_template = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/mask.nii']; %Template for reslicing
     try
-        module_template_2_nativemap(images2normalise,outpath,1,template);
+        module_template_2_nativemap(images2normalise,outpath,1,reslice_template);
         template2nativeworkedcorrectly(crun) = 1;
     catch
         template2nativeworkedcorrectly(crun) = 0;

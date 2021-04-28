@@ -39,7 +39,7 @@ if downsamp_ratio == 1
 else
     outputDir = fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)],version);
 end
-if exist(outputDir,'dir'); rmdir(outputDir,'s'); mkdir(outputDir); else; mkdir(outputDir); end
+if ~exist(outputDir,'dir') mkdir(outputDir); end
 
 clear models
 

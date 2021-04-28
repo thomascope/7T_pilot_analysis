@@ -186,6 +186,7 @@ for i = 1:length(mask_names)
         %Optional check - view matrix
 %             imagesc(models{end},'AlphaData',~isnan(models{end}))
 %             title(this_model_name{end})
+%             colorbar
 %             pause
     end
     
