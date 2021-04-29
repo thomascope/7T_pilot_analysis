@@ -1,5 +1,101 @@
-function module_extract_avneuralRDM_cluster(GLMDir,downsamp_ratio,mask_names)
+function module_across_subj_avneuralRDM(GLMDir,downsamp_ratio,mask_names,subjects,group)
 %For taking already calculated crossnobis distances and doing RSA
+
+version = 'spearman'; % how to assess accuracy of model RDMs (pearson, spearman, weighted average)
+
+%Define input data location
+if downsamp_ratio == 1
+    cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis');
+else
+    cfg.results.dir = fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)]);
+end
+
+outputDir = fullfile(cfg.results.dir,version,'extracted_neuralRDMs');
+
+for this_mask = 1:length(mask_names)
+    for crun = 1:length(subjects)
+        load(strrep(fullfile(outputDir,['average_RDM_' mask_names{this_mask}(1:end-4)]),subjects{1},subjects{crun}))
+        [~, ~, temp_rank]=unique(average_RDM);
+        
+        all_average_RDMs(:,:,crun) = average_RDM;
+        all_average_ranked_RDMs(:,:,crun) = reshape(temp_rank,size(average_RDM));
+        
+        if group(crun) == 1
+            if exist('all_control_RDMs','var')
+                all_control_RDMs(:,:,end+1) = average_RDM;
+                all_control_ranked_RDMs(:,:,end+1) = reshape(temp_rank,size(average_RDM));
+            else
+                all_control_RDMs(:,:,1) = average_RDM;
+                all_control_ranked_RDMs(:,:,1) = reshape(temp_rank,size(average_RDM));
+            end
+        elseif group(crun) == 2
+            if exist('all_patient_RDMs','var')
+                all_patient_RDMs(:,:,end+1) = average_RDM;
+                all_patient_ranked_RDMs(:,:,end+1) = reshape(temp_rank,size(average_RDM));
+            else
+                all_patient_RDMs(:,:,1) = average_RDM;
+                all_patient_ranked_RDMs(:,:,1) = reshape(temp_rank,size(average_RDM));
+            end
+        end
+    end
+end
+
+overall_average_RDM = squeeze(mean(all_average_RDMs,3));
+overall_average_ranked_RDM = squeeze(mean(all_average_ranked_RDMs,3));
+
+control_average_RDM = squeeze(mean(all_average_RDMs,3));
+control_average_ranked_RDM = squeeze(mean(all_average_ranked_RDMs,3));
+
+patient_average_RDM = squeeze(mean(all_average_RDMs,3));
+patient_average_ranked_RDM = squeeze(mean(all_average_ranked_RDMs,3));
+
+temp = load([GLMDir filesep 'SPM.mat']);
+labelnames = {};
+for i = 1:length(temp.SPM.Sess(1).U)
+    if ~strncmp(temp.SPM.Sess(1).U(i).name,{'Match','Mismatch','Written'},5)
+        continue
+    else
+        labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
+    end
+end
+labels = 1:length(labelnames);
+
+labelnames_denumbered = {};
+for i = 1:length(labelnames)
+    labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
+end
+conditionNames = unique(labelnames_denumbered,'stable');
+num_stimuli = size(overall_average_RDM,1)/length(conditionNames);
+
+all_condition_combinations = combvec(1:length(conditionNames),1:length(conditionNames));
+
+for this_condition_combination = 1:length(all_condition_combinations)
+    cond_1 = all_condition_combinations(1,this_condition_combination);
+    cond_2 = all_condition_combinations(2,this_condition_combination);
+    
+    this_rdm = all_average_RDMs((cond_1-1)*num_stimuli+1:cond_1*num_stimuli,(cond_2-1)*num_stimuli+1:cond_2*num_stimuli,:);
+    
+    for crun = 1:length(subjects)
+        %[~, ~, temp_rank]=unique(squeeze(this_rdm(:,:,crun)));
+        temp_rank = tiedrank(reshape(this_rdm(:,:,crun),num_stimuli*num_stimuli,[]));
+        this_ranked_RDM(:,:,crun) = reshape(temp_rank,[num_stimuli,num_stimuli]);
+    end
+    
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    subplot(1,2,1)
+    imagesc(squeeze(mean(this_ranked_RDM,3)))
+    colorbar
+    subplot(1,2,2)
+    imagesc(squeeze(mean(this_rdm,3)))
+    colorbar
+    suptitle([conditionNames{cond_1} ' to ' conditionNames{cond_2}])
+end
+
+    
+
+
+
 
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
@@ -9,12 +105,7 @@ addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts
 addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/decoding_toolbox_v3.999')
 addpath(genpath('/group/language/data/ediz.sohoglu/matlab/rsatoolbox'));
 
-%Define input data location
-if downsamp_ratio == 1
-    cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis');
-else
-    cfg.results.dir = fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)]);
-end
+
 
 version = 'spearman'; % how to assess accuracy of model RDMs (pearson, spearman, weighted average)
 
@@ -27,7 +118,7 @@ load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
 notempty_data = find(~cellfun(@isempty,results.other_average.output));
 
-for this_mask = 1:length(mask_names)
+
 V = spm_vol(fullfile(GLMDir,'mask.nii')); % Searchlight mask
 mask = spm_read_vols(V);
 mask_index = results.mask_index;
@@ -51,7 +142,7 @@ for vx=1:numel(data)
 end
 
 average_RDM = squeeze(mean(RDMs_to_average{this_mask},3));
-save(fullfile(outputDir,['average_RDM_' mask_names{this_mask}(1:end-4)]), 'average_RDM')
+save(fullfile(outputDir,['average_RDM_' mask_names{this_mask}(1:end-4)], 'average_RDM'))
 
 
 end

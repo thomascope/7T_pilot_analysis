@@ -54,9 +54,8 @@ for i = 1:length(mask_names)
     basemodels.vowels(51:68:end) = 1/3;
     basemodels.vowels = 1-basemodels.vowels;
     
-    basemodelNames = {'vowels'};
-    
     %Squares based on all shared features
+    
     basemodels.shared_segments = zeros(16,16);
     basemodels.shared_segments(1:17:end) = 1;
     basemodels.shared_segments(2:68:end) = 2/3;
@@ -130,9 +129,9 @@ for i = 1:length(mask_names)
             models{this_model}(strcmp(modelNames{i},labelnames_denumbered),strcmp(modelNames{i},labelnames_denumbered))=basemodels.(basemodelNames{j});
             this_model_name{this_model} = [modelNames{i} ' ' basemodelNames{j}];
             %Optional check - view matrix
-%             imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
-%             title(this_model_name{this_model})
-%             pause
+            %         imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
+            %         title(this_model_name{this_model})
+            %         pause
         end
     end
     
@@ -141,11 +140,17 @@ for i = 1:length(mask_names)
     MisMatch_Cross_decode_base(end/2+1:17:end) = 1;
     MisMatch_Cross_decode_base = 1-MisMatch_Cross_decode_base;
     
+    Match_Cross_decode_base = 1-eye(16);
+    
     cross_decode_label_pairs = {
         'Match Unclear', 'Mismatch Unclear';
         'Match Clear', 'Mismatch Unclear';
         'Match Unclear', 'Mismatch Clear';
-        'Match Clear', 'Mismatch Clear'};
+        'Match Clear', 'Mismatch Clear'
+        'Match Unclear', 'Written';
+        'Match Clear', 'Written';
+        'Mismatch Unclear', 'Written';
+        'Mismatch Clear', 'Written'};
     
     for i = 1:size(cross_decode_label_pairs,1)
         models{end+1} = modeltemplate;
@@ -153,9 +158,9 @@ for i = 1:length(mask_names)
         models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base;
         this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode'];
         %Optional check - view matrix
-%             imagesc(models{end},'AlphaData',~isnan(models{end}))
-%             title(this_model_name{end})
-%             pause
+        %             imagesc(models{end},'AlphaData',~isnan(models{end}))
+        %             title(this_model_name{end})
+        %             pause
     end
     
     %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
@@ -167,9 +172,9 @@ for i = 1:length(mask_names)
         models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross';
         this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - cross'];
         %Optional check - view matrix
-%                     imagesc(models{end},'AlphaData',~isnan(models{end}))
-%                     title(this_model_name{end})
-%                     pause
+        %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+        %                     title(this_model_name{end})
+        %                     pause
     end
     
     
@@ -184,64 +189,60 @@ for i = 1:length(mask_names)
         models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
         this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - no self'];
         %Optional check - view matrix
-%             imagesc(models{end},'AlphaData',~isnan(models{end}))
-%             title(this_model_name{end})
-%             colorbar
-%             pause
+        %                 imagesc(models{end},'AlphaData',~isnan(models{end}))
+        %                 title(this_model_name{end})
+        %                 colorbar
+        %                 pause
     end
     
-
+    cross_decode_label_pairs = {
+        'Match Unclear', 'Written';
+        'Match Clear', 'Written';
+        };
     
-    % %Optional check - view matrix
-    % %imagesc(models{end},'AlphaData',~isnan(models{end}))
-    % %title(this_model_name{end})
-    %
-    % %Off diagonal representing mismatch cues
-    % basemodels.mismatch_cues = zeros(16,16);
-    % basemodels.mismatch_cues(1:17:end) = 1;
-    % basemodels.mismatch_cues(9:17:end/2) = 1;
-    % basemodels.mismatch_cues(end/2+1:17:end) = 1;
-    %
-    % basemodels.mismatch_cues = 1-basemodels.mismatch_cues;
-    %
-    % basemodelNames = {'vowels','shared_segments','mismatch_cues'};
-    %
-    % %Incorrect off-diagonal representing mismatch cues as control
-    % basemodels.dummy_mismatch_cues_1 = zeros(16,16);
-    % basemodels.dummy_mismatch_cues_1(1:17:end) = 1;
-    % basemodels.dummy_mismatch_cues_1(5:17:end*3/4) = 1;
-    % basemodels.dummy_mismatch_cues_1(end*3/4+1:17:end) = 1;
-    %
-    % basemodels.dummy_mismatch_cues_1 = 1-basemodels.dummy_mismatch_cues_1;
-    %
-    % basemodelNames = {'vowels','shared_segments','mismatch_cues','dummy_mismatch_cues_1'};
-    %
-    % %Incorrect off-diagonal representing mismatch cues as control
-    % basemodels.dummy_mismatch_cues_2 = zeros(16,16);
-    % basemodels.dummy_mismatch_cues_2(1:17:end) = 1;
-    % basemodels.dummy_mismatch_cues_2(13:17:end/4) = 1;
-    % basemodels.dummy_mismatch_cues_2(end/4+1:17:end) = 1;
-    %
-    % basemodels.dummy_mismatch_cues_2 = 1-basemodels.dummy_mismatch_cues_2;
-    %
-    % basemodelNames = {'vowels','shared_segments','mismatch_cues','dummy_mismatch_cues_1','dummy_mismatch_cues_2'};
+    for i = 1:size(cross_decode_label_pairs,1)
+        models{end+1} = modeltemplate;
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base;
+        this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode_Match'];
+        %Optional check - view matrix
+        %             imagesc(models{end},'AlphaData',~isnan(models{end}))
+        %             title(this_model_name{end})
+        %             pause
+    end
+    
+    %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
+    %was consistently 8 elements after/before the auditory word
+    for i = 1:size(cross_decode_label_pairs,1)
+        models{end+1} = modeltemplate;
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+        this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments'];
+        %Optional check - view matrix
+        %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+        %                     title(this_model_name{end})
+        %                     pause
+    end
     
     roi_names = results.roi_names;
     for m=1:length(this_model_name)
         fprintf('\nComputing ROI effects for model %s\n',this_model_name{m});
-        
-        modelRDM = vectorizeRDMs(models{m})';
-        for vx=1:numel(data)
-            neuralRDM = vectorizeRDMs(data{vx})';
-            if ~isempty(strfind(version,'pearson'))
-                roi_effect(vx) = fisherTransform(corr(modelRDM,neuralRDM,'type','Pearson','Rows','pairwise'));
-            elseif ~isempty(strfind(version,'spearman'))
-                roi_effect(vx) = fisherTransform(corr(modelRDM,neuralRDM,'type','Spearman','Rows','pairwise'));
-            elseif ~isempty(strfind(version,'average'))
-                %roi_effect(vx) = mean(neuralRDM(find(~isnan(modelRDM)),:),1);
-                roi_effect(vx) = mean(neuralRDM(find(modelRDM==1),:),1);
+        if ~exist(fullfile(outputDir,['roi_effects_' this_model_name{m} '.mat'])) || redo_maps == 1
+            modelRDM = vectorizeRDMs(models{m})';
+            for vx=1:numel(data)
+                neuralRDM = vectorizeRDMs(data{vx})';
+                if ~isempty(strfind(version,'pearson'))
+                    roi_effect(vx) = fisherTransform(corr(modelRDM,neuralRDM,'type','Pearson','Rows','pairwise'));
+                elseif ~isempty(strfind(version,'spearman'))
+                    roi_effect(vx) = fisherTransform(corr(modelRDM,neuralRDM,'type','Spearman','Rows','pairwise'));
+                elseif ~isempty(strfind(version,'average'))
+                    %roi_effect(vx) = mean(neuralRDM(find(~isnan(modelRDM)),:),1);
+                    roi_effect(vx) = mean(neuralRDM(find(modelRDM==1),:),1);
+                end
             end
+            save(fullfile(outputDir,['roi_effects_' this_model_name{m} '.mat']),'roi_effect','roi_names')
+        else
+            disp('Already exists - moving on - set redo_maps to 1 if you want to re-make')
         end
-        save(fullfile(outputDir,['roi_effects_' this_model_name{m} '.mat']),'roi_effect','roi_names')
     end
 end

@@ -87,12 +87,16 @@ end
 secondlevelworkedcorrectly = zeros(1,nrun);
 
 parfor crun = 1:nrun
-    spm('defaults', 'fMRI');
-    spm_jobman('initcfg')
-    try
-        spm_jobman('run', jobs{crun}, inputs{:,crun});
-        secondlevelworkedcorrectly(crun) = 1;
-    catch
-        secondlevelworkedcorrectly(crun) = 0;
+    if exist(fullfile(char(inputs{1, crun}),'SPM.mat'),'file')
+        disp([fullfile(char(inputs{1, crun}),'SPM.mat') ' already exists, delete it if you want to re-make, otherwise moving on.'])
+    else
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        try
+            spm_jobman('run', jobs{crun}, inputs{:,crun});
+            secondlevelworkedcorrectly(crun) = 1;
+        catch
+            secondlevelworkedcorrectly(crun) = 0;
+        end
     end
 end

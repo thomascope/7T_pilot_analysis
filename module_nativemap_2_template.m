@@ -4,9 +4,9 @@ function module_nativemap_2_template(GLMDir,downsamp_ratio,StrDir)
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
 end
-
-addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI')
-addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/decoding_toolbox_v3.999')
+% 
+% addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI')
+% addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/decoding_toolbox_v3.999')
 addpath(genpath('/group/language/data/ediz.sohoglu/matlab/rsatoolbox'));
 
 versionCurrent = 'spearman';

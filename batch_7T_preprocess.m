@@ -864,6 +864,27 @@ parfor crun = 1:nrun
     end
 end
 
+% %% In progress - extract the neural RDM from a given mask
+% nrun = size(subjects,2); % enter the number of runs here
+% avneuralRDM_clusterworkedcorrectly = zeros(1,nrun);
+% downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 times faster than 1 (2 cubed). 
+% 
+% extraction_masks = {'rwL_STG_cross-segment_cluster.nii'};
+% parfor crun = 1:nrun
+%     addpath(genpath('./RSA_scripts'))
+%     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+%     try
+%         module_extract_avneuralRDM_cluster(GLMDir,downsamp_ratio,extraction_masks)
+%         avneuralRDM_clusterworkedcorrectly(crun) = 1;
+%     catch
+%         avneuralRDM_clusterworkedcorrectly(crun) = 0;
+%     end
+% end
+% crun = 1;
+% GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+% addpath(genpath('./RSA_scripts'))
+% module_across_subj_avneuralRDM(GLMDir,downsamp_ratio,extraction_masks,subjects,group);
+
 
 %% Now normalise the native space RSA maps into template space with CAT12 deformation fields calculated earlier
 nrun = size(subjects,2); % enter the number of runs here
@@ -969,7 +990,7 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 %     'rwLeft_TrIFG'
 %     };
 
-masks = {
+masks = {'rwL_STG_cross-segment_cluster'
     'rwLeft_Superior_Temporal_Gyrus'
     'rwLeft_Angular_Gyrus'
     'rwLeft_Precentral_Gyrus'
@@ -1017,6 +1038,7 @@ end
 nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
+    'rwL_STG_cross-segment_cluster'
     'rwLeft_Superior_Temporal_Gyrus'
     'rwLeft_Angular_Gyrus'
     'rwLeft_Precentral_Gyrus'
@@ -1097,12 +1119,16 @@ this_model_name = {
     'Match Unclear to Mismatch Clear Cross-decode'
     'Match Unclear to Mismatch Clear Shared Segments - cross'
     'Match Unclear to Mismatch Clear Shared Segments - no self'
+    'Match Unclear to Written Cross-decode_Match'
     'Match Clear to Mismatch Unclear Cross-decode'
     'Match Clear to Mismatch Unclear Shared Segments - cross'
     'Match Clear to Mismatch Unclear Shared Segments - no self'
     'Match Clear to Mismatch Clear Cross-decode'
     'Match Clear to Mismatch Clear Shared Segments - cross'
     'Match Clear to Mismatch Clear Shared Segments - no self'
+    'Match Clear to Written Cross-decode_Match'
+    'MisMatch Unclear to Written Cross-decode'
+    'MisMatch Clear to Written Cross-decode'
     };
 
 nrun = size(subjects,2); % enter the number of runs here
@@ -1159,7 +1185,9 @@ end
 
 % Now repeat in each ROI
 
-mask_names = {    'rwLeft_Angular_Gyrus'
+mask_names = {    
+    'rwL_STG_cross-segment_cluster'
+    'rwLeft_Angular_Gyrus'
     'rwLeft_Precentral_Gyrus'
     'rwLeft_Frontal_Operculum'
     'rwLeft_Inferior_Frontal_Angular_Gyrus'

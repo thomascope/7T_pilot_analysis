@@ -1,6 +1,8 @@
 function module_make_effect_maps(GLMDir,downsamp_ratio)
 %For taking already calculated crossnobis distances and doing RSA
 
+redo_maps = 0; %If you want to calculate them again for some reason.
+
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
 end
@@ -11,7 +13,8 @@ addpath(genpath('/group/language/data/ediz.sohoglu/matlab/rsatoolbox'));
 
 %Define input data location
 if downsamp_ratio == 1
-    cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis');
+    %cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis');
+    cfg.results.dir = fullfile(GLMDir,'TDTcrossnobis_parallel');
 else
     cfg.results.dir = fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)]);
 end
@@ -145,11 +148,17 @@ MisMatch_Cross_decode_base(9:17:end/2) = 1;
 MisMatch_Cross_decode_base(end/2+1:17:end) = 1;
 MisMatch_Cross_decode_base = 1-MisMatch_Cross_decode_base;
 
+Match_Cross_decode_base = 1-eye(16);
+
 cross_decode_label_pairs = {
     'Match Unclear', 'Mismatch Unclear';
     'Match Clear', 'Mismatch Unclear';
     'Match Unclear', 'Mismatch Clear';
-    'Match Clear', 'Mismatch Clear'};
+    'Match Clear', 'Mismatch Clear'
+    'Match Unclear', 'Written';
+    'Match Clear', 'Written';
+    'Mismatch Unclear', 'Written';
+    'Mismatch Clear', 'Written'};
 
 for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
@@ -188,12 +197,40 @@ for i = 1:size(cross_decode_label_pairs,1)
     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - no self'];
     %Optional check - view matrix
+%                 imagesc(models{end},'AlphaData',~isnan(models{end}))
+%                 title(this_model_name{end})
+%                 colorbar
+%                 pause
+end
+
+cross_decode_label_pairs = {
+    'Match Unclear', 'Written';
+    'Match Clear', 'Written';
+};
+
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end+1} = modeltemplate;
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base;
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode_Match'];
+    %Optional check - view matrix
     %             imagesc(models{end},'AlphaData',~isnan(models{end}))
     %             title(this_model_name{end})
     %             pause
 end
 
-
+%Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
+%was consistently 8 elements after/before the auditory word
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end+1} = modeltemplate;
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments'];
+    %Optional check - view matrix
+    %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %                     title(this_model_name{end})
+    %                     pause
+end
 
 % % models = modelRDMs; close all
 % %modelNames = fieldnames(models);
@@ -209,31 +246,34 @@ clear results % to free memory
 
 for m=1:length(this_model_name)
     fprintf('\nComputing effect-map for model %s\n',this_model_name{m});
-    
-    modelRDM = vectorizeRDMs(models{m})';
-    effectMap = NaN(size(mask));
-    for vx=1:numel(data)
-        neuralRDM = vectorizeRDMs(data{vx})';
-        if isempty(neuralRDM)
-            continue
+    if ~exist(fullfile(outputDir,['effect-map_' this_model_name{m} '.nii'])) || redo_maps == 1
+        modelRDM = vectorizeRDMs(models{m})';
+        effectMap = NaN(size(mask));
+        for vx=1:numel(data)
+            neuralRDM = vectorizeRDMs(data{vx})';
+            if isempty(neuralRDM)
+                continue
+            end
+            notempty = vx;
+            if ~isempty(strfind(version,'pearson'))
+                effectMap(mask_index(vx)) = fisherTransform(corr(modelRDM,neuralRDM,'type','Pearson','Rows','pairwise'));
+            elseif ~isempty(strfind(version,'spearman'))
+                effectMap(mask_index(vx)) = fisherTransform(corr(modelRDM,neuralRDM,'type','Spearman','Rows','pairwise'));
+            elseif ~isempty(strfind(version,'average'))
+                %effectMap(mask_index(vx)) = mean(neuralRDM(find(~isnan(modelRDM)),:),1);
+                effectMap(mask_index(vx)) = mean(neuralRDM(find(modelRDM==1),:),1);
+            end
+            if ~mod(vx,100)
+                disp(['Processing voxel ' num2str(vx) ' of ' num2str(numel(data))])
+            end
         end
-        notempty = vx;
-        if ~isempty(strfind(version,'pearson'))
-            effectMap(mask_index(vx)) = fisherTransform(corr(modelRDM,neuralRDM,'type','Pearson','Rows','pairwise'));
-        elseif ~isempty(strfind(version,'spearman'))
-            effectMap(mask_index(vx)) = fisherTransform(corr(modelRDM,neuralRDM,'type','Spearman','Rows','pairwise'));
-        elseif ~isempty(strfind(version,'average'))
-            %effectMap(mask_index(vx)) = mean(neuralRDM(find(~isnan(modelRDM)),:),1);
-            effectMap(mask_index(vx)) = mean(neuralRDM(find(modelRDM==1),:),1);
-        end
-        if ~mod(vx,100)
-            disp(['Processing voxel ' num2str(vx) ' of ' num2str(numel(data))])
-        end
+        dims = size(effectMap);
+        downsamped_effectMap = effectMap(1:downsamp_ratio:dims(1),1:downsamp_ratio:dims(2),1:downsamp_ratio:dims(3));
+        downsamped_V.mat = V.mat;
+        downsamped_V.mat(1:3,1:3)=downsamped_V.mat(1:3,1:3)*downsamp_ratio;
+        
+        saveMRImage(downsamped_effectMap,fullfile(outputDir,['effect-map_' this_model_name{m} '.nii']),downsamped_V.mat);
+    else
+        disp('Already exists - moving on - set redo_maps to 1 if you want to re-make')
     end
-    dims = size(effectMap);
-    downsamped_effectMap = effectMap(1:downsamp_ratio:dims(1),1:downsamp_ratio:dims(2),1:downsamp_ratio:dims(3));
-    downsamped_V.mat = V.mat;
-    downsamped_V.mat(1:3,1:3)=downsamped_V.mat(1:3,1:3)*downsamp_ratio;
-    
-    saveMRImage(downsamped_effectMap,fullfile(outputDir,['effect-map_' this_model_name{m} '.nii']),downsamped_V.mat);
 end
