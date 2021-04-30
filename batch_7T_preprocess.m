@@ -530,61 +530,138 @@ end
 
 
 
-% %% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
-% nrun = size(subjects,2); % enter the number of runs here
-% jobfile = {};
-% jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
-% jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_job.m']};
-% inputs = cell(0, nrun);
-% 
-% for crun = 1:nrun
-%     theseepis = find(strncmp(blocksout{crun},'Run',3));
-%     outpath = [preprocessedpathstem subjects{crun} '/'];
-%     filestoanalyse = cell(1,length(theseepis));
-%     
-%     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-%     
-%     inputs{1, crun} = cellstr([outpath 'stats4_multi_3']);
-%     for sess = 1:length(theseepis)
-%         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3r, standard space is s3w
-%         inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-%         for cond_num = 1:80
-%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
-%         end
-%         for cond_num = 81:96 %Response trials
-%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
-%         end
-%         for cond_num = 97 %Button press
-%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
-%         end
-%         for cond_num = 98 %Absent sound (written only)
-%             inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
-%         end
-%         inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
-%     end
-%     jobs{crun} = jobfile{length(theseepis)};
-%     if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
-%         inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
-%     end
-% end
-% 
-% SPMworkedcorrectly = zeros(1,nrun);
-% parfor crun = 1:nrun
-%     spm('defaults', 'fMRI');
-%     spm_jobman('initcfg')
-%     if exist([inputs{1,crun}{1} '/SPM.mat']) && ~SPMworkedcorrectly(crun)
-%         delete([inputs{1,crun}{1} '/SPM.mat'])
-%     elseif exist([inputs{1,crun}{1} '/SPM.mat']) && SPMworkedcorrectly(crun)
-%         continue
-%     end
-%     
-%     try
-%         spm_jobman('run', jobs{crun}, inputs{:,crun});
-%         SPMworkedcorrectly(crun) = 1;
-%     catch
-%         SPMworkedcorrectly(crun) = 0;
-%     end
-% end
+%% Now create a more complex SPM for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
+nrun = size(subjects,2); % enter the number of runs here
+jobfile = {};
+jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
+jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_job.m']};
+inputs = cell(0, nrun);
+
+for crun = 1:nrun
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    filestoanalyse = cell(1,length(theseepis));
+    
+    tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    
+    inputs{1, crun} = cellstr([outpath 'stats4_multi_3']);
+    for sess = 1:length(theseepis)
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3r, standard space is s3w
+        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        for cond_num = 1:80
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
+        end
+        for cond_num = 81:96 %Response trials
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
+        end
+        for cond_num = 97 %Button press
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
+        end
+        for cond_num = 98 %Absent sound (written only)
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
+        end
+        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        if any(cellfun(@isempty,inputs(1:(100*(sess-1))+101,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
+            inputs{find(cellfun(@isempty,inputs(1:(100*(sess-1))+101,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+        end
+    end
+    jobs{crun} = jobfile{length(theseepis)};
+end
+
+SPMworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    if exist([inputs{1,crun}{1} '/SPM.mat']) && ~SPMworkedcorrectly(crun)
+        delete([inputs{1,crun}{1} '/SPM.mat'])
+    elseif exist([inputs{1,crun}{1} '/SPM.mat']) && SPMworkedcorrectly(crun)
+        continue
+    end
+    
+    try
+        spm_jobman('run', jobs{crun}, inputs{:,crun});
+        SPMworkedcorrectly(crun) = 1;
+    catch
+        SPMworkedcorrectly(crun) = 0;
+    end
+end
+
+% Now repeat without the absent sound
+nrun = size(subjects,2); % enter the number of runs here
+jobfile = {};
+jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_job.m']};
+jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_job.m']};
+inputs = cell(0, nrun);
+
+for crun = 1:nrun
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    filestoanalyse = cell(1,length(theseepis));
+    
+    tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
+    
+    inputs{1, crun} = cellstr([outpath 'stats4_multi_3_noabsent']);
+        for sess = 1:length(theseepis)
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+        inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        for cond_num = 1:80
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
+        end
+        for cond_num = 81:96 %Response trials
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
+        end
+        for cond_num = 97 %Button press
+            inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
+        end
+        inputs{(99*(sess-1))+100, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+        if any(cellfun(@isempty,inputs(1:(99*(sess-1))+100,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
+            inputs{find(cellfun(@isempty,inputs(1:(99*(sess-1))+100,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+        end
+    end
+    jobs{crun} = jobfile{length(theseepis)};
+end
+    
+    for sess = 1:length(theseepis)
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3r, standard space is s3w
+        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
+        for cond_num = 1:80
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
+        end
+        for cond_num = 81:96 %Response trials
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
+        end
+        for cond_num = 97 %Button press
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
+        end
+        for cond_num = 98 %Absent sound (written only)
+            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
+        end
+        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
+    end
+    jobs{crun} = jobfile{length(theseepis)};
+    if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
+        inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+    end
+end
+
+SPMworkedcorrectly = zeros(1,nrun);
+parfor crun = 1:nrun
+    spm('defaults', 'fMRI');
+    spm_jobman('initcfg')
+    if exist([inputs{1,crun}{1} '/SPM.mat']) && ~SPMworkedcorrectly(crun)
+        delete([inputs{1,crun}{1} '/SPM.mat'])
+    elseif exist([inputs{1,crun}{1} '/SPM.mat']) && SPMworkedcorrectly(crun)
+        continue
+    end
+    
+    try
+        spm_jobman('run', jobs{crun}, inputs{:,crun});
+        SPMworkedcorrectly(crun) = 1;
+    catch
+        SPMworkedcorrectly(crun) = 0;
+    end
+end
+
 % 
 % %Now repeat with 8mm smoothing
 % 
@@ -916,8 +993,11 @@ searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,ag
 
 %% Now normalise the template space masks into native space
 
-images2normalise = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Blank_2016_inflated.nii'}; %Blank and Davis 2018 mask
+images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'
+    %'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Blank_2016_inflated.nii' %Blank and Davis 2018 mask
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+    };
 
 % search_labels = {
 %     'Left STG'
@@ -1004,6 +1084,8 @@ masks = {
     'rwRight_Precentral_Gyrus'
     'rwRight_Frontal_Operculum'
     'rwRight_Inferior_Frontal_Angular_Gyrus'
+    'rwLeft_IFG_Written_Cluster'
+    'rwLeft_Precentral_Written_Cluster'
     };
 
 GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
@@ -1053,6 +1135,8 @@ masks = {
     'rwRight_Precentral_Gyrus'
     'rwRight_Frontal_Operculum'
     'rwRight_Inferior_Frontal_Angular_Gyrus'
+    'rwLeft_IFG_Written_Cluster'
+    'rwLeft_Precentral_Written_Cluster'
     };
 
 parfor crun = 1:nrun
@@ -1141,7 +1225,9 @@ RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 mask_names{1} = {'rwLeft_Superior_Temporal_Gyrus';
     %'rwL_STG_cross-segment_cluster'
-    'rwBlank_2016_inflated'};
+    'rwBlank_2016_inflated'
+    'rwLeft_IFG_Written_Cluster'
+    'rwLeft_Precentral_Written_Cluster'};
 
 mask_names{2} = {    
     %'rwL_STG_cross-segment_cluster'

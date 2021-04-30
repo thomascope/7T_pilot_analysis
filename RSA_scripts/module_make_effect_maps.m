@@ -117,7 +117,9 @@ basemodels.shared_segments(3,15) = 1/3;
 
 basemodels.shared_segments = 1-basemodels.shared_segments;
 
-basemodelNames = {'vowels','shared_segments'};
+basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); %I think this is correct, but need to 100% check the off-diagonals
+
+basemodelNames = {'vowels','shared_segments','shared_segments_cross'};
 
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
@@ -154,7 +156,9 @@ cross_decode_label_pairs = {
     'Match Unclear', 'Mismatch Unclear';
     'Match Clear', 'Mismatch Unclear';
     'Match Unclear', 'Mismatch Clear';
-    'Match Clear', 'Mismatch Clear'
+    'Match Clear', 'Mismatch Clear';
+    'Match Unclear', 'Match Clear';
+    'Mismatch Unclear', 'Mismatch Clear';
     'Match Unclear', 'Written';
     'Match Clear', 'Written';
     'Mismatch Unclear', 'Written';
@@ -173,7 +177,6 @@ end
 
 %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
 %was consistently 8 elements after/before the auditory word
-basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); %I think this is correct, but need to 100% check the off-diagonals
 for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross;
@@ -208,6 +211,8 @@ cross_decode_label_pairs = {
     'Match Clear', 'Mismatch Unclear';
     'Match Unclear', 'Mismatch Clear';
     'Match Clear', 'Mismatch Clear'
+    'Match Unclear', 'Match Clear';
+    'Mismatch Unclear', 'Mismatch Clear';
     'Match Unclear', 'Written';
     'Match Clear', 'Written';
     'Mismatch Unclear', 'Written';
@@ -226,6 +231,20 @@ for i = 1:size(cross_decode_label_pairs,1)
     %             title(this_model_name{end})
     %             pause
 end
+
+%Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
+%was consistently 8 elements after/before the auditory word
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end+1} = modeltemplate;
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' SS_Match'];
+    %Optional check - view matrix
+    %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %                     title(this_model_name{end})
+    %                     pause
+end
+
 
 %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
 %was consistently 8 elements after/before the auditory word

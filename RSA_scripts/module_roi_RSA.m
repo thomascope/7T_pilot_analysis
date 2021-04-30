@@ -164,9 +164,9 @@ for i = 1:length(mask_names)
         models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base;
         this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode'];
         %Optional check - view matrix
-        %             imagesc(models{end},'AlphaData',~isnan(models{end}))
-        %             title(this_model_name{end})
-        %             pause
+%                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+%                     title(this_model_name{end})
+%                     pause
     end
     
     %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
@@ -218,9 +218,9 @@ for i = 1:length(mask_names)
         models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base;
         this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode_Match'];
         %Optional check - view matrix
-        %             imagesc(models{end},'AlphaData',~isnan(models{end}))
-        %             title(this_model_name{end})
-        %             pause
+%                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+%                     title(this_model_name{end})
+%                     pause
     end
     
     %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue

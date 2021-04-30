@@ -56,7 +56,7 @@ for runI=1:nRuns
             tempOnsets{condI+((condJ-1)*nWords)}=starttime(stimNumber==condI & stimType==condJ);
             if condJ == 5 %Written only onsets
                 tempOnsets{condI+((condJ-1)*nWords)}=writtentime(writtenNumber==condI & stimType==7);
-                % XXX Dirty hack for now to prevent crash if absent - stick them at the end so HRF is null
+                % XXX Dirty hack to prevent crash if absent - stick them at the end so HRF is null
                 if isempty(tempOnsets{condI+((condJ-1)*nWords)})
                     tempOnsets{condI+((condJ-1)*nWords)} = this_dummy_time;
                     this_dummy_time = this_dummy_time-1;

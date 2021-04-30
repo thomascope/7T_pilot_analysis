@@ -50,11 +50,17 @@ for runI=1:nRuns
         stimNumber = [stimNumber NaN(1,(size(starttime,2)-size(stimNumber,2)))];
     end
     
+    this_dummy_time = (nVolumes-1)*tr; %The end of the run
     for condJ = 1:nTrialtypes
         for condI=1:nWords
             tempOnsets{condI+((condJ-1)*nWords)}=starttime(stimNumber==condI & stimType==condJ);
             if condJ == 5 %Written only onsets
                 tempOnsets{condI+((condJ-1)*nWords)}=writtentime(writtenNumber==condI);
+                % XXX Dirty hack to prevent crash if absent - stick them at the end so HRF is null
+                if isempty(tempOnsets{condI+((condJ-1)*nWords)})
+                    tempOnsets{condI+((condJ-1)*nWords)} = this_dummy_time;
+                    this_dummy_time = this_dummy_time-1;
+                end
             elseif condJ == 6 && condI == 1 %Model button presses
                 tempOnsets{condI+((condJ-1)*nWords)}=starttime(stimType==8)+1.05+(all_rts(all_rts~=0)/1000);
             end
