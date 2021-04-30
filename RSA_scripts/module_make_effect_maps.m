@@ -204,9 +204,17 @@ for i = 1:size(cross_decode_label_pairs,1)
 end
 
 cross_decode_label_pairs = {
+    'Match Unclear', 'Mismatch Unclear';
+    'Match Clear', 'Mismatch Unclear';
+    'Match Unclear', 'Mismatch Clear';
+    'Match Clear', 'Mismatch Clear'
     'Match Unclear', 'Written';
     'Match Clear', 'Written';
-};
+    'Mismatch Unclear', 'Written';
+    'Mismatch Clear', 'Written'
+    'Match Unclear', 'Written';
+    'Match Clear', 'Written';
+    };
 
 for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
@@ -221,16 +229,18 @@ end
 
 %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
 %was consistently 8 elements after/before the auditory word
+basemodels.shared_segments(1:17:end) = NaN;
 for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
-    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments'];
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' SS_Match - no self'];
     %Optional check - view matrix
     %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
     %                     title(this_model_name{end})
     %                     pause
 end
+basemodels.shared_segments(1:17:end) = 1;
 
 % % models = modelRDMs; close all
 % %modelNames = fieldnames(models);

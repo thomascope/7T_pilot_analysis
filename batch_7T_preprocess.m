@@ -916,7 +916,8 @@ searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,ag
 
 %% Now normalise the template space masks into native space
 
-images2normalise = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'}; %Blank and Davis 2018 mask
+images2normalise = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Blank_2016_inflated.nii'}; %Blank and Davis 2018 mask
 
 % search_labels = {
 %     'Left STG'
@@ -990,7 +991,9 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 %     'rwLeft_TrIFG'
 %     };
 
-masks = {'rwL_STG_cross-segment_cluster'
+masks = {
+    'rwBlank_2016_inflated'
+    'rwL_STG_cross-segment_cluster'
     'rwLeft_Superior_Temporal_Gyrus'
     'rwLeft_Angular_Gyrus'
     'rwLeft_Precentral_Gyrus'
@@ -1038,6 +1041,7 @@ end
 nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
+    'rwBlank_2016_inflated'
     'rwL_STG_cross-segment_cluster'
     'rwLeft_Superior_Temporal_Gyrus'
     'rwLeft_Angular_Gyrus'
@@ -1113,34 +1117,23 @@ this_model_name = {
     'Mismatch Clear shared_segments'
     'Written vowels'
     'Written shared_segments'
-    'Match Unclear to Mismatch Unclear Cross-decode'
-    'Match Unclear to Mismatch Unclear Shared Segments - cross'
-    'Match Unclear to Mismatch Unclear Shared Segments - no self'
-    'Match Unclear to Mismatch Clear Cross-decode'
-    'Match Unclear to Mismatch Clear Shared Segments - cross'
-    'Match Unclear to Mismatch Clear Shared Segments - no self'
-    'Match Unclear to Written Cross-decode_Match'
-    'Match Clear to Mismatch Unclear Cross-decode'
-    'Match Clear to Mismatch Unclear Shared Segments - cross'
-    'Match Clear to Mismatch Unclear Shared Segments - no self'
-    'Match Clear to Mismatch Clear Cross-decode'
-    'Match Clear to Mismatch Clear Shared Segments - cross'
-    'Match Clear to Mismatch Clear Shared Segments - no self'
-    'Match Clear to Written Cross-decode_Match'
-    'MisMatch Unclear to Written Cross-decode'
-    'MisMatch Clear to Written Cross-decode'
     };
 
 nrun = size(subjects,2); % enter the number of runs here
 % First load in the similarities
 RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
-mask_names = {'rwLeft_Superior_Temporal_Gyrus'};
+mask_names = {'rwLeft_Superior_Temporal_Gyrus';
+    %'rwL_STG_cross-segment_cluster'
+    'rwBlank_2016_inflated'};
+mask_description = {'Atlas L STG';
+    %'Post L STG Cluster'
+    'Post L STG Blank ROI'};
 for i = 1:length(mask_names)
     for crun = 1:nrun
         %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
         ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{i} '/RSA/spearman'];
-        if ~exist(fullfile(ROI_RSA_dir,'res_other_average.mat'),'file')
+        if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{1} '.mat']),'file')
             ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI' mask_names{i} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
         end
         for m = 1:length(this_model_name)
@@ -1150,6 +1143,7 @@ for i = 1:length(mask_names)
                 RSA_ROI_data_exist(crun) = 1;
             catch
                 warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                %error
                 RSA_ROI_data_exist(crun) = 0;
                 continue
             end
@@ -1160,7 +1154,8 @@ for i = 1:length(mask_names)
     disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
     all_data(:,:,RSA_ROI_data_exist==0) = NaN;
     
-    LSTG_ROI = find(strcmp('rwLeft_Superior_Temporal_Gyrus',roi_names));
+    %LSTG_ROI = find(strcmp('rwLeft_Superior_Temporal_Gyrus',roi_names));
+    LSTG_ROI = find(strcmp(mask_names{i},roi_names));
     figure
     set(gcf,'Position',[100 100 1600 800]);
     set(gcf, 'PaperPositionMode', 'auto');
@@ -1170,7 +1165,91 @@ for i = 1:length(mask_names)
     xlim([0 length(this_model_name)+1])
     set(gca,'xtick',[1:length(this_model_name)],'xticklabels',this_model_name,'XTickLabelRotation',45,'TickLabelInterpreter','none')
     plot([0 length(this_model_name)+1],[0,0],'k--')
-    title('Left STG RSA','Interpreter','none')
+    title([mask_description{i} ' RSA'],'Interpreter','none')
+    legend('Controls','Patients','location','southeast')
+    [h,p] = ttest(squeeze(all_data(:,LSTG_ROI,logical(RSA_ROI_data_exist)))');
+    these_y_lims = ylim;
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/10),'k*')
+    end
+    [h,p] = ttest2(squeeze(all_data(:,LSTG_ROI,group==1&logical(RSA_ROI_data_exist)))',squeeze(all_data(:,LSTG_ROI,group==2&logical(RSA_ROI_data_exist)))');
+    if sum(h)~=0
+        plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'kx')
+    end
+end
+
+this_model_name = {
+    'Match Unclear to Mismatch Unclear Cross-decode'
+    'Match Unclear to Mismatch Unclear Shared Segments - cross'
+    'Match Unclear to Mismatch Unclear Shared Segments - no self'
+    'Match Unclear to Mismatch Unclear Cross-decode_Match'
+    'Match Unclear to Mismatch Unclear SS_Match'
+    'Match Unclear to Mismatch Unclear SS_Match - no self'
+    'Match Unclear to Mismatch Clear Cross-decode'
+    'Match Unclear to Mismatch Clear Shared Segments - cross'
+    'Match Unclear to Mismatch Clear Shared Segments - no self'
+    'Match Unclear to Mismatch Clear Cross-decode_Match'
+    'Match Unclear to Mismatch Clear SS_Match'
+    'Match Unclear to Mismatch Clear SS_Match - no self'
+    'Match Clear to Mismatch Unclear Cross-decode'
+    'Match Clear to Mismatch Unclear Shared Segments - cross'
+    'Match Clear to Mismatch Unclear Shared Segments - no self'
+    'Match Clear to Mismatch Unclear Cross-decode_Match'
+    'Match Clear to Mismatch Unclear SS_Match'
+    'Match Clear to Mismatch Unclear SS_Match - no self'
+    'Match Clear to Mismatch Clear Cross-decode'
+    'Match Clear to Mismatch Clear Shared Segments - cross'
+    'Match Clear to Mismatch Clear Shared Segments - no self'
+    'Match Clear to Mismatch Clear Cross-decode_Match'
+    'Match Clear to Mismatch Clear SS_Match'
+    'Match Clear to Mismatch Clear SS_Match - no self'
+    'Match Unclear to Written Cross-decode_Match'
+    'Match Clear to Written Cross-decode_Match'
+    'Mismatch Unclear to Written Cross-decode'
+    'Mismatch Clear to Written Cross-decode'
+    };
+
+nrun = size(subjects,2); % enter the number of runs here
+% First load in the similarities
+RSA_ROI_data_exist = zeros(1,nrun);
+all_data = [];
+for i = 1:length(mask_names)
+    for crun = 1:nrun
+        %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+        ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{i} '/RSA/spearman'];
+        if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{1} '.mat']),'file')
+            ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI' mask_names{i} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+        end
+        for m = 1:length(this_model_name)
+            try
+                temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{m} '.mat']));
+                all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                RSA_ROI_data_exist(crun) = 1;
+            catch
+                warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                %error
+                RSA_ROI_data_exist(crun) = 0;
+                continue
+            end
+        end
+    end
+    roi_names = temp_data.roi_names;
+    clear temp_data
+    disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
+    all_data(:,:,RSA_ROI_data_exist==0) = NaN;
+    
+    %LSTG_ROI = find(strcmp('rwLeft_Superior_Temporal_Gyrus',roi_names));
+    LSTG_ROI = find(strcmp(mask_names{i},roi_names));
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    set(gcf, 'PaperPositionMode', 'auto');
+    hold on
+    errorbar([1:length(this_model_name)]-0.1,mean(squeeze(all_data(:,LSTG_ROI,group==1&RSA_ROI_data_exist)),2),std(squeeze(all_data(:,LSTG_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
+    errorbar([1:length(this_model_name)]+0.1,mean(squeeze(all_data(:,LSTG_ROI,group==2&RSA_ROI_data_exist)),2),std(squeeze(all_data(:,LSTG_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+    xlim([0 length(this_model_name)+1])
+    set(gca,'xtick',[1:length(this_model_name)],'xticklabels',this_model_name,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+    plot([0 length(this_model_name)+1],[0,0],'k--')
+    title([mask_description{i} ' RSA'],'Interpreter','none')
     legend('Controls','Patients','location','southeast')
     [h,p] = ttest(squeeze(all_data(:,LSTG_ROI,logical(RSA_ROI_data_exist)))');
     these_y_lims = ylim;
@@ -1245,7 +1324,7 @@ for i = 1:length(mask_names)
     drawnow
 end
 
-%% Now compare across ROI for each condition
+%% Now compare across ROI for each condition - WORK IN PROGRESS
 GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
 temp = load([GLMDir filesep 'SPM.mat']);
 labelnames = {};

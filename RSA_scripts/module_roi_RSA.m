@@ -1,6 +1,8 @@
 function module_roi_RSA(GLMDir,mask_names)
 %For taking already calculated crossnobis distances and doing RSA
 
+redo_maps = 0; %To re-caclulate maps
+
 addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI')
 addpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/decoding_toolbox_v3.999')
 addpath(genpath('/group/language/data/ediz.sohoglu/matlab/rsatoolbox'));
@@ -34,7 +36,11 @@ for i = 1:length(mask_names)
     
     outputDir = fullfile(cfg.results.dir,'RSA',version);
     
-    if exist(outputDir,'dir'); rmdir(outputDir,'s'); mkdir(outputDir); else; mkdir(outputDir); end
+    if redo_maps
+        if exist(outputDir,'dir'); rmdir(outputDir,'s'); mkdir(outputDir); else; mkdir(outputDir); end
+    else
+        if ~exist(outputDir,'dir'); mkdir(outputDir); end
+    end
     
     clear models this_model_name
     
@@ -189,15 +195,21 @@ for i = 1:length(mask_names)
         models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
         this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - no self'];
         %Optional check - view matrix
-        %                 imagesc(models{end},'AlphaData',~isnan(models{end}))
-        %                 title(this_model_name{end})
-        %                 colorbar
+%                         imagesc(models{end},'AlphaData',~isnan(models{end}))
+%                         title(this_model_name{end})
+%                         colorbar
         %                 pause
     end
     
     cross_decode_label_pairs = {
+        'Match Unclear', 'Mismatch Unclear';
+        'Match Clear', 'Mismatch Unclear';
+        'Match Unclear', 'Mismatch Clear';
+        'Match Clear', 'Mismatch Clear'
         'Match Unclear', 'Written';
         'Match Clear', 'Written';
+        'Mismatch Unclear', 'Written';
+        'Mismatch Clear', 'Written'
         };
     
     for i = 1:size(cross_decode_label_pairs,1)
@@ -217,12 +229,25 @@ for i = 1:length(mask_names)
         models{end+1} = modeltemplate;
         models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
         models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
-        this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments'];
+        this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' SS_Match'];
         %Optional check - view matrix
         %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
         %                     title(this_model_name{end})
         %                     pause
     end
+    
+    basemodels.shared_segments(1:17:end) = NaN;
+    for i = 1:size(cross_decode_label_pairs,1)
+        models{end+1} = modeltemplate;
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+        this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' SS_Match - no self'];
+        %Optional check - view matrix
+        %                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+        %                     title(this_model_name{end})
+        %                     pause
+    end
+    basemodels.shared_segments(1:17:end) = 1;
     
     roi_names = results.roi_names;
     for m=1:length(this_model_name)
