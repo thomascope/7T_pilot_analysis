@@ -29,7 +29,7 @@
 nrun = size(subjects,2); % enter the number of runs here
 RSAnobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 1;
-for crun = 2:nrun
+for crun = 1:nrun
 addpath(genpath('./RSA_scripts'))
 GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
 try

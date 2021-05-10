@@ -286,16 +286,18 @@ blocksout{cnt} = {'structural','INV2','Run_1','Run_2','Run_3','Run_4','Pos_topup
 minvols(cnt) = 238; 
 group(cnt) = 1; 
 
-cnt = cnt + 1;
-subjects{cnt} = 'P7P14';
-dates{cnt} = '20201008';
-fullid{cnt} = '27567/20201008_U-ID50185';
-basedir{cnt} = 'PINFA';
-blocksin_folders{cnt} = {'Series_027_mp2rage_sag_p3_0.75mm_UNI_Images','Series_026_mp2rage_sag_p3_0.75mm_INV2','Series_016_cmrr_mbep2d_3x2_sparse_238vols','Series_018_cmrr_mbep2d_3x2_sparse_238vols','Series_022_cmrr_mbep2d_3x2_sparse_238vols','Series_024_cmrr_mbep2d_3x2_sparse_238vols','Series_017_cmrr_mbep2d_3x2_sparse_238vols_SBRef','Series_019_cmrr_mbep2d_3x2_sparse_invPE_SBRef'};
-blocksin{cnt} = {'DATA_0027.nii', 'DATA_0026.nii', 'DATA_0016.nii', 'DATA_0018.nii', 'DATA_0022.nii', 'DATA_0024.nii', 'DATA_0017.nii','DATA_0019.nii'};
-blocksout{cnt} = {'structural', 'INV2', 'Run_1','Run_2','Run_3','Run_4','Pos_topup','Neg_topup'};
-minvols(cnt) = 238;
-group(cnt) = 2;
+% Subject excluded - unable to do the task, Pretty minimal, but present,
+% normal > written univariate response, and only right parietal clarity/congruency interaction
+% cnt = cnt + 1;
+% subjects{cnt} = 'P7P14';
+% dates{cnt} = '20201008';
+% fullid{cnt} = '27567/20201008_U-ID50185';
+% basedir{cnt} = 'PINFA';
+% blocksin_folders{cnt} = {'Series_027_mp2rage_sag_p3_0.75mm_UNI_Images','Series_026_mp2rage_sag_p3_0.75mm_INV2','Series_016_cmrr_mbep2d_3x2_sparse_238vols','Series_018_cmrr_mbep2d_3x2_sparse_238vols','Series_022_cmrr_mbep2d_3x2_sparse_238vols','Series_024_cmrr_mbep2d_3x2_sparse_238vols','Series_017_cmrr_mbep2d_3x2_sparse_238vols_SBRef','Series_019_cmrr_mbep2d_3x2_sparse_invPE_SBRef'};
+% blocksin{cnt} = {'DATA_0027.nii', 'DATA_0026.nii', 'DATA_0016.nii', 'DATA_0018.nii', 'DATA_0022.nii', 'DATA_0024.nii', 'DATA_0017.nii','DATA_0019.nii'};
+% blocksout{cnt} = {'structural', 'INV2', 'Run_1','Run_2','Run_3','Run_4','Pos_topup','Neg_topup'};
+% minvols(cnt) = 238;
+% group(cnt) = 2;
 
 cnt = cnt + 1; 
 subjects{cnt} = 'P7P15'; 

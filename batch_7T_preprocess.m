@@ -564,7 +564,15 @@ for crun = 1:nrun
         if any(cellfun(@isempty,inputs(1:(100*(sess-1))+101,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
             inputs{find(cellfun(@isempty,inputs(1:(100*(sess-1))+101,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
         end
+        %Now catch the cases where the task has continued beyond the end of a
+        %trunkated scan
+        for i = 3:size(inputs(1:(100*(sess-1))+101,crun),1)
+            if isnumeric(inputs{i,crun}) && all(inputs{i,crun}>tr*(length(filestoanalyse{sess})-1))
+                inputs{i,crun} = tr*(length(filestoanalyse{sess})-1);
+            end
+        end
     end
+    
     jobs{crun} = jobfile{length(theseepis)};
 end
 
@@ -601,7 +609,7 @@ for crun = 1:nrun
     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
     inputs{1, crun} = cellstr([outpath 'stats4_multi_3_noabsent']);
-        for sess = 1:length(theseepis)
+    for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         for cond_num = 1:80
@@ -617,30 +625,7 @@ for crun = 1:nrun
         if any(cellfun(@isempty,inputs(1:(99*(sess-1))+100,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
             inputs{find(cellfun(@isempty,inputs(1:(99*(sess-1))+100,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
         end
-    end
-    jobs{crun} = jobfile{length(theseepis)};
-end
-    
-    for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3r, standard space is s3w
-        inputs{(100*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
-        for cond_num = 1:80
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
-        end
-        for cond_num = 81:96 %Response trials
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num+32})';
-        end
-        for cond_num = 97 %Button press
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{81})';
-        end
-        for cond_num = 98 %Absent sound (written only)
-            inputs{(100*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{129})';
-        end
-        inputs{(100*(sess-1))+101, crun} = cellstr([outpath 'rp_topup_' blocksin{crun}{theseepis(sess)}(1:end-4) '.txt']);
-    end
-    jobs{crun} = jobfile{length(theseepis)};
-    if any(cellfun(@isempty,inputs(:,crun))) % In case of trunkated run where an event did not occur, put it at the very end of the run so it isn't modelled but SPM doesn't crash
-        inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
+        jobs{crun} = jobfile{length(theseepis)};
     end
 end
 
@@ -662,7 +647,7 @@ parfor crun = 1:nrun
     end
 end
 
-% 
+%
 % %Now repeat with 8mm smoothing
 % 
 % for crun = 1:nrun
@@ -941,28 +926,6 @@ parfor crun = 1:nrun
     end
 end
 
-% %% In progress - extract the neural RDM from a given mask
-% nrun = size(subjects,2); % enter the number of runs here
-% avneuralRDM_clusterworkedcorrectly = zeros(1,nrun);
-% downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 times faster than 1 (2 cubed). 
-% 
-% extraction_masks = {'rwL_STG_cross-segment_cluster.nii'};
-% parfor crun = 1:nrun
-%     addpath(genpath('./RSA_scripts'))
-%     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
-%     try
-%         module_extract_avneuralRDM_cluster(GLMDir,downsamp_ratio,extraction_masks)
-%         avneuralRDM_clusterworkedcorrectly(crun) = 1;
-%     catch
-%         avneuralRDM_clusterworkedcorrectly(crun) = 0;
-%     end
-% end
-% crun = 1;
-% GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
-% addpath(genpath('./RSA_scripts'))
-% module_across_subj_avneuralRDM(GLMDir,downsamp_ratio,extraction_masks,subjects,group);
-
-
 %% Now normalise the native space RSA maps into template space with CAT12 deformation fields calculated earlier
 nrun = size(subjects,2); % enter the number of runs here
 native2templateworkedcorrectly = zeros(1,nrun);
@@ -986,7 +949,7 @@ downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 
 rmpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI') %Stops SPM getting defaults for second level if on path
 
 GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Template, first subject
-outpath = [preprocessedpathstem 'searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
+outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
 
 searchlightsecondlevel = [];
 searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
@@ -1219,6 +1182,26 @@ this_model_name{3} = {
     'Mismatch Clear to Written Cross-decode'
     };
 
+this_model_name{4} = {'All spoken Cross-decode_Match'
+    'All spoken SS_Match'
+    'All spoken SS_Match - no self'
+    'Spoken to Written Cross-decode_Match'
+    'Spoken to Written SS_Match - no self'
+    'Match to Mismatch Shared Segments - no self'
+    'Match to Mismatch SS_Match - no self'
+    'Match to Mismatch combined_SS - no self'
+    'Match to Mismatch combined_SS - no self - rescaled'
+    'Match to Mismatch only cross'
+    'Match to Mismatch only not cross'
+    };
+
+this_model_name{5} = {
+    'Match Unclear to Match Clear Cross-decode_Match';
+    'Mismatch Unclear to Mismatch Clear Cross-decode';
+    'Match Unclear to Match Clear Cross-decode';
+    'Mismatch Unclear to Mismatch Clear Cross-decode_Match';
+    };
+
 nrun = size(subjects,2); % enter the number of runs here
 % First load in the similarities
 RSA_ROI_data_exist = zeros(1,nrun);
@@ -1245,6 +1228,7 @@ mask_names{2} = {
 for j = 1:length(this_model_name)
     for k = 1:length(mask_names)
         for i = 1:length(mask_names{k})
+            all_data = [];
             for crun = 1:nrun
                 %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
                 ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{k}{i} '/RSA/spearman'];
@@ -1281,7 +1265,11 @@ for j = 1:length(this_model_name)
             set(gca,'xtick',[1:length(this_model_name{j})],'xticklabels',this_model_name{j},'XTickLabelRotation',45,'TickLabelInterpreter','none')
             plot([0 length(this_model_name{j})+1],[0,0],'k--')
             title([mask_names{k}{i}(3:end) ' RSA'],'Interpreter','none')
-            legend('Controls','Patients','location','southeast','AutoUpdate','off')
+            if verLessThan('matlab', '9.2')
+                legend('Controls','Patients','location','southeast')
+            else
+                legend('Controls','Patients','location','southeast','AutoUpdate','off')
+            end
             [h,p] = ttest(squeeze(all_data(:,this_ROI,logical(RSA_ROI_data_exist)))');
             these_y_lims = ylim;
             if sum(h)~=0
@@ -1360,3 +1348,40 @@ end
 %% Analyse in scanner behaviour
 graph_individuals = 0;
 plot_behavioural_data(subjects, dates, group, graph_individuals) % Requires matlab2016a or newer for movmean
+
+
+
+% %% In progress - extract the neural RDM from a given mask
+% nrun = size(subjects,2); % enter the number of runs here
+% avneuralRDM_clusterworkedcorrectly = zeros(1,nrun);
+% downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 times faster than 1 (2 cubed). 
+% 
+% extraction_masks = {'rwL_STG_cross-segment_cluster.nii'};
+% parfor crun = 1:nrun
+%     addpath(genpath('./RSA_scripts'))
+%     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+%     try
+%         module_extract_avneuralRDM_cluster(GLMDir,downsamp_ratio,extraction_masks)
+%         avneuralRDM_clusterworkedcorrectly(crun) = 1;
+%     catch
+%         avneuralRDM_clusterworkedcorrectly(crun) = 0;
+%     end
+% end
+% crun = 1;
+% GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+% addpath(genpath('./RSA_scripts'))
+% module_across_subj_avneuralRDM(GLMDir,downsamp_ratio,extraction_masks,subjects,group);
+
+%% Explore univariate contrast for subject quality check
+% On the basis of this and his inability to do the task, P7P14 excluded,
+% all other subjects accepted as having at least a large Normal > Written response
+
+this_smooth = 8;
+all_conditions = {
+        'con_0010.nii','Mismatch > Match';
+        'con_0015.nii','Normal > Written';
+        'con_0020.nii','Written > Normal';
+        'con_0030.nii','Clear > Unclear';
+        'con_0035.nii','Unclear > Clear';
+        'con_0040.nii','Clarity Congruency Interaction'};
+explore_univariate_contrast(subjects,preprocessedpathstem,this_smooth,all_conditions)
