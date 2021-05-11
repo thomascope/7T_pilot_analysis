@@ -73,13 +73,14 @@ for i=1:length(images)
     Y_mask(isnan(Y_mask)) = 0;
     saveMRImage(Y,fname_image,V.mat);
     
-    % Smooth and (re)mask normalised r-map
-    fname_smoothed = strrep(images{i},'weffect-map_','sweffect-map_');
-    spm_smooth(images{i},fname_smoothed,[8 8 8]);
-    V = spm_vol(fname_smoothed);
-    Y = spm_read_vols(V);
-    Y(Y_mask<mask_threshold) = NaN;
-    saveMRImage(Y,fname_smoothed,V.mat);
+%     % Smooth and (re)mask normalised r-map % I have taken this out to
+%     % reduce storage use for now
+%     fname_smoothed = strrep(images{i},'weffect-map_','sweffect-map_');
+%     spm_smooth(images{i},fname_smoothed,[8 8 8]);
+%     V = spm_vol(fname_smoothed);
+%     Y = spm_read_vols(V);
+%     Y(Y_mask<mask_threshold) = NaN;
+%     saveMRImage(Y,fname_smoothed,V.mat);
 end
 
     

@@ -167,7 +167,7 @@ cross_decode_label_pairs = {
 for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = MisMatch_Cross_decode_base;
-    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base';
     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode'];
     %Optional check - view matrix
     %             imagesc(models{end},'AlphaData',~isnan(models{end}))
@@ -200,10 +200,10 @@ for i = 1:size(cross_decode_label_pairs,1)
     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Shared Segments - no self'];
     %Optional check - view matrix
-%                 imagesc(models{end},'AlphaData',~isnan(models{end}))
-%                 title(this_model_name{end})
-%                 colorbar
-%                 pause
+    %                 imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %                 title(this_model_name{end})
+    %                 colorbar
+    %                 pause
 end
 
 cross_decode_label_pairs = {
@@ -224,7 +224,7 @@ cross_decode_label_pairs = {
 for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
-    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
     this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' Cross-decode_Match'];
     %Optional check - view matrix
     %             imagesc(models{end},'AlphaData',~isnan(models{end}))
@@ -261,111 +261,182 @@ for i = 1:size(cross_decode_label_pairs,1)
 end
 basemodels.shared_segments(1:17:end) = 1;
 
-    % Now add combined conditions
-    cross_decode_label_pairs = {
-        'Match Unclear', 'Mismatch Unclear';
-        'Match Clear', 'Mismatch Unclear';
-        'Match Unclear', 'Mismatch Clear';
-        'Match Clear', 'Mismatch Clear';
-        'Match Unclear', 'Match Clear';
-        'Mismatch Unclear', 'Mismatch Clear';};
-    
+% Now add combined conditions
+cross_decode_label_pairs = {
+    'Match Unclear', 'Mismatch Unclear';
+    'Match Clear', 'Mismatch Unclear';
+    'Match Unclear', 'Mismatch Clear';
+    'Match Clear', 'Mismatch Clear';
+    'Match Unclear', 'Match Clear';
+    'Mismatch Unclear', 'Mismatch Clear';};
+
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['All spoken Cross-decode_Match'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
+end
+
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['All spoken SS_Match'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+end
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['All spoken SS_Match - no self'];
+basemodels.shared_segments(1:17:end) = NaN;
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+end
+basemodels.shared_segments(1:17:end) = 0;
+
+cross_decode_label_pairs = {
+    'Match Unclear', 'Written';
+    'Match Clear', 'Written';
+    'Mismatch Unclear', 'Written';
+    'Mismatch Clear', 'Written'
+    };
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Spoken to Written Cross-decode_Match'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
+end
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Spoken to Written SS_Match - no self'];
+basemodels.shared_segments(1:17:end) = NaN;
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+end
+basemodels.shared_segments(1:17:end) = 0;
+
+% Now look at Match-Mismatch written word cross decoding
+cross_decode_label_pairs = {
+    'Match Unclear', 'Mismatch Unclear';
+    'Match Clear', 'Mismatch Unclear';
+    'Match Unclear', 'Mismatch Clear';
+    'Match Clear', 'Mismatch Clear';
+    };
+
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Match to Mismatch Shared Segments - no self'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross_noself;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
+end
+
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Match to Mismatch SS_Match - no self'];
+basemodels.shared_segments(1:17:end) = NaN;
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+end
+basemodels.shared_segments(1:17:end) = 0;
+
+basemodels.shared_segments(1:17:end) = NaN;
+basemodels.combined_SS = basemodels.shared_segments-basemodels.shared_segments_cross_noself;
+basemodels.shared_segments(1:17:end) = 0;
+
+basemodels.combined_SS = (basemodels.combined_SS +1)/2; %Scale zero to 1
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Match to Mismatch combined_SS - no self - rescaled'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.combined_SS';
+end
+
+basemodels.only_cross = basemodels.combined_SS;
+basemodels.only_cross(basemodels.shared_segments~=1) = NaN;
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Match to Mismatch only cross'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_cross';
+end
+
+basemodels.only_not_cross = basemodels.combined_SS;
+basemodels.only_not_cross(basemodels.shared_segments_cross_noself~=1) = NaN;
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Match to Mismatch only not cross'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_not_cross';
+end
+
+% Now look at these three models Clear-Unclear
+% then in every individual combination
+cross_decode_label_pairs = {
+    'Match Unclear', 'Match Clear';
+    'Mismatch Unclear', 'Mismatch Clear';
+    'Match Unclear', 'Mismatch Clear';
+    'Match Clear', 'Mismatch Unclear';
+    };
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Clear to Unclear combined_SS - no self - rescaled'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.combined_SS';
+end
+
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Clear to Unclear only cross'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_cross';
+end
+
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Clear to Unclear only not cross'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_not_cross';
+end
+
+cross_decode_label_pairs = {
+    'Match Unclear', 'Mismatch Unclear';
+    'Match Clear', 'Mismatch Unclear';
+    'Match Unclear', 'Mismatch Clear';
+    'Match Clear', 'Mismatch Clear'
+    'Match Unclear', 'Match Clear';
+    'Mismatch Unclear', 'Mismatch Clear';
+    };
+
+for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['All spoken Cross-decode_Match'];
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base;
-    end
-    
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.combined_SS';
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' combined_SS - no self'];
+    %Optional check - view matrix
+    %             imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %             title(this_model_name{end})
+    %             pause
+end
+
+for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['All spoken SS_Match'];
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
-    end
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_cross';
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' only cross'];
+    %Optional check - view matrix
+    %             imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %             title(this_model_name{end})
+    %             pause
+end
+
+for i = 1:size(cross_decode_label_pairs,1)
     models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['All spoken SS_Match - no self'];
-    basemodels.shared_segments(1:17:end) = NaN;
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
-    end
-    basemodels.shared_segments(1:17:end) = 0;
-    
-    cross_decode_label_pairs = {
-        'Match Unclear', 'Written';
-        'Match Clear', 'Written';
-        'Mismatch Unclear', 'Written';
-        'Mismatch Clear', 'Written'
-        };
-    models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['Spoken to Written Cross-decode_Match'];
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base;
-    end
-    models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['Spoken to Written SS_Match - no self'];
-    basemodels.shared_segments(1:17:end) = NaN;
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
-    end
-    basemodels.shared_segments(1:17:end) = 0;
-    
-    % Now look at Match-Mismatch written word cross decoding
-    cross_decode_label_pairs = {
-        'Match Unclear', 'Mismatch Unclear';
-        'Match Clear', 'Mismatch Unclear';
-        'Match Unclear', 'Mismatch Clear';
-        'Match Clear', 'Mismatch Clear';
-        };
-    
-    models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['Match to Mismatch Shared Segments - no self'];
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross_noself;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
-    end
-    
-    models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['Match to Mismatch SS_Match - no self'];
-    basemodels.shared_segments(1:17:end) = NaN;
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
-    end
-    basemodels.shared_segments(1:17:end) = 0;
-    
-    basemodels.shared_segments(1:17:end) = NaN;
-    basemodels.combined_SS = basemodels.shared_segments-basemodels.shared_segments_cross_noself;
-    basemodels.shared_segments(1:17:end) = 0;
-   
-    basemodels.combined_SS = (basemodels.combined_SS +1)/2; %Scale zero to 1
-    models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['Match to Mismatch combined_SS - no self - rescaled'];
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.combined_SS';
-    end
-    
-    basemodels.only_cross = basemodels.combined_SS;
-    basemodels.only_cross(basemodels.shared_segments~=1) = NaN;
-    models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['Match to Mismatch only cross'];
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_cross';
-    end
-    
-    basemodels.only_not_cross = basemodels.combined_SS;
-    basemodels.only_not_cross(basemodels.shared_segments_cross_noself~=1) = NaN;
-    models{end+1} = modeltemplate;
-    this_model_name{end+1} = ['Match to Mismatch only not cross'];
-    for i = 1:size(cross_decode_label_pairs,1)
-        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
-        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_not_cross';
-    end
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_not_cross';
+    this_model_name{end+1} = [cross_decode_label_pairs{i,1} ' to ' cross_decode_label_pairs{i,2} ' only not cross'];
+    %Optional check - view matrix
+    %             imagesc(models{end},'AlphaData',~isnan(models{end}))
+    %             title(this_model_name{end})
+    %             pause
+end
 
 % % models = modelRDMs; close all
 % %modelNames = fieldnames(models);
@@ -406,7 +477,7 @@ for m=1:length(this_model_name) %Parallelising here impossible due to out of mem
         end
         dims = size(effectMap);
         downsamped_effectMap = effectMap(1:downsamp_ratio:dims(1),1:downsamp_ratio:dims(2),1:downsamp_ratio:dims(3));
-      
+        
         saveMRImage(downsamped_effectMap,fullfile(outputDir,['effect-map_' this_model_name{m} '.nii']),downsamped_V.mat);
     else
         disp('Already exists - moving on - set redo_maps to 1 if you want to re-make')
