@@ -546,6 +546,17 @@ downsamped_V.mat(1:3,1:3)=downsamped_V.mat(1:3,1:3)*downsamp_ratio;
 
 clear results % to free memory
 
+% % Optional - to visualise a model
+% b = imagesc(models{end}{1},[0 1]);
+% set(b,'AlphaData',~isnan(models{end}{1}))
+% title(this_model_name{end}{1},'Interpreter','none')
+% colorbar
+% pause
+% b = imagesc(models{end}{2},[0 1]);
+% set(b,'AlphaData',~isnan(models{end}{2}))
+% title(this_model_name{end}{2},'Interpreter','none')
+% colorbar
+
 for m=1:length(this_model_name) %Parallelising here impossible due to out of memory on serialisation
     fprintf('\nComputing effect-map for model %s partialling out model %s\n',this_model_name{m}{1},this_model_name{m}{2});
     shorter_string = min(numel(this_model_name{m}{1}),numel(this_model_name{m}{2}));

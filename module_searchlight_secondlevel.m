@@ -16,7 +16,7 @@ end
 
 
 
-nrun = 2*size(images,1); % enter the number of runs here
+nrun = 2*size(images,1); % enter the number of runs here - if want to do smoothed as well
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
 
 this_scan = {};

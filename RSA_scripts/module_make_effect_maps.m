@@ -116,10 +116,11 @@ basemodels.shared_segments(4,15) = 1/3;
 basemodels.shared_segments(3,15) = 1/3;
 
 basemodels.shared_segments = 1-basemodels.shared_segments;
+basemodels.shared_segments_mismatch = circshift(basemodels.shared_segments,[8 8]); %Consistent relationship for mismatch - 8 items later
 
 basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); %I think this is correct, but need to 100% check the off-diagonals
 
-basemodelNames = {'vowels','shared_segments','shared_segments_cross'};
+basemodelNames = {'vowels','shared_segments'};
 
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
@@ -139,9 +140,40 @@ for j = 1:length(basemodelNames)
         models{this_model}(strcmp(modelNames{i},labelnames_denumbered),strcmp(modelNames{i},labelnames_denumbered))=basemodels.(basemodelNames{j});
         this_model_name{this_model} = [modelNames{i} ' ' basemodelNames{j}];
         %Optional check - view matrix
-        %         imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
-        %         title(this_model_name{this_model})
-        %         pause
+%                 imagesc(models{this_model},'AlphaData',~isnan(models{this_model}))
+%                 title(this_model_name{this_model})
+%                 pause
+    end
+end
+
+%Now create combined Match and MisMatch within-condition RSA
+% Now add combined conditions
+combine_label_sets = {
+    'Match Unclear', 'Mismatch Unclear';
+    'Match Clear', 'Mismatch Clear';
+    'Match Unclear', 'Match Clear';
+    'Mismatch Unclear', 'Mismatch Clear';
+    };
+
+basemodelNames = {'vowels','shared_segments','shared_segments_mismatch'};
+
+for i = 1:size(combine_label_sets,1)
+    for j = 1:length(basemodelNames)
+        models{end+1} = modeltemplate;
+        this_model_name{end+1} = [combine_label_sets{i,1} ' and ' combine_label_sets{i,2} ' ' basemodelNames{j}];
+        models{end}(strcmp(combine_label_sets{i,1},labelnames_denumbered),strcmp(combine_label_sets{i,1},labelnames_denumbered)) = basemodels.(basemodelNames{j});
+        models{end}(strcmp(combine_label_sets{i,2},labelnames_denumbered),strcmp(combine_label_sets{i,2},labelnames_denumbered)) = basemodels.(basemodelNames{j});
+    end
+end
+
+combine_label_sets = {
+    'Match Unclear', 'Mismatch Unclear', 'Match Clear', 'Mismatch Clear';
+    };
+for j = 1:length(basemodelNames)
+    models{end+1} = modeltemplate;
+    this_model_name{end+1} = ['All ' basemodelNames{j}];
+    for i = 1:size(combine_label_sets,2)
+        models{end}(strcmp(combine_label_sets{1,i},labelnames_denumbered),strcmp(combine_label_sets{1,i},labelnames_denumbered)) = basemodels.(basemodelNames{j});
     end
 end
 

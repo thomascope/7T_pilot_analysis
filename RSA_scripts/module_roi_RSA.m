@@ -367,11 +367,11 @@ for i = 1:length(mask_names)
     
     %Optional: For visualising the last few models
 %     for i = 0:5
-%         b = imagesc(models{end-i},[0 1]);
-%         set(b,'AlphaData',~isnan(models{end-i}))
-%         title(this_model_name{end-i},'Interpreter','none')
-%         colorbar
-%         pause
+        b = imagesc(models{end-i},[0 1]);
+        set(b,'AlphaData',~isnan(models{end-i}))
+        title(this_model_name{end-i},'Interpreter','none')
+        colorbar
+        pause
 %     end
     
     roi_names = results.roi_names;
