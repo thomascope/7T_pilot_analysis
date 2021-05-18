@@ -1,4 +1,4 @@
-function [all_sigma_pred,all_thresholds] = module_bayesian_behaviour(subjects,group,dates)
+function [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates)
 % A script for doing Bayesian behavioural modelling on PINFA data before
 % and after scan. Expects you to have run the extraction scripts for the
 % clarity rating and vocode report tasks beforehand, and saved them in a
