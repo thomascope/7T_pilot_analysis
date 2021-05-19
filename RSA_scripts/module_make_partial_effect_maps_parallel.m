@@ -1,4 +1,4 @@
-function module_make_partial_effect_maps(GLMDir,downsamp_ratio)
+function module_make_partial_effect_maps_parallel(GLMDir,downsamp_ratio,input_model)
 %For taking already calculated crossnobis distances and doing RSA
 
 redo_maps = 0; %If you want to calculate them again for some reason.
@@ -557,41 +557,40 @@ clear results % to free memory
 % title(this_model_name{end}{2},'Interpreter','none')
 % colorbar
 
-for m=1:length(this_model_name) %Parallelising here impossible due to out of memory on serialisation unless data downsampled
-    fprintf('\nComputing effect-map for model %s partialling out model %s\n',this_model_name{m}{1},this_model_name{m}{2});
-    shorter_string = min(numel(this_model_name{m}{1}),numel(this_model_name{m}{2}));
-    common_letters = sum(cumprod(this_model_name{m}{1}(1:shorter_string)==this_model_name{m}{2}(1:shorter_string)));
-    this_out_string{1} = [deblank(this_model_name{m}{1}(1:common_letters)) ': ' deblank(this_model_name{m}{1}(common_letters+1:end)) ' partialling ' deblank(this_model_name{m}{2}(common_letters+1:end))];
-    this_out_string{2} = [deblank(this_model_name{m}{1}(1:common_letters)) ': ' deblank(this_model_name{m}{2}(common_letters+1:end)) ' partialling ' deblank(this_model_name{m}{1}(common_letters+1:end))];
-    if ~exist(fullfile(outputDir,['effect-map_' this_out_string{1} '.nii'])) || redo_maps == 1
-        modelRDM = vectorizeRDMs(models{m}{1})';
-        modeloutRDM = vectorizeRDMs(models{m}{2})';
-        effectMap{1} = NaN(size(mask));
-        effectMap{2} = NaN(size(mask));
-        for vx=1:numel(data)
-            neuralRDM = vectorizeRDMs(data{vx})';
-            if isempty(neuralRDM)
-                continue
-            end
-            notempty = vx;
-            if ~isempty(strfind(version,'pearson'))
-                effectMap{1}(mask_index(vx)) = fisherTransform(partialcorr(modelRDM,neuralRDM,modeloutRDM,'type','Pearson','Rows','pairwise'));
-                effectMap{2}(mask_index(vx)) = fisherTransform(partialcorr(modeloutRDM,neuralRDM,modelRDM,'type','Pearson','Rows','pairwise'));
-            elseif ~isempty(strfind(version,'spearman'))
-                effectMap{1}(mask_index(vx)) = fisherTransform(partialcorr(modelRDM,neuralRDM,modeloutRDM,'type','Spearman','Rows','pairwise'));
-                effectMap{2}(mask_index(vx)) = fisherTransform(partialcorr(modeloutRDM,neuralRDM,modelRDM,'type','Spearman','Rows','pairwise'));
-            end
-            if ~mod(vx,100)
-                disp(['Processing voxel ' num2str(vx) ' of ' num2str(numel(data))])
-            end
+m=input_model;
+fprintf('\nComputing effect-map for model %s partialling out model %s\n',this_model_name{m}{1},this_model_name{m}{2});
+shorter_string = min(numel(this_model_name{m}{1}),numel(this_model_name{m}{2}));
+common_letters = sum(cumprod(this_model_name{m}{1}(1:shorter_string)==this_model_name{m}{2}(1:shorter_string)));
+this_out_string{1} = [deblank(this_model_name{m}{1}(1:common_letters)) ': ' deblank(this_model_name{m}{1}(common_letters+1:end)) ' partialling ' deblank(this_model_name{m}{2}(common_letters+1:end))];
+this_out_string{2} = [deblank(this_model_name{m}{1}(1:common_letters)) ': ' deblank(this_model_name{m}{2}(common_letters+1:end)) ' partialling ' deblank(this_model_name{m}{1}(common_letters+1:end))];
+if ~exist(fullfile(outputDir,['effect-map_' this_out_string{1} '.nii'])) || redo_maps == 1
+    modelRDM = vectorizeRDMs(models{m}{1})';
+    modeloutRDM = vectorizeRDMs(models{m}{2})';
+    effectMap{1} = NaN(size(mask));
+    effectMap{2} = NaN(size(mask));
+    for vx=1:numel(data)
+        neuralRDM = vectorizeRDMs(data{vx})';
+        if isempty(neuralRDM)
+            continue
         end
-        dims = size(effectMap{1});
-        for direction = 1:2
-            downsamped_effectMap{direction} = effectMap{direction}(1:downsamp_ratio:dims(1),1:downsamp_ratio:dims(2),1:downsamp_ratio:dims(3));
-            
-            saveMRImage(downsamped_effectMap{direction},fullfile(outputDir,['effect-map_' this_out_string{direction} '.nii']),downsamped_V.mat);
+        notempty = vx;
+        if ~isempty(strfind(version,'pearson'))
+            effectMap{1}(mask_index(vx)) = fisherTransform(partialcorr(modelRDM,neuralRDM,modeloutRDM,'type','Pearson','Rows','pairwise'));
+            effectMap{2}(mask_index(vx)) = fisherTransform(partialcorr(modeloutRDM,neuralRDM,modelRDM,'type','Pearson','Rows','pairwise'));
+        elseif ~isempty(strfind(version,'spearman'))
+            effectMap{1}(mask_index(vx)) = fisherTransform(partialcorr(modelRDM,neuralRDM,modeloutRDM,'type','Spearman','Rows','pairwise'));
+            effectMap{2}(mask_index(vx)) = fisherTransform(partialcorr(modeloutRDM,neuralRDM,modelRDM,'type','Spearman','Rows','pairwise'));
         end
-    else
-        disp('Already exists - moving on - set redo_maps to 1 if you want to re-make')
+        if ~mod(vx,100)
+            disp(['Processing voxel ' num2str(vx) ' of ' num2str(numel(data))])
+        end
     end
+    dims = size(effectMap{1});
+    for direction = 1:2
+        downsamped_effectMap{direction} = effectMap{direction}(1:downsamp_ratio:dims(1),1:downsamp_ratio:dims(2),1:downsamp_ratio:dims(3));
+        
+        saveMRImage(downsamped_effectMap{direction},fullfile(outputDir,['effect-map_' this_out_string{direction} '.nii']),downsamped_V.mat);
+    end
+else
+    disp('Already exists - moving on - set redo_maps to 1 if you want to re-make')
 end

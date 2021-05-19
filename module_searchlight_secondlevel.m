@@ -1,6 +1,7 @@
 function secondlevelworkedcorrectly = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio)
 % Normalise effect-maps to MNI template
 
+do_smoothed_maps = 0;  % if you want to do smoothed maps change this
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
 end
@@ -54,34 +55,40 @@ for this_condition = 1:(nrun/2)
     inputs{4, this_condition} = [group1_ages';group2_ages'];
 end
 
-for this_condition = (1+(nrun/2)):nrun
-    group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
-    group1_ages = [];
-    group2_mrilist = {};
-    group2_ages = [];
-    
-    images{this_condition-(nrun/2)} = strrep(images{this_condition-(nrun/2)},'weffect-map_','sweffect-map_');
-    
-    condition_name = strsplit(images{this_condition-(nrun/2)},'sweffect-map_');
-    condition_name = condition_name{2}(1:end-4);
-    
-    inputs{1, this_condition} = cellstr([outpath filesep 'sm_' condition_name]);
-    
-    for crun = 1:size(subjects,2)
-        this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
-        this_scan(crun) = cellstr(strrep(images{this_condition-(nrun/2)},subjects{1},subjects{crun}));
+%% if you want to do smoothed maps uncomment this
+
+if ~do_smoothed_maps
+    nrun = nrun/2;
+else
+    for this_condition = (1+(nrun/2)):nrun
+        group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
+        group1_ages = [];
+        group2_mrilist = {};
+        group2_ages = [];
         
-        if group(crun) == 1 % Controls
-            group2_mrilist(end+1) = this_scan(crun);
-            group2_ages(end+1) = this_age;
-        elseif group(crun) == 2 % Patients
-            group1_mrilist(end+1) = this_scan(crun);
-            group1_ages(end+1) = this_age;
+        images{this_condition-(nrun/2)} = strrep(images{this_condition-(nrun/2)},'weffect-map_','sweffect-map_');
+        
+        condition_name = strsplit(images{this_condition-(nrun/2)},'sweffect-map_');
+        condition_name = condition_name{2}(1:end-4);
+        
+        inputs{1, this_condition} = cellstr([outpath filesep 'sm_' condition_name]);
+        
+        for crun = 1:size(subjects,2)
+            this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
+            this_scan(crun) = cellstr(strrep(images{this_condition-(nrun/2)},subjects{1},subjects{crun}));
+            
+            if group(crun) == 1 % Controls
+                group2_mrilist(end+1) = this_scan(crun);
+                group2_ages(end+1) = this_age;
+            elseif group(crun) == 2 % Patients
+                group1_mrilist(end+1) = this_scan(crun);
+                group1_ages(end+1) = this_age;
+            end
         end
+        inputs{2, this_condition} = group1_mrilist';
+        inputs{3, this_condition} = group2_mrilist';
+        inputs{4, this_condition} = [group1_ages';group2_ages'];
     end
-    inputs{2, this_condition} = group1_mrilist';
-    inputs{3, this_condition} = group2_mrilist';
-    inputs{4, this_condition} = [group1_ages';group2_ages'];
 end
 
 secondlevelworkedcorrectly = zeros(1,nrun);

@@ -7,12 +7,12 @@ rmpath(genpath('/imaging/local/software/spm_cbu_svn/releases/spm12_latest/'))
 %addpath /imaging/local/software/spm_cbu_svn/releases/spm12_fil_r6906
 addpath /group/language/data/thomascope/spm12_fil_r6906/
 spm fmri
-scriptdir = '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/';
 
 %% Define parameters
 setup_file = 'PINFA_subjects_parameters';
 eval(setup_file)
 tr=2.5;
+scriptdir = '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/';
 
 %% Options to skip steps
 applytopup = 1;
@@ -877,38 +877,38 @@ parfor crun = 1:nrun
     end
 end
 
-%% Or run the cross validated Mahalanobis distance and RSM on each subject on the whole brain not downsampled, but in parallel over voxels (slow, and produces around 12Gb output data per subject) - the bigger the worker pool the better.
-nrun = size(subjects,2); % enter the number of runs here
-mahalanobisparallelworkedcorrectly = zeros(1,nrun);
-if opennewanalysispool == 1
-    delete(gcp) % Make a bigger pool for this step.
-end
-for crun = 1:nrun
-    if numel(gcp('nocreate')) == 0 % If parallel pool crashes, this should allow the loop to simply resume at the next subject
-        Poolinfo = cbupool(120,'--mem-per-cpu=1G --time=167:00:00 --exclude=node-i[01-15]');
-        parpool(Poolinfo,Poolinfo.NumWorkers);
-    end
-    addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
-    try
-        TDTCrossnobisAnalysis_parallelsearch(GLMDir)
-        mahalanobisparallelworkedcorrectly(crun) = 1;
-    catch
-        mahalanobisparallelworkedcorrectly(crun) = 0;
-    end
-end
-if opennewanalysispool == 1
-    delete(gcp)
-    if size(subjects,2) > 64
-        workersrequested = 64;
-        fprintf([ '\n\nUnable to ask for a worker per run; asking for 64 instead\n\n' ]);
-    else
-        workersrequested = size(subjects,2);
-    end
-    Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00 --exclude=node-i[01-15]');
-    parpool(Poolinfo,Poolinfo.NumWorkers);
-end
-
+% %% Or run the cross validated Mahalanobis distance and RSM on each subject on the whole brain not downsampled, but in parallel over voxels (slow, and produces around 12Gb output data per subject, but more powerful statistics) - the bigger the worker pool the better.
+% nrun = size(subjects,2); % enter the number of runs here
+% mahalanobisparallelworkedcorrectly = zeros(1,nrun);
+% if opennewanalysispool == 1
+%     delete(gcp) % Make a bigger pool for this step.
+% end
+% for crun = 1:nrun
+%     if numel(gcp('nocreate')) == 0 % If parallel pool crashes, this should allow the loop to simply resume at the next subject
+%         Poolinfo = cbupool(120,'--mem-per-cpu=1G --time=167:00:00 --exclude=node-i[01-15]');
+%         parpool(Poolinfo,Poolinfo.NumWorkers);
+%     end
+%     addpath(genpath('./RSA_scripts'))
+%     GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
+%     try
+%         TDTCrossnobisAnalysis_parallelsearch(GLMDir)
+%         mahalanobisparallelworkedcorrectly(crun) = 1;
+%     catch
+%         mahalanobisparallelworkedcorrectly(crun) = 0;
+%     end
+% end
+% if opennewanalysispool == 1
+%     delete(gcp)
+%     if size(subjects,2) > 64
+%         workersrequested = 64;
+%         fprintf([ '\n\nUnable to ask for a worker per run; asking for 64 instead\n\n' ]);
+%     else
+%         workersrequested = size(subjects,2);
+%     end
+%     Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00 --exclude=node-i[01-15]');
+%     parpool(Poolinfo,Poolinfo.NumWorkers);
+% end
+% 
 
 
 %% Do an RSA analysis separately if you want (already integrated into previous step for vowels, but now can compare new models etc without repeating the time consuming cross-nobis)
@@ -928,16 +928,16 @@ end
 
 %% Do a partial-correlation based RSA analysis to tease apart the written and spoken word representations
 nrun = size(subjects,2); % enter the number of runs here
-RSAnobisworkedcorrectly = zeros(1,nrun);
+partialRSAnobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, much be an integer, 2 is 8 times faster than 1 (2 cubed). 
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
     try
         module_make_partial_effect_maps(GLMDir,downsamp_ratio)
-        RSAnobisworkedcorrectly(crun) = 1;
+        partialRSAnobisworkedcorrectly(crun) = 1;
     catch
-        RSAnobisworkedcorrectly(crun) = 0;
+        partialRSAnobisworkedcorrectly(crun) = 0;
     end
 end
 
@@ -969,16 +969,16 @@ outpath = [preprocessedpathstem '/stats5_multi_3_nowritten2/searchlight/downsamp
 searchlightsecondlevel = [];
 searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 
-%% Now do a correlation analysis with the Bayesian perceptual model parameters
-model_run_date = '13-May-2021';
-try
-    load(['./modelparameters/modelparameters_' model_run_date '.mat'])
-catch
-    [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
-    save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
-end
-
-XXX WIP
+% %% Now do a correlation analysis with the Bayesian perceptual model parameters
+% model_run_date = '13-May-2021';
+% try
+%     load(['./modelparameters/modelparameters_' model_run_date '.mat'])
+% catch
+%     [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
+%     save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
+% end
+% 
+% XXX WIP
 
 %% Now normalise the template space masks into native space
 
@@ -1409,5 +1409,6 @@ all_conditions = {
         'con_0020.nii','Written > Normal';
         'con_0030.nii','Clear > Unclear';
         'con_0035.nii','Unclear > Clear';
-        'con_0040.nii','Clarity Congruency Interaction'};
+        'con_0040.nii','Clarity Congruency Interaction'
+        };
 explore_univariate_contrast(subjects,preprocessedpathstem,this_smooth,all_conditions)

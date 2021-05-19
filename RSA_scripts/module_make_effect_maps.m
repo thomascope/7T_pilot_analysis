@@ -484,7 +484,7 @@ downsamped_V.mat(1:3,1:3)=downsamped_V.mat(1:3,1:3)*downsamp_ratio;
 
 clear results % to free memory
 
-for m=1:length(this_model_name) %Parallelising here impossible due to out of memory on serialisation
+for m=1:length(this_model_name) %Parallelising here impossible due to out of memory on serialisation unless data downsampled
     fprintf('\nComputing effect-map for model %s\n',this_model_name{m});
     if ~exist(fullfile(outputDir,['effect-map_' this_model_name{m} '.nii'])) || redo_maps == 1
         modelRDM = vectorizeRDMs(models{m})';
