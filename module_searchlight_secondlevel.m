@@ -15,8 +15,6 @@ else
     images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis_downsamp_' num2str(downsamp_ratio) '/' versionCurrent '/'], '^weffect-map_.*.nii'));
 end
 
-
-
 nrun = 2*size(images,1); % enter the number of runs here - if want to do smoothed as well
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
 
@@ -96,6 +94,8 @@ secondlevelworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
     if exist(fullfile(char(inputs{1, crun}),'SPM.mat'),'file')
         disp([fullfile(char(inputs{1, crun}),'SPM.mat') ' already exists, delete it if you want to re-make, otherwise moving on.'])
+    elseif ~all(cellfun(@exist,inputs{2, crun})) || ~all(cellfun(@exist,inputs{3, crun}))
+        disp(['Missing input files for ' char(inputs{1, crun}) ' moving on'])
     else
         spm('defaults', 'fMRI');
         spm_jobman('initcfg')
