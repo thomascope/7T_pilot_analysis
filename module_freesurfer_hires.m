@@ -38,11 +38,11 @@ else
     system(cmd);
     
     % Then you will have to make a symbolic link or copy T1.mgz to brainmask.auto.mgz and a link from brainmask.auto.mgz to brainmask.mgz. Finally, open this brainmask.mgz file and check that it looks okay (there is no skull, cerebellum is intact; use the sample subject bert that comes with your FreeSurfer installation to make sure it looks comparable). From there you can run the final stages of recon-all:
-    % recon-all -autrecon2 -autorecon3 -s <subjid>
+    % recon-all -autorecon2 -autorecon3 -s <subjid>
     data_dir = [this_subjects_dir subjects{crun}];
     copyfile([data_dir '/mri/T1.mgz'],[data_dir '/mri/brainmask.auto.mgz'])
     copyfile([data_dir '/mri/T1.mgz'],[data_dir '/mri/brainmask.mgz'])
-    cmd = ['recon-all -autrecon2 -autorecon3 -noskullstrip -s ' subjects{crun} ' -hires -notal-check -cw256'];
+    cmd = ['recon-all -autorecon2 -autorecon3 -noskullstrip -s ' subjects{crun} ' -hires -notal-check -cw256'];
     fprintf(['Submitting the following second stage command: ' cmd]);
     system(cmd);
 end
