@@ -1034,16 +1034,18 @@ outpath = [preprocessedpathstem '/stats5_multi_3_nowritten2/searchlight/downsamp
 searchlightsecondlevel = [];
 searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 
-% %% Now do a correlation analysis with the Bayesian perceptual model parameters
-% model_run_date = '13-May-2021';
-% try
-%     load(['./modelparameters/modelparameters_' model_run_date '.mat'])
-% catch
-%     [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
-%     save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
-% end
-% 
-% XXX WIP
+%% Now do a correlation analysis with the Bayesian perceptual model parameters against selected models
+model_run_date = '13-May-2021';
+try
+    load(['./modelparameters/modelparameters_' model_run_date '.mat'])
+catch
+    [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
+    save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
+end
+
+module_multivariate_correlation
+
+XXX WIP
 
 %% Now normalise the template space masks into native space
 
