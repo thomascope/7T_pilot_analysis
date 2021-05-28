@@ -34,22 +34,26 @@ parfor crun = 1:nrun
             addpath('./crop')
             crop_images(this_scan) % Vital to do rough Talaraiching first as Freesurfer can't manage it.
         end
+        
+        this_dir = pwd;
+        cd(rawdatafolder)        
         all_coreged_vols = [];
         for tissue_class = 1:3
-            vol1 = spm_vol('DATA_0021.nii');
-            vol2 = spm_vol(['c' num2str(tissue_class) 'DATA_0021.nii']);
+            vol1 = spm_vol(char(this_scan));
+            vol2 = spm_vol(['c' num2str(tissue_class) scanname]);
             new_vol = vol2;
             new_vol.fname = ['coreg_' vol2.fname];
             new_vol.mat = vol1.mat;
             spm_write_vol(new_vol,spm_read_vols(vol2));
-            all_coreged_vols = [all_coreged_vols; 'coreg_c' num2str(tissue_class) 'DATA_0021.nii'];
+            all_coreged_vols = [all_coreged_vols; 'coreg_c' num2str(tissue_class) scanname];
         end
-        Vo = spm_imcalc(all_coreged_vols,'coreg_brainmask.nii','i1+i2+i3>0')
+        Vo = spm_imcalc(all_coreged_vols,'coreg_brainmask.nii','i1+i2+i3>0');
         temp = spm_read_vols(spm_vol(Vo));
         filled_mask = imfill(temp,'holes');
         spm_write_vol(spm_vol('coreg_brainmask.nii'),filled_mask);
         spm_imcalc(char({scanname;'coreg_brainmask.nii'}),'coreg_filled_skullstripped.nii','i1.*i2');
         scanname = 'coreg_filled_skullstripped.nii';
+        cd(this_dir)
     end
     module_freesurfer_hires(preprocessedpathstem,subjects,crun,rawdatafolder,scanname,scriptdir,overwrite,skullstripped)
     
