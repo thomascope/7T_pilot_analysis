@@ -1,7 +1,9 @@
 
-skullstripped = 2;  
+skullstripped = 2;
 coreg_and_crop_images = 0; %Necessary, but can skip if you've done before
 overwrite = 0; % If you want to re-do a step - otherwise will crash if data already exist.
+flags.which = 1; % For reslicing
+view_scans = 0; % Obviously doesn't work in parallel
 parfor crun = 1:nrun
     setenv('FREESURFER_HOME','/home/tc02/freesurfer'); %Freesurfer 7.1.0
     !csh /home/tc02/freesurfer/SetUpFreeSurfer.csh
@@ -36,7 +38,7 @@ parfor crun = 1:nrun
         end
         
         this_dir = pwd;
-        cd(rawdatafolder)        
+        cd(rawdatafolder)
         all_coreged_vols = [];
         for tissue_class = 1:3
             vol1 = spm_vol(char(this_scan));
@@ -47,12 +49,25 @@ parfor crun = 1:nrun
             spm_write_vol(new_vol,spm_read_vols(vol2));
             all_coreged_vols = [all_coreged_vols; 'coreg_c' num2str(tissue_class) scanname];
         end
-        Vo = spm_imcalc(all_coreged_vols,'coreg_brainmask.nii','i1+i2+i3>0');
-        temp = spm_read_vols(spm_vol(Vo));
-        filled_mask = imfill(temp,'holes');
-        spm_write_vol(spm_vol('coreg_brainmask.nii'),filled_mask);
-        spm_imcalc(char({scanname;'coreg_brainmask.nii'}),'coreg_filled_skullstripped.nii','i1.*i2');
+        spm_reslice(char([this_scan; all_coreged_vols]),flags);
+        rs = char(ones(size(all_coreged_vols,1),1) * 'r');
+        all_resliced_coreged_vols = [rs, all_coreged_vols];
+        Vo = spm_imcalc(all_resliced_coreged_vols,'coreg_brainmask.nii','i1+i2+i3>0');
+        Vo = spm_imcalc(all_resliced_coreged_vols,'coreg_filled_brainmask.nii','imfill(i1+i2+i3>0,''holes'')');
+        % % Doing it this way led to the images being written to one side -
+        % % I don't understand why
+        %         temp = spm_read_vols(spm_vol(Vo));
+        %         filled_mask = imfill(temp,'holes');
+        %         spm_write_vol(spm_vol('coreg_brainmask.nii'),filled_mask);
+        %         spm_imcalc(char({scanname;'coreg_brainmask.nii'}),'coreg_filled_skullstripped.nii','i1.*i2');
+        Vo = spm_imcalc(char([all_resliced_coreged_vols;this_scan]),'coreg_filled_skullstripped.nii','imfill(i1+i2+i3>0,''holes'').*i4');
         scanname = 'coreg_filled_skullstripped.nii';
+        if view_scans
+            %         % Optional checks - highly recommended as this step has gone all
+            %         % kinds of wrong for reasons I don't understand
+            spm_check_registration(char([this_scan; all_coreged_vols; all_resliced_coreged_vols; 'coreg_brainmask.nii'; 'coreg_filled_brainmask.nii'; 'coreg_filled_skullstripped.nii']))
+            system(['freeview -v coreg_filled_skullstripped.nii'])
+        end
         cd(this_dir)
     end
     module_freesurfer_hires(preprocessedpathstem,subjects,crun,rawdatafolder,scanname,scriptdir,overwrite,skullstripped)
@@ -61,7 +76,7 @@ end
 
 % Now manually view outputs and decide which ones are bad
 output_folder = [preprocessedpathstem '/freesurfer/']; % For skullstripped == 0
-bad_subjects = {    
+bad_subjects = {
     'P7P01'
     'P7P02'
     'P7C02'
