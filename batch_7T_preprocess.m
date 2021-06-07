@@ -400,7 +400,7 @@ for this_smooth = [3,8];
         
         tempDesign = module_get_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
         
-        inputs{1, crun} = cellstr([outpath 'stats5_' num2str(this_smooth)]);
+        inputs{1, crun} = cellstr([outpath 'stats6_' num2str(this_smooth)]);
         for sess = 1:length(theseepis)
             filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s' num2str(this_smooth) 'wtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
             inputs{(8*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -452,7 +452,8 @@ for this_smooth = [3,8];
         'con_0025.nii','Normal > Silence';
         'con_0030.nii','Clear > Unclear';
         'con_0035.nii','Unclear > Clear';
-        'con_0040.nii','Clarity Congruency Interaction'}; %NB: INTERACTION DOES NOT WORK AT PRESENT XXX TOFIX
+        'con_0045.nii','Clarity Congruency Interaction Positive'
+        'con_0050.nii','Clarity Congruency Interaction Negative'}; 
     expected_sessions = 4;
     
     visual_check = 0;
@@ -461,7 +462,7 @@ for this_smooth = [3,8];
     
     this_scan = {};
     this_t_scan = {};
-    firstlevel_folder = ['stats5_' num2str(this_smooth)];
+    firstlevel_folder = ['stats6_' num2str(this_smooth)];
     
     jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_secondlevel_job.m'};
     jobs = repmat(jobfile, 1, nrun);
@@ -1028,8 +1029,8 @@ age_lookup = readtable('Pinfa_ages.csv');
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
 rmpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI') %Stops SPM getting defaults for second level if on path
 
-GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2']; %Template, first subject
-outpath = [preprocessedpathstem '/stats5_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
+GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Template, first subject
+outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
 
 searchlightsecondlevel = [];
 searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
@@ -1043,7 +1044,25 @@ catch
     save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
 end
 
-module_multivariate_correlation
+downsamp_ratio = 1;
+age_lookup = readtable('Pinfa_ages.csv');
+
+Basefilepath = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2/TDTcrossnobis/spearman/weffect-map_']; %Template, first subject
+outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'correlations' filesep 'prediction_precision' filesep]; %Results directory
+
+condition_names = {
+  'M to MM Shared Segments:  Cross Negative partialling '
+  'Match Clear to Mismatch Unclear only cross.nii'
+};
+
+covariatesecondlevelworkedcorrectly = zeros(1,size(condition_names,1));
+for crun = 1:length(condition_names)
+    thisfilepath = [Basefilepath condition_names{crun} '.nii'];
+    thisoutpath = [outpath condition_names{crun}];
+    covariatesecondlevelworkedcorrectly(crun) = module_multivariate_correlation(nanmean(all_sigma_pred),thisfilepath,subjects,age_lookup,thisoutpath);
+    % cd(deblank(thisoutpath))
+    % pause % If you want to view the outputs.
+end
 
 XXX WIP
 
@@ -1106,7 +1125,7 @@ template2nativeworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     outpath = [preprocessedpathstem subjects{crun} '/'];
-    reslice_template = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2/mask.nii']; %Template for reslicing
+    reslice_template = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/mask.nii']; %Template for reslicing
     try
         module_template_2_nativemap(images2normalise,outpath,1,reslice_template);
         template2nativeworkedcorrectly(crun) = 1;
@@ -1144,7 +1163,7 @@ masks = {
     'rwLeft_Precentral_Written_Cluster'
     };
 
-GLMDir = [preprocessedpathstem subjects{1} '/stats5_multi_3_nowritten2']; %Template, first subject
+GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
 temp = load([GLMDir filesep 'SPM.mat']);
 labelnames = {};
 for i = 1:length(temp.SPM.Sess(1).U)
@@ -1165,7 +1184,7 @@ nrun = size(subjects,2); % enter the number of runs here
 mahalanobisroiworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2']; %Where is the SPM model?
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Where is the SPM model?
     mask_dir = [preprocessedpathstem subjects{crun}]; %Where are the native space ROI masks?
     try
         TDTCrossnobisAnalysis_roi(GLMDir,mask_dir,masks);
@@ -1197,7 +1216,7 @@ masks = {
 
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2']; %Where is the SPM model?
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Where is the SPM model?
     try
         module_roi_RSA(GLMDir,masks)
         RSAroiworkedcorrectly(crun) = 1;
@@ -1207,7 +1226,7 @@ parfor crun = 1:nrun
 end
 
 %% Compare across conditions in STG as a sanity check then go on to do all ROIs
-GLMDir = [preprocessedpathstem subjects{1} '/stats5_multi_3_nowritten2']; %Template, first subject
+GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
 temp = load([GLMDir filesep 'SPM.mat']);
 labelnames = {};
 for i = 1:length(temp.SPM.Sess(1).U)
@@ -1323,10 +1342,10 @@ for j = 1:length(this_model_name)
         for i = 1:length(mask_names{k})
             all_data = [];
             for crun = 1:nrun
-                %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
-                ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{k}{i} '/RSA/spearman'];
+                %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+                ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{k}{i} '/RSA/spearman'];
                 if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{1} '.mat']),'file')
-                    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2/TDTcrossnobis_ROI' mask_names{k}{i} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+                    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI' mask_names{k}{i} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
                 end
                 for m = 1:length(this_model_name{j})
                     try
@@ -1379,7 +1398,7 @@ end
 
 
 %% Now compare across ROI for each condition - WORK IN PROGRESS
-GLMDir = [preprocessedpathstem subjects{1} '/stats5_multi_3_nowritten2']; %Template, first subject
+GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
 temp = load([GLMDir filesep 'SPM.mat']);
 labelnames = {};
 for i = 1:length(temp.SPM.Sess(1).U)
@@ -1402,7 +1421,7 @@ nrun = size(subjects,2); % enter the number of runs here
 RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 for crun = 1:nrun
-    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
     for m = 1:length(conditionnames)
         try
             temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' conditionnames{m} '.mat']));
@@ -1452,7 +1471,7 @@ plot_behavioural_data(subjects, dates, group, graph_individuals) % Requires matl
 % extraction_masks = {'rwL_STG_cross-segment_cluster.nii'};
 % parfor crun = 1:nrun
 %     addpath(genpath('./RSA_scripts'))
-%     GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
+%     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
 %     try
 %         module_extract_avneuralRDM_cluster(GLMDir,downsamp_ratio,extraction_masks)
 %         avneuralRDM_clusterworkedcorrectly(crun) = 1;
@@ -1461,7 +1480,7 @@ plot_behavioural_data(subjects, dates, group, graph_individuals) % Requires matl
 %     end
 % end
 % crun = 1;
-% GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
+% GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
 % addpath(genpath('./RSA_scripts'))
 % module_across_subj_avneuralRDM(GLMDir,downsamp_ratio,extraction_masks,subjects,group);
 
