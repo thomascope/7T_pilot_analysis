@@ -4,12 +4,12 @@
 % cfg_basicio BasicIO - Unknown
 %-----------------------------------------------------------------------
 matlabbatch{1}.spm.spatial.preproc.channel(1).vols = '<UNDEFINED>';
-matlabbatch{1}.spm.spatial.preproc.channel(1).biasreg = 0.001;
-matlabbatch{1}.spm.spatial.preproc.channel(1).biasfwhm = 60;
+matlabbatch{1}.spm.spatial.preproc.channel(1).biasreg = 0.0001;
+matlabbatch{1}.spm.spatial.preproc.channel(1).biasfwhm = 30;
 matlabbatch{1}.spm.spatial.preproc.channel(1).write = [0 0];
 matlabbatch{1}.spm.spatial.preproc.channel(2).vols = '<UNDEFINED>';
-matlabbatch{1}.spm.spatial.preproc.channel(2).biasreg = 0.001;
-matlabbatch{1}.spm.spatial.preproc.channel(2).biasfwhm = 60;
+matlabbatch{1}.spm.spatial.preproc.channel(2).biasreg = 0.0001;
+matlabbatch{1}.spm.spatial.preproc.channel(2).biasfwhm = 30;
 matlabbatch{1}.spm.spatial.preproc.channel(2).write = [0 0];
 matlabbatch{1}.spm.spatial.preproc.tissue(1).tpm = {'/imaging/local/software/spm_cbu_svn/releases/spm12_latest/tpm/TPM.nii,1'};
 matlabbatch{1}.spm.spatial.preproc.tissue(1).ngaus = 1;
@@ -76,15 +76,6 @@ matlabbatch{5}.spm.util.imcalc.options.dmtx = 0;
 matlabbatch{5}.spm.util.imcalc.options.mask = 0;
 matlabbatch{5}.spm.util.imcalc.options.interp = 1;
 matlabbatch{5}.spm.util.imcalc.options.dtype = 4;
-matlabbatch{6}.spm.util.imcalc.input(1) = cfg_dep('Segment: c2 Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','tiss', '()',{1}, '.','c', '()',{':'}));
-matlabbatch{6}.spm.util.imcalc.output = '<UNDEFINED>';
-matlabbatch{6}.spm.util.imcalc.outdir = '<UNDEFINED>';
-matlabbatch{6}.spm.util.imcalc.expression = 'i1';
-matlabbatch{6}.spm.util.imcalc.var = struct('name', {}, 'value', {});
-matlabbatch{6}.spm.util.imcalc.options.dmtx = 0;
-matlabbatch{6}.spm.util.imcalc.options.mask = 0;
-matlabbatch{6}.spm.util.imcalc.options.interp = 1;
-matlabbatch{6}.spm.util.imcalc.options.dtype = 4;
 matlabbatch{6}.spm.util.imcalc.input(1) = cfg_dep('Segment: c2 Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','tiss', '()',{1}, '.','c', '()',{':'}));
 matlabbatch{6}.spm.util.imcalc.output = '<UNDEFINED>';
 matlabbatch{6}.spm.util.imcalc.outdir = '<UNDEFINED>';

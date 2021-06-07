@@ -8,7 +8,7 @@ function module_vbm_job(group1_mrilist, group1_ages, group2_mrilist, group2_ages
 % want to use both the uni and INV2 images from an MP2RAGE, which is not
 % supported here.
 
-visual_check = 1
+visual_check = 0;
 
 if size(group1_mrilist,1) < size(group1_mrilist,2)
     group1_mrilist = group1_mrilist';

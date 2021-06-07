@@ -1,5 +1,4 @@
 
-skullstripped = 2;
 coreg_and_crop_images = 0; %Necessary, but can skip if you've done before
 overwrite = 1; % If you want to re-do a step - otherwise will crash if data already exist.
 flags.which = 1; % For reslicing

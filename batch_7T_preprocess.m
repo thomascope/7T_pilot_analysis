@@ -1479,3 +1479,17 @@ all_conditions = {
         'con_0040.nii','Clarity Congruency Interaction'
         };
 explore_univariate_contrast(subjects,preprocessedpathstem,this_smooth,all_conditions)
+
+%% Now run the freesurfer (Must be done after traditional segmentation for masking)
+skullstripped = 2; %Use segmentation with imfill to mask the raw image - works best.
+module_run_freesurfer;
+
+%% Now do stats on the freesurfer
+datafolder = [preprocessedpathstem '/freesurfer_masked/'];
+group_names = {'Control','nfvPPA'};
+age_lookup = readtable('Pinfa_ages.csv');
+studyname = 'PINFA';
+precached = 0;
+view_data = 1;
+module_make_FSGD(subjects, group, group_names, age_lookup, datafolder, studyname)
+module_run_FSGLM(datafolder, group_names, studyname, precached, view_data)

@@ -9,21 +9,21 @@ this_dir = pwd;
 cd([datafolder '/glm'])
 hemispheres = {'lh','rh'};
 if~precached
-      
-      % First resample each hemisphere into average space
-   parfor i = 1:2
-       setenv('SUBJECTS_DIR',datafolder);
-       cmd = ['mris_preproc --fsgd ' datafolder '/FSGD/' studyname '.fsgd --target fsaverage --hemi ' hemispheres{i} ' --meas thickness --out  ' hemispheres{i} '.' studyname '.thickness.00.mgh']
-       system(cmd)
-   end
-   % Next smooth the data - here with 10mm kernel, cortex only
-   parfor i = 1:2
-       setenv('SUBJECTS_DIR',datafolder);
-       cmd = ['mri_surf2surf --hemi ' hemispheres{i} ' --s fsaverage --sval ' hemispheres{i} '.' studyname '.thickness.00.mgh --fwhm 10 --cortex --tval ' hemispheres{i} '.' studyname '.thickness.10.mgh']
-       system(cmd)
-   end
-  
-   
+    
+    % First resample each hemisphere into average space
+    parfor i = 1:2
+        setenv('SUBJECTS_DIR',datafolder);
+        cmd = ['mris_preproc --fsgd ' datafolder '/FSGD/' studyname '.fsgd --target fsaverage --hemi ' hemispheres{i} ' --meas thickness --out  ' hemispheres{i} '.' studyname '.thickness.00.mgh']
+        system(cmd)
+    end
+    % Next smooth the data - here with 10mm kernel, cortex only
+    parfor i = 1:2
+        setenv('SUBJECTS_DIR',datafolder);
+        cmd = ['mri_surf2surf --hemi ' hemispheres{i} ' --s fsaverage --sval ' hemispheres{i} '.' studyname '.thickness.00.mgh --fwhm 10 --cortex --tval ' hemispheres{i} '.' studyname '.thickness.10.mgh']
+        system(cmd)
+    end
+    
+    
 else
     error('Not yet written for precached data, but this could save time')
 end
@@ -43,7 +43,7 @@ if view_data
 end
 % Now do clusterwise statistics
 parfor i = 1:2
-    cmd = ['mri_glmfit-sim --glmdir ' hemispheres{i} '.' group_names{1} '-' group_names{2} '.glmdir --perm 1000 4 pos --cwp 0.05 --bg 1 --overwrite']
+    cmd = ['mri_glmfit-sim --glmdir ' hemispheres{i} '.' group_names{1} '-' group_names{2} '.glmdir --perm 10000 4 pos --cwp 0.05 --bg 1 --overwrite']
     %cmd = ['mri_glmfit-sim --glmdir ' hemispheres{i} '.' group_names{1} '-' group_names{2} '.glmdir --perm 100 4 pos --cwp 0.99 --bg 1 --overwrite'] % Quick for code check
     system(cmd)
 end
