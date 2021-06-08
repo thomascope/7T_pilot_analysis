@@ -1070,8 +1070,9 @@ XXX WIP
 
 images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'
     %'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Blank_2016_inflated.nii' %Blank and Davis 2018 mask
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_cross_group_cluster.nii' %M to MM Shared Segments:  Cross Negative partialling
     };
 
 % search_labels = {
@@ -1085,18 +1086,18 @@ images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_ana
 % xA=spm_atlas('load','Neuromorphometrics');
 
 search_labels = {
-    'Left Superior Temporal Gyrus'
-    'Left Angular Gyrus'
-    'Left Precentral Gyrus'
-    'Left Frontal Operculum'
-    'Left Inferior Frontal Angular Gyrus'
-    'Right Superior Temporal Gyrus'
-    'Right Angular Gyrus'
-    'Right Precentral Gyrus'
-    'Right Frontal Operculum'
-    'Right Inferior Frontal Angular Gyrus'
-    'Left Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
-    'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+%     'Left Superior Temporal Gyrus'
+%     'Left Angular Gyrus'
+%     'Left Precentral Gyrus'
+%     'Left Frontal Operculum'
+%     'Left Inferior Frontal Angular Gyrus'
+%     'Right Superior Temporal Gyrus'
+%     'Right Angular Gyrus'
+%     'Right Precentral Gyrus'
+%     'Right Frontal Operculum'
+%     'Right Inferior Frontal Angular Gyrus'
+%     'Left Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+%     'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
     };
 
 cat_install_atlases
@@ -1147,20 +1148,21 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 %     };
 
 masks = {
-    'rwBlank_2016_inflated'
-    'rwL_STG_cross-segment_cluster'
-    'rwLeft_Superior_Temporal_Gyrus'
-    'rwLeft_Angular_Gyrus'
-    'rwLeft_Precentral_Gyrus'
-    'rwLeft_Frontal_Operculum'
-    'rwLeft_Inferior_Frontal_Angular_Gyrus'
-    'rwRight_Superior_Temporal_Gyrus'
-    'rwRight_Angular_Gyrus'
-    'rwRight_Precentral_Gyrus'
-    'rwRight_Frontal_Operculum'
-    'rwRight_Inferior_Frontal_Angular_Gyrus'
-    'rwLeft_IFG_Written_Cluster'
-    'rwLeft_Precentral_Written_Cluster'
+    'rwLeft_IFG_cross_group_cluster'
+%     'rwBlank_2016_inflated'
+%     'rwL_STG_cross-segment_cluster'
+%     'rwLeft_Superior_Temporal_Gyrus'
+%     'rwLeft_Angular_Gyrus'
+%     'rwLeft_Precentral_Gyrus'
+%     'rwLeft_Frontal_Operculum'
+%     'rwLeft_Inferior_Frontal_Angular_Gyrus'
+%     'rwRight_Superior_Temporal_Gyrus'
+%     'rwRight_Angular_Gyrus'
+%     'rwRight_Precentral_Gyrus'
+%     'rwRight_Frontal_Operculum'
+%     'rwRight_Inferior_Frontal_Angular_Gyrus'
+%     'rwLeft_IFG_Written_Cluster'
+%     'rwLeft_Precentral_Written_Cluster'
     };
 
 GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
@@ -1198,20 +1200,21 @@ end
 nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
-    'rwBlank_2016_inflated'
-    'rwL_STG_cross-segment_cluster'
-    'rwLeft_Superior_Temporal_Gyrus'
-    'rwLeft_Angular_Gyrus'
-    'rwLeft_Precentral_Gyrus'
-    'rwLeft_Frontal_Operculum'
-    'rwLeft_Inferior_Frontal_Angular_Gyrus'
-    'rwRight_Superior_Temporal_Gyrus'
-    'rwRight_Angular_Gyrus'
-    'rwRight_Precentral_Gyrus'
-    'rwRight_Frontal_Operculum'
-    'rwRight_Inferior_Frontal_Angular_Gyrus'
-    'rwLeft_IFG_Written_Cluster'
-    'rwLeft_Precentral_Written_Cluster'
+    'rwLeft_IFG_cross_group_cluster'
+%     'rwBlank_2016_inflated'
+%     'rwL_STG_cross-segment_cluster'
+%     'rwLeft_Superior_Temporal_Gyrus'
+%     'rwLeft_Angular_Gyrus'
+%     'rwLeft_Precentral_Gyrus'
+%     'rwLeft_Frontal_Operculum'
+%     'rwLeft_Inferior_Frontal_Angular_Gyrus'
+%     'rwRight_Superior_Temporal_Gyrus'
+%     'rwRight_Angular_Gyrus'
+%     'rwRight_Precentral_Gyrus'
+%     'rwRight_Frontal_Operculum'
+%     'rwRight_Inferior_Frontal_Angular_Gyrus'
+%     'rwLeft_IFG_Written_Cluster'
+%     'rwLeft_Precentral_Written_Cluster'
     };
 
 parfor crun = 1:nrun
@@ -1314,15 +1317,22 @@ this_model_name{5} = {
     'Mismatch Unclear to Mismatch Clear Cross-decode_Match';
     };
 
+this_model_name{6} = {
+    'M to MM Shared Segments:  Cross Negative partialling ';
+    };
+
 nrun = size(subjects,2); % enter the number of runs here
 % First load in the similarities
 RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
-mask_names{1} = {'rwLeft_Superior_Temporal_Gyrus';
-    %'rwL_STG_cross-segment_cluster'
-    'rwBlank_2016_inflated'
-    'rwLeft_IFG_Written_Cluster'
-    'rwLeft_Precentral_Written_Cluster'};
+mask_names{1} = {
+        'rwLeft_IFG_cross_group_cluster'
+%     'rwLeft_Superior_Temporal_Gyrus';
+%     %'rwL_STG_cross-segment_cluster'
+%     'rwBlank_2016_inflated'
+%     'rwLeft_IFG_Written_Cluster'
+%     'rwLeft_Precentral_Written_Cluster'
+};
 
 mask_names{2} = {    
     %'rwL_STG_cross-segment_cluster'
@@ -1509,6 +1519,7 @@ group_names = {'Control','nfvPPA'};
 age_lookup = readtable('Pinfa_ages.csv');
 studyname = 'PINFA';
 precached = 0;
-view_data = 1;
+view_data = 0;
+smoothing_kernel = 15; %In mm
 module_make_FSGD(subjects, group, group_names, age_lookup, datafolder, studyname)
-module_run_FSGLM(datafolder, group_names, studyname, precached, view_data)
+module_run_FSGLM(datafolder, group_names, studyname, precached, view_data, smoothing_kernel)
