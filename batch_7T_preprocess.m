@@ -1070,9 +1070,17 @@ XXX WIP
 
 images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/Blank_ROI/blank_mask.nii'
     %'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Blank_2016_inflated.nii' %Blank and Davis 2018 mask
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_cross_group_cluster.nii' %M to MM Shared Segments:  Cross Negative partialling
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_cross_group_cluster.nii' %M to MM Shared Segments:  Cross Negative partialling
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Temporal_Univariate_MM>M.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PostSTG_Univariate_Interaction.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction1.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction2.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction3.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction1.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction2.nii'
     };
 
 % search_labels = {
@@ -1148,7 +1156,15 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 %     };
 
 masks = {
-    'rwLeft_IFG_cross_group_cluster'
+        'rwLeft_PostSTG_Univariate_Interaction'
+    'rwLeft_Precentral_Univariate_Interaction1'
+    'rwLeft_Precentral_Univariate_Interaction2'
+    'rwLeft_Precentral_Univariate_Interaction3'
+    'rwLeft_Angular_Univariate_Interaction1'
+    'rwLeft_Angular_Univariate_Interaction2'
+%     'rwLeft_Frontal_Univariate_MM>M'
+%     'rwLeft_Temporal_Univariate_MM>M'
+%     'rwLeft_IFG_cross_group_cluster'
 %     'rwBlank_2016_inflated'
 %     'rwL_STG_cross-segment_cluster'
 %     'rwLeft_Superior_Temporal_Gyrus'
@@ -1199,8 +1215,17 @@ end
 %% Now do RSA on ROI data
 nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
+partialRSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
-    'rwLeft_IFG_cross_group_cluster'
+            'rwLeft_PostSTG_Univariate_Interaction'
+    'rwLeft_Precentral_Univariate_Interaction1'
+    'rwLeft_Precentral_Univariate_Interaction2'
+    'rwLeft_Precentral_Univariate_Interaction3'
+    'rwLeft_Angular_Univariate_Interaction1'
+    'rwLeft_Angular_Univariate_Interaction2'
+%     'rwLeft_Frontal_Univariate_MM>M'
+%     'rwLeft_Temporal_Univariate_MM>M'
+%     'rwLeft_IFG_cross_group_cluster'
 %     'rwBlank_2016_inflated'
 %     'rwL_STG_cross-segment_cluster'
 %     'rwLeft_Superior_Temporal_Gyrus'
@@ -1227,6 +1252,17 @@ parfor crun = 1:nrun
         RSAroiworkedcorrectly(crun) = 0;
     end
 end
+parfor crun = 1:nrun
+    addpath(genpath('./RSA_scripts'))
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Where is the SPM model?
+    try
+        module_make_partial_roi_RSA(GLMDir,masks)
+        partialRSAroiworkedcorrectly(crun) = 1;
+    catch
+        partialRSAroiworkedcorrectly(crun) = 0;
+    end
+end
+
 
 %% Compare across conditions in STG as a sanity check then go on to do all ROIs
 GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
@@ -1304,7 +1340,6 @@ this_model_name{4} = {'All spoken Cross-decode_Match'
     'Spoken to Written SS_Match - no self'
     'Match to Mismatch Shared Segments - no self'
     'Match to Mismatch SS_Match - no self'
-    'Match to Mismatch combined_SS - no self'
     'Match to Mismatch combined_SS - no self - rescaled'
     'Match to Mismatch only cross'
     'Match to Mismatch only not cross'
@@ -1318,7 +1353,8 @@ this_model_name{5} = {
     };
 
 this_model_name{6} = {
-    'M to MM Shared Segments:  Cross Negative partialling ';
+    'M to MM Shared Segments:  Cross Negative partialling '
+    'M to MM Shared Segments:  partialling  Cross Negative';
     };
 
 nrun = size(subjects,2); % enter the number of runs here
@@ -1326,13 +1362,19 @@ nrun = size(subjects,2); % enter the number of runs here
 RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 mask_names{1} = {
-        'rwLeft_IFG_cross_group_cluster'
-%     'rwLeft_Superior_Temporal_Gyrus';
-%     %'rwL_STG_cross-segment_cluster'
-%     'rwBlank_2016_inflated'
-%     'rwLeft_IFG_Written_Cluster'
-%     'rwLeft_Precentral_Written_Cluster'
-};
+    'rwLeft_IFG_cross_group_cluster'
+    'rwLeft_Superior_Temporal_Gyrus';
+    %'rwL_STG_cross-segment_cluster'
+    'rwBlank_2016_inflated'
+    'rwLeft_Frontal_Univariate_MM>M'
+    'rwLeft_Temporal_Univariate_MM>M'
+    'rwLeft_PostSTG_Univariate_Interaction'
+    'rwLeft_Precentral_Univariate_Interaction1'
+    'rwLeft_Precentral_Univariate_Interaction2'
+    'rwLeft_Precentral_Univariate_Interaction3'
+    'rwLeft_Angular_Univariate_Interaction1'
+    'rwLeft_Angular_Univariate_Interaction2'
+    };
 
 mask_names{2} = {    
     %'rwL_STG_cross-segment_cluster'

@@ -43,7 +43,6 @@ for i = 1:length(mask_names)
     end
     
     clear models this_model_name
-    clear models
     
     basemodels.vowels = zeros(16,16);
     basemodels.vowels(1:17:end) = 1;
