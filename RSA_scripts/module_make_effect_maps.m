@@ -175,6 +175,11 @@ for j = 1:length(basemodelNames)
     for i = 1:size(combine_label_sets,2)
         models{end}(strcmp(combine_label_sets{1,i},labelnames_denumbered),strcmp(combine_label_sets{1,i},labelnames_denumbered)) = basemodels.(basemodelNames{j});
     end
+        %Optional check - view matrix
+%                     imagesc(models{end},'AlphaData',~isnan(models{end}))
+%                     title(this_model_name{end},'Interpreter','none')
+%                     colorbar
+%                     pause
 end
 
 MisMatch_Cross_decode_base = zeros(16,16);
@@ -397,6 +402,20 @@ this_model_name{end+1} = ['Match to Mismatch only not cross'];
 for i = 1:size(cross_decode_label_pairs,1)
     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_not_cross';
+end
+
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Match to Mismatch cross-decode written'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = MisMatch_Cross_decode_base;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base';
+end
+
+models{end+1} = modeltemplate;
+this_model_name{end+1} = ['Match to Mismatch cross-decode spoken'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
+    models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
 end
 
 % Now look at these three models Clear-Unclear

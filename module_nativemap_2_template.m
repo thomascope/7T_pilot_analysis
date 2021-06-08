@@ -14,9 +14,12 @@ versionCurrent = 'spearman';
     % Gather images for current subject
 if downsamp_ratio == 1
     images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^effect-map_.*.nii'));
+    images_done = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^weffect-map_.*.nii'));
 else
     images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis_downsamp_' num2str(downsamp_ratio) '/' versionCurrent '/'], '^effect-map_.*.nii'));
+    images_done = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis_downsamp_' num2str(downsamp_ratio) '/' versionCurrent '/'], '^weffect-map_.*.nii'));
 end
+images = setdiff(images,strrep(images_done,'weffect-map','effect-map'));
 
 % Write out masks
 images_mask = {};

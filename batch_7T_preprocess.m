@@ -983,7 +983,7 @@ RSAnobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     try
         module_make_effect_maps(GLMDir,downsamp_ratio)
         RSAnobisworkedcorrectly(crun) = 1;
@@ -998,7 +998,7 @@ partialRSAnobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     try
         module_make_partial_effect_maps(GLMDir,downsamp_ratio)
         partialRSAnobisworkedcorrectly(crun) = 1;
@@ -1013,7 +1013,7 @@ native2templateworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     outpath = [preprocessedpathstem subjects{crun} '/'];
     try
         module_nativemap_2_template(GLMDir,downsamp_ratio,outpath)
