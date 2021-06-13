@@ -546,7 +546,7 @@ downsamped_V.mat(1:3,1:3)=downsamped_V.mat(1:3,1:3)*downsamp_ratio;
 
 clear results % to free memory
 
-% % Optional - to visualise a model
+% Optional - to visualise a model
 % b = imagesc(models{end}{1},[0 1]);
 % set(b,'AlphaData',~isnan(models{end}{1}))
 % title(this_model_name{end}{1},'Interpreter','none')

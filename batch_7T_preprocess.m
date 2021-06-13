@@ -1083,8 +1083,10 @@ images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_ana
 %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction2.nii'
 %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'
 %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction_combined.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_SSMatchnoself_combined.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments.nii'
     };
 
 % search_labels = {
@@ -1112,26 +1114,26 @@ search_labels = {
 %     'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
     };
 
-cat_install_atlases
-xA=spm_atlas('load','dartel_neuromorphometrics');
-for i = 1:size(xA.labels,2)
-    all_labels{i} = xA.labels(i).name;
-end
+% cat_install_atlases
+% xA=spm_atlas('load','dartel_neuromorphometrics');
+% for i = 1:size(xA.labels,2)
+%     all_labels{i} = xA.labels(i).name;
+% end
 
-S = cell(1,length(search_labels));
-for i = 1:length(search_labels)
-    S{i} = find(strncmp(all_labels,search_labels{i},size(search_labels{i},2)));
-end
-if ~exist('./atlas_Neuromorphometrics/','dir')
-    mkdir('./atlas_Neuromorphometrics/');
-end
-for i = 1:size(S,2)
-    fname=strcat(strrep(search_labels{i}, ' ', '_'),'.nii');
-    VM=spm_atlas('mask',xA,xA.labels(S{i}).name);
-    VM.fname=['./atlas_Neuromorphometrics/' fname];
-    spm_write_vol(VM,spm_read_vols(VM));
-    images2normalise{end+1} = [pwd '/atlas_Neuromorphometrics/' fname];
-end
+% S = cell(1,length(search_labels));
+% for i = 1:length(search_labels)
+%     S{i} = find(strncmp(all_labels,search_labels{i},size(search_labels{i},2)));
+% end
+% if ~exist('./atlas_Neuromorphometrics/','dir')
+%     mkdir('./atlas_Neuromorphometrics/');
+% end
+% for i = 1:size(S,2)
+%     fname=strcat(strrep(search_labels{i}, ' ', '_'),'.nii');
+%     VM=spm_atlas('mask',xA,xA.labels(S{i}).name);
+%     VM.fname=['./atlas_Neuromorphometrics/' fname];
+%     spm_write_vol(VM,spm_read_vols(VM));
+%     images2normalise{end+1} = [pwd '/atlas_Neuromorphometrics/' fname];
+% end
 
 nrun = size(subjects,2); % enter the number of runs here
 template2nativeworkedcorrectly = zeros(1,nrun);
@@ -1160,8 +1162,10 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 %     };
 
 masks = {
-    'rwLeft_STG_Univariate8mm_15>3'
-    'rwLeft_STG_Univariate3mm_15>3'
+    'rwLeft_PrG_All_Shared_Segments'
+%'rwLeft_PrG_SSMatchnoself_combined'
+%     'rwLeft_STG_Univariate8mm_15>3'
+%     'rwLeft_STG_Univariate3mm_15>3'
 %     'rwLeft_Precentral_Univariate_Interaction_combined'
 %     'rwLeft_Angular_Univariate_Interaction_combined'
 %         'rwLeft_PostSTG_Univariate_Interaction'
@@ -1225,8 +1229,10 @@ nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
 partialRSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
-    'rwLeft_STG_Univariate8mm_15>3'
-    'rwLeft_STG_Univariate3mm_15>3'
+'rwLeft_PrG_All_Shared_Segments'
+%     'rwLeft_PrG_SSMatchnoself_combined'
+%     'rwLeft_STG_Univariate8mm_15>3'
+%     'rwLeft_STG_Univariate3mm_15>3'
     %     'rwLeft_Precentral_Univariate_Interaction_combined'
     %     'rwLeft_Angular_Univariate_Interaction_combined'
     %     'rwLeft_PostSTG_Univariate_Interaction'
@@ -1326,26 +1332,7 @@ this_model_name{2} = {
     'Mismatch Clear to Written Cross-decode_Match'
     };
 
-this_model_name{3} = {
-    'Match Unclear to Mismatch Unclear Cross-decode'
-    'Match Unclear to Mismatch Unclear Shared Segments - cross'
-    'Match Unclear to Mismatch Unclear Shared Segments - no self'
-    'Match Unclear to Mismatch Clear Cross-decode'
-    'Match Unclear to Mismatch Clear Shared Segments - cross'
-    'Match Unclear to Mismatch Clear Shared Segments - no self'
-    'Match Clear to Mismatch Unclear Cross-decode'
-    'Match Clear to Mismatch Unclear Shared Segments - cross'
-    'Match Clear to Mismatch Unclear Shared Segments - no self'
-    'Match Clear to Mismatch Clear Cross-decode'
-    'Match Clear to Mismatch Clear Shared Segments - cross'
-    'Match Clear to Mismatch Clear Shared Segments - no self'
-    'Match Unclear to Written Cross-decode'
-    'Match Clear to Written Cross-decode'
-    'Mismatch Unclear to Written Cross-decode'
-    'Mismatch Clear to Written Cross-decode'
-    };
-
-this_model_name{4} = {'All spoken Cross-decode_Match'
+this_model_name{3} = {'All spoken Cross-decode_Match'
     'All spoken SS_Match'
     'All spoken SS_Match - no self'
     'Spoken to Written Cross-decode_Match'
@@ -1357,53 +1344,75 @@ this_model_name{4} = {'All spoken Cross-decode_Match'
     'Match to Mismatch only not cross'
     };
 
-this_model_name{5} = {
+this_model_name{4} = {
     'Match Unclear to Match Clear Cross-decode_Match';
     'Mismatch Unclear to Mismatch Clear Cross-decode';
     'Match Unclear to Match Clear Cross-decode';
     'Mismatch Unclear to Mismatch Clear Cross-decode_Match';
     };
 
-this_model_name{6} = {
+this_model_name{5} = {
     'M to MM Shared Segments:  Cross Negative partialling '
     'M to MM Shared Segments:  partialling  Cross Negative';
     };
+
+
+% this_model_name{6} = {
+%     'Match Unclear to Mismatch Unclear Cross-decode'
+%     'Match Unclear to Mismatch Unclear Shared Segments - cross'
+%     'Match Unclear to Mismatch Unclear Shared Segments - no self'
+%     'Match Unclear to Mismatch Clear Cross-decode'
+%     'Match Unclear to Mismatch Clear Shared Segments - cross'
+%     'Match Unclear to Mismatch Clear Shared Segments - no self'
+%     'Match Clear to Mismatch Unclear Cross-decode'
+%     'Match Clear to Mismatch Unclear Shared Segments - cross'
+%     'Match Clear to Mismatch Unclear Shared Segments - no self'
+%     'Match Clear to Mismatch Clear Cross-decode'
+%     'Match Clear to Mismatch Clear Shared Segments - cross'
+%     'Match Clear to Mismatch Clear Shared Segments - no self'
+%     'Match Unclear to Written Cross-decode'
+%     'Match Clear to Written Cross-decode'
+%     'Mismatch Unclear to Written Cross-decode'
+%     'Mismatch Clear to Written Cross-decode'
+%     };
 
 nrun = size(subjects,2); % enter the number of runs here
 % First load in the similarities
 RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 mask_names{1} = {
-    'rwLeft_IFG_cross_group_cluster'
-%     'rwLeft_Superior_Temporal_Gyrus';
-%     %'rwL_STG_cross-segment_cluster'
-%     'rwBlank_2016_inflated'
-%     'rwLeft_Frontal_Univariate_MM>M'
-     'rwLeft_Temporal_Univariate_MM>M'
-%     'rwLeft_PostSTG_Univariate_Interaction'
-%     %     'rwLeft_Precentral_Univariate_Interaction1'
-%     %     'rwLeft_Precentral_Univariate_Interaction2'
-%     %     'rwLeft_Precentral_Univariate_Interaction3'
-%     'rwLeft_Angular_Univariate_Interaction1'
-%     'rwLeft_Angular_Univariate_Interaction2'
+         'rwLeft_IFG_cross_group_cluster'
+    %     'rwLeft_Superior_Temporal_Gyrus';
+    'rwL_STG_cross-segment_cluster'
+    %     'rwBlank_2016_inflated'
+    'rwLeft_Frontal_Univariate_MM>M'
+    'rwLeft_Temporal_Univariate_MM>M'
+    %     'rwLeft_PostSTG_Univariate_Interaction'
+    %     %     'rwLeft_Precentral_Univariate_Interaction1'
+    %     %     'rwLeft_Precentral_Univariate_Interaction2'
+    %     %     'rwLeft_Precentral_Univariate_Interaction3'
+    %     'rwLeft_Angular_Univariate_Interaction1'
+    %     'rwLeft_Angular_Univariate_Interaction2'
     'rwLeft_Precentral_Univariate_Interaction_combined'
-    %     'rwLeft_Angular_Univariate_Interaction_combined'
-%     'rwLeft_STG_Univariate8mm_15>3'
+    'rwLeft_Angular_Univariate_Interaction_combined'
+    %     'rwLeft_STG_Univariate8mm_15>3'
     'rwLeft_STG_Univariate3mm_15>3'
+    'rwLeft_PrG_SSMatchnoself_combined'
+    'rwLeft_PrG_All_Shared_Segments'
     };
 
-mask_names{2} = {
-    %'rwL_STG_cross-segment_cluster'
-    'rwLeft_Angular_Gyrus'
-    'rwLeft_Precentral_Gyrus'
-    'rwLeft_Frontal_Operculum'
-    'rwLeft_Inferior_Frontal_Angular_Gyrus'
-    'rwRight_Superior_Temporal_Gyrus'
-    'rwRight_Angular_Gyrus'
-    'rwRight_Precentral_Gyrus'
-    'rwRight_Frontal_Operculum'
-    'rwRight_Inferior_Frontal_Angular_Gyrus'
-    };
+% mask_names{2} = {
+%     %'rwL_STG_cross-segment_cluster'
+%     'rwLeft_Angular_Gyrus'
+%     'rwLeft_Precentral_Gyrus'
+%     'rwLeft_Frontal_Operculum'
+%     'rwLeft_Inferior_Frontal_Angular_Gyrus'
+%     'rwRight_Superior_Temporal_Gyrus'
+%     'rwRight_Angular_Gyrus'
+%     'rwRight_Precentral_Gyrus'
+%     'rwRight_Frontal_Operculum'
+%     'rwRight_Inferior_Frontal_Angular_Gyrus'
+%     };
 
 for j = 1:length(this_model_name)
     for k = 1:length(mask_names)
