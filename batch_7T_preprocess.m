@@ -278,7 +278,7 @@ for crun = 1:nrun
     inputs{1, crun} = cellstr([outpath 'structural_csf.nii']);
 end
 
-cat12workedcorrectly = zeros(1,nrun);
+cat12normaliseworkedcorrectly = zeros(1,nrun);
 jobs = repmat(jobfile, 1, 1);
 
 parfor crun = 1:nrun
@@ -286,14 +286,14 @@ parfor crun = 1:nrun
     spm_jobman('initcfg')
     try
         spm_jobman('run', jobs, inputs{:,crun});
-        cat12workedcorrectly(crun) = 1;
+        cat12normaliseworkedcorrectly(crun) = 1;
     catch
-        cat12workedcorrectly(crun) = 0;
+        cat12normaliseworkedcorrectly(crun) = 0;
     end
 end
 
-if ~all(cat12workedcorrectly)
-    error('failed at cat12');
+if ~all(cat12normaliseworkedcorrectly)
+    error('failed at cat12 normalisation');
 end
 
 
@@ -1075,12 +1075,16 @@ images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_ana
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_cross_group_cluster.nii' %M to MM Shared Segments:  Cross Negative partialling
 %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'
 %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Temporal_Univariate_MM>M.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PostSTG_Univariate_Interaction.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction1.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction2.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction3.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction1.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction2.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PostSTG_Univariate_Interaction.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction1.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction2.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction3.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction1.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction2.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction_combined.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
     };
 
 % search_labels = {
@@ -1156,12 +1160,16 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 %     };
 
 masks = {
-        'rwLeft_PostSTG_Univariate_Interaction'
-    'rwLeft_Precentral_Univariate_Interaction1'
-    'rwLeft_Precentral_Univariate_Interaction2'
-    'rwLeft_Precentral_Univariate_Interaction3'
-    'rwLeft_Angular_Univariate_Interaction1'
-    'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_STG_Univariate8mm_15>3'
+    'rwLeft_STG_Univariate3mm_15>3'
+%     'rwLeft_Precentral_Univariate_Interaction_combined'
+%     'rwLeft_Angular_Univariate_Interaction_combined'
+%         'rwLeft_PostSTG_Univariate_Interaction'
+%     'rwLeft_Precentral_Univariate_Interaction1'
+%     'rwLeft_Precentral_Univariate_Interaction2'
+%     'rwLeft_Precentral_Univariate_Interaction3'
+%     'rwLeft_Angular_Univariate_Interaction1'
+%     'rwLeft_Angular_Univariate_Interaction2'
 %     'rwLeft_Frontal_Univariate_MM>M'
 %     'rwLeft_Temporal_Univariate_MM>M'
 %     'rwLeft_IFG_cross_group_cluster'
@@ -1217,12 +1225,16 @@ nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
 partialRSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
-            'rwLeft_PostSTG_Univariate_Interaction'
-    'rwLeft_Precentral_Univariate_Interaction1'
-    'rwLeft_Precentral_Univariate_Interaction2'
-    'rwLeft_Precentral_Univariate_Interaction3'
-    'rwLeft_Angular_Univariate_Interaction1'
-    'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_STG_Univariate8mm_15>3'
+    'rwLeft_STG_Univariate3mm_15>3'
+    %     'rwLeft_Precentral_Univariate_Interaction_combined'
+    %     'rwLeft_Angular_Univariate_Interaction_combined'
+    %     'rwLeft_PostSTG_Univariate_Interaction'
+    %     'rwLeft_Precentral_Univariate_Interaction1'
+    %     'rwLeft_Precentral_Univariate_Interaction2'
+    %     'rwLeft_Precentral_Univariate_Interaction3'
+%     'rwLeft_Angular_Univariate_Interaction1'
+%     'rwLeft_Angular_Univariate_Interaction2'
 %     'rwLeft_Frontal_Univariate_MM>M'
 %     'rwLeft_Temporal_Univariate_MM>M'
 %     'rwLeft_IFG_cross_group_cluster'
@@ -1283,15 +1295,15 @@ conditionnames = unique(labelnames_denumbered,'stable');
 
 clear this_model_name mask_names
 this_model_name{1} = {
-    'Match Unclear vowels'
-    'Match Clear vowels'
-    'Mismatch Unclear vowels'
-    'Mismatch Clear vowels'
+%     'Match Unclear vowels'
+%     'Match Clear vowels'
+%     'Mismatch Unclear vowels'
+%     'Mismatch Clear vowels'
     'Match Unclear shared_segments'
     'Match Clear shared_segments'
     'Mismatch Unclear shared_segments'
     'Mismatch Clear shared_segments'
-    'Written vowels'
+%     'Written vowels'
     'Written shared_segments'
     };
 
@@ -1363,20 +1375,24 @@ RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 mask_names{1} = {
     'rwLeft_IFG_cross_group_cluster'
-    'rwLeft_Superior_Temporal_Gyrus';
-    %'rwL_STG_cross-segment_cluster'
-    'rwBlank_2016_inflated'
-    'rwLeft_Frontal_Univariate_MM>M'
-    'rwLeft_Temporal_Univariate_MM>M'
-    'rwLeft_PostSTG_Univariate_Interaction'
-    'rwLeft_Precentral_Univariate_Interaction1'
-    'rwLeft_Precentral_Univariate_Interaction2'
-    'rwLeft_Precentral_Univariate_Interaction3'
-    'rwLeft_Angular_Univariate_Interaction1'
-    'rwLeft_Angular_Univariate_Interaction2'
+%     'rwLeft_Superior_Temporal_Gyrus';
+%     %'rwL_STG_cross-segment_cluster'
+%     'rwBlank_2016_inflated'
+%     'rwLeft_Frontal_Univariate_MM>M'
+     'rwLeft_Temporal_Univariate_MM>M'
+%     'rwLeft_PostSTG_Univariate_Interaction'
+%     %     'rwLeft_Precentral_Univariate_Interaction1'
+%     %     'rwLeft_Precentral_Univariate_Interaction2'
+%     %     'rwLeft_Precentral_Univariate_Interaction3'
+%     'rwLeft_Angular_Univariate_Interaction1'
+%     'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Precentral_Univariate_Interaction_combined'
+    %     'rwLeft_Angular_Univariate_Interaction_combined'
+%     'rwLeft_STG_Univariate8mm_15>3'
+    'rwLeft_STG_Univariate3mm_15>3'
     };
 
-mask_names{2} = {    
+mask_names{2} = {
     %'rwL_STG_cross-segment_cluster'
     'rwLeft_Angular_Gyrus'
     'rwLeft_Precentral_Gyrus'
