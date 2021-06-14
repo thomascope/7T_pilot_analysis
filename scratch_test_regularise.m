@@ -1,3 +1,5 @@
+visualise_data = 0;
+
 nrun = size(subjects,2); % enter the number of runs here
 
 %%First copy targets to a new folder, coregister and crop necks
@@ -50,9 +52,18 @@ if visualise_data
 end
 
 %% Now do cat12 segmentation
+visualise_data = 0;
+
 rmpath(genpath('/group/language/data/thomascope/spm12_fil_r6906/'))
 addpath /group/language/data/thomascope/spm12_fil_r7771/ % Newset version of cat12
 spm fmri
+cat12('expert')
+
+Regularised_structurals = {};
+for crun = 1:nrun
+    Regularised_structurals{crun} = [preprocessedpathstem subjects{crun} '/Regularised_structural.nii'];
+end
+
 
 nrun = size(subjects,2); % enter the number of runs here
 %jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_cat12_segment_job.m'};

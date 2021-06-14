@@ -60,11 +60,11 @@ inputs{2,1} = cell(length(core_imagepaths),1);
 split_stem = regexp(core_imagepaths, '/', 'split');
 
 for i = 1:length(core_imagepaths)
-    inputs{1,1}(i) = cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/mri/rp1' split_stem{i}{end}]);
-    inputs{2,1}(i) = cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/mri/rp2' split_stem{i}{end}]);
+    inputs{1,1}(i) = cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/mri/rp1' split_stem{i}{end}(1:end-4) '_affine.nii']);
+    inputs{2,1}(i) = cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/mri/rp2' split_stem{i}{end}(1:end-4) '_affine.nii']);
 end
 
-inputs{3,1} = ['Template ' postfix];
+inputs{3,1} = ['Template' postfix];
 dartelworkedcorrectly = zeros(1,nrun);
 jobs = repmat(jobfile, 1, 1);
 
@@ -98,19 +98,19 @@ inputs{2,1} = cell(length(remaining_control_imagepaths),1);
 split_stem = regexp(remaining_control_imagepaths, '/', 'split');
 
 for i = 1:length(remaining_control_imagepaths)
-    inputs{1,1}(i) = cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/mri/rp1' split_stem{i}{end}]);
-    inputs{2,1}(i) = cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/mri/rp2' split_stem{i}{end}]);
+    inputs{1,1}(i) = cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/mri/rp1' split_stem{i}{end}(1:end-4) '_affine.nii']);
+    inputs{2,1}(i) = cellstr(['/' fullfile(split_stem{i}{1:end-1}) '/mri/rp2' split_stem{i}{end}(1:end-4) '_affine.nii']);
 end
 
 split_stem = regexp(core_imagepaths, '/', 'split');
-inputs{3,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template ' postfix ' _1.nii']);
-inputs{4,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template ' postfix ' _2.nii']);
-inputs{5,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template ' postfix ' _3.nii']);
-inputs{6,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template ' postfix ' _4.nii']);
-inputs{7,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template ' postfix ' _5.nii']);
-inputs{8,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template ' postfix ' _6.nii']);
+inputs{3,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template' postfix '_1.nii']);
+inputs{4,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template' postfix '_2.nii']);
+inputs{5,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template' postfix '_3.nii']);
+inputs{6,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template' postfix '_4.nii']);
+inputs{7,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template' postfix '_5.nii']);
+inputs{8,1} = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template' postfix '_6.nii']);
 
-path_to_template_6 = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template ' postfix ' _6.nii']);
+path_to_template_6 = cellstr(['/' fullfile(split_stem{1}{1:end-1}) '/mri/Template' postfix '_6.nii']);
 
 templateddartelworkedcorrectly = zeros(1,nrun);
 jobs = repmat(jobfile, 1, 1);
@@ -135,15 +135,15 @@ inputs = cell(3, nrun);
 
 split_stem = regexp(mrilist, '/', 'split');
 split_stem_template = regexp(core_imagepaths, '/', 'split');
-path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template ' postfix ' _6.nii']);
+path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template' postfix '_6.nii']);
 
 for crun = 1:nrun
     inputs{1, crun} = path_to_template_6; % Normalise to MNI Space: Dartel Template - cfg_files
-    inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}(1:end-4) '_Template ' postfix '.nii']);
+    inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}(1:end-4) '_affine_Template' postfix '.nii']);
     if ~exist(char(inputs{2,crun}),'file')
-        inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}]); %Deal with the difference in naming convention depending if part of the dartel templating or not
+        inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}(1:end-4) '_affine.nii']); %Deal with the difference in naming convention depending if part of the dartel templating or not
     end
-    inputs{3, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/rp1' split_stem{crun}{end}]);
+    inputs{3, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/rp1' split_stem{crun}{end}(1:end-4) '_affine.nii']);
 end
 
 normaliseworkedcorrectly = zeros(1,nrun);
@@ -166,7 +166,7 @@ jobfile = {'./vbm_scripts/VBM_batch_factorial_TIV_age.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(6, nrun);
 
-stats_folder = {[preprocessedpathstem '/cat12VBM/' postfix '/factorial_full_group_vbm_TIVnormalised_agecovaried_unsmoothedmask']};
+stats_folder = {[preprocessfolder '/factorial_full_group_vbm_TIVnormalised_agecovaried_unsmoothedmask']};
 split_stem_group2 = regexp(group2_mrilist, '/', 'split');
 split_stem_group1 = regexp(group1_mrilist, '/', 'split');
 
@@ -175,11 +175,11 @@ inputs{1, 1} = stats_folder;
 for crun = 1:nrun
     inputs{2, 1} = cell(length(group1_mrilist),1);
     for i = 1:length(group1_mrilist)
-        inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/mri/smwp1' split_stem_group1{i}{end}]);
+        inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/mri/smwrp1' split_stem_group1{i}{end}(1:end-4) '_affine.nii']);
     end
     inputs{3, 1} = cell(length(group2_mrilist),1);
     for i = 1:length(group2_mrilist)
-        inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/mri/smwp1' split_stem_group2{i}{end}]);
+        inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/mri/smwrp1' split_stem_group2{i}{end}(1:end-4) '_affine.nii']);
     end
 end
 
@@ -192,7 +192,7 @@ inputs{6, 1} = {'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img'};
 if ~exist(char(inputs{6, 1}),'file')
     core_imagepaths = [group1_mrilist; group2_mrilist(1:length(group1_mrilist))];
     split_stem_template = regexp(core_imagepaths, '/', 'split');
-    path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template ' postfix ' _6.nii']);
+    path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template' postfix '_6.nii']);
     make_VBM_explicit_mask(group2_mrilist, path_to_template_6, 'control')
 end
 
@@ -226,15 +226,15 @@ inputs = cell(3, nrun);
 core_imagepaths = [group1_mrilist; group2_mrilist(1:length(group1_mrilist))];
 split_stem = regexp(mrilist, '/', 'split');
 split_stem_template = regexp(core_imagepaths, '/', 'split');
-path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/Template ' postfix '_6.nii']);
+path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template' postfix '_6.nii']);
 
 
 
 for crun = 1:nrun
     inputs{1, crun} = path_to_template_6; % Normalise to MNI Space: Dartel Template - cfg_files
-    inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}(1:end-4) '_Template ' postfix '.nii']);
+    inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}(1:end-4) '_affine_Template' postfix '.nii']);
     if ~exist(char(inputs{2,crun}),'file')
-        inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}]); %Deal with the difference in naming convention depending if part of the dartel templating or not
+        inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}(1:end-4) '_affine.nii']); %Deal with the difference in naming convention depending if part of the dartel templating or not
     end
     inputs{3, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/' split_stem{crun}{end}]);
 end
@@ -265,7 +265,7 @@ for i = 1:length(core_imagepaths)
 end
 
 inputs{2,1} = ['./cat12/average_matched_control_patient_T1head'];
-
+mkdir('./cat12')
 imcalcworkedcorrectly = zeros(1,nrun);
 jobs = repmat(jobfile, 1, 1);
 
@@ -291,15 +291,15 @@ inputs = cell(3, nrun);
 
 split_stem = regexp(mrilist, '/', 'split');
 split_stem_template = regexp(core_imagepaths, '/', 'split');
-path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template ' postfix ' _6.nii']);
+path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template' postfix '_6.nii']);
 
 for crun = 1:nrun
     inputs{1, crun} = path_to_template_6; % Normalise to MNI Space: Dartel Template - cfg_files
-    inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp2' split_stem{crun}{end}(1:end-4) '_Template ' postfix '.nii']);
+    inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}(1:end-4) '_affine_Template' postfix '.nii']);
     if ~exist(char(inputs{2,crun}),'file')
-        inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp2' split_stem{crun}{end}]); %Deal with the difference in naming convention depending if part of the dartel templating or not
+        inputs{2, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/u_rp1' split_stem{crun}{end}(1:end-4) '_affine.nii']); %Deal with the difference in naming convention depending if part of the dartel templating or not
     end
-    inputs{3, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/rp2' split_stem{crun}{end}]);
+    inputs{3, crun} = cellstr(['/' fullfile(split_stem{crun}{1:end-1}) '/mri/rp2' split_stem{crun}{end}(1:end-4) '_affine.nii']);
 end
 
 normaliseworkedcorrectly = zeros(1,nrun);
@@ -322,7 +322,7 @@ jobfile = {'./vbm_scripts/VBM_batch_factorial_TIV_age.m'};
 jobs = repmat(jobfile, 1, nrun);
 inputs = cell(6, nrun);
 
-stats_folder = {[preprocessedpathstem '/cat12VBM/' postfix '/factorial_full_group_vbm_TIVnormalised_agecovaried_unsmoothedmask']};
+stats_folder = {[preprocessfolder '/WMfactorial_full_group_vbm_TIVnormalised_agecovaried_unsmoothedmask']};
 split_stem_group2 = regexp(group2_mrilist, '/', 'split');
 split_stem_group1 = regexp(group1_mrilist, '/', 'split');
 
@@ -331,11 +331,11 @@ inputs{1, 1} = stats_folder;
 for crun = 1:nrun
     inputs{2, 1} = cell(length(group1_mrilist),1);
     for i = 1:length(group1_mrilist)
-        inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/mri/smwp2' split_stem_group1{i}{end}]);
+        inputs{2,crun}(i) = cellstr(['/' fullfile(split_stem_group1{i}{1:end-1}) '/mri/smwrp2' split_stem_group1{i}{end}(1:end-4) '_affine.nii']);
     end
     inputs{3, 1} = cell(length(group2_mrilist),1);
     for i = 1:length(group2_mrilist)
-        inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/mri/smwp2' split_stem_group2{i}{end}]);
+        inputs{3,crun}(i) = cellstr(['/' fullfile(split_stem_group2{i}{1:end-1}) '/mri/smwrp2' split_stem_group2{i}{end}(1:end-4) '_affine.nii']);
     end
 end
 
@@ -343,12 +343,12 @@ inputs{4, 1} = [group1_tivs;group2_tivs];
 
 inputs{5, 1} = [group1_ages; group2_ages];
 
-inputs{6, 1} = {'control_majority_unsmoothed_mask_c1_thr0.05_cons0.8.img'};
+inputs{6, 1} = {'control_majority_unsmoothed_mask_c2_thr0.05_cons0.8.img'};
 
 if ~exist(char(inputs{6, 1}),'file')
     core_imagepaths = [group1_mrilist; group2_mrilist(1:length(group1_mrilist))];
     split_stem_template = regexp(core_imagepaths, '/', 'split');
-    path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template ' postfix ' _6.nii']);
+    path_to_template_6 = cellstr(['/' fullfile(split_stem_template{1}{1:end-1}) '/mri/Template' postfix '_6.nii']);
     make_VBM_explicit_mask(group2_mrilist, path_to_template_6, 'control')
 end
 

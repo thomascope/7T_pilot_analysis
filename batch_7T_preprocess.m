@@ -453,7 +453,7 @@ for this_smooth = [3,8];
         'con_0030.nii','Clear > Unclear';
         'con_0035.nii','Unclear > Clear';
         'con_0045.nii','Clarity Congruency Interaction Positive'
-        'con_0050.nii','Clarity Congruency Interaction Negative'}; 
+        'con_0050.nii','Clarity Congruency Interaction Negative'};
     expected_sessions = 4;
     
     visual_check = 0;
@@ -496,8 +496,8 @@ for this_smooth = [3,8];
                 this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep new_contrast_name]);
                 this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(new_contrast_name,'con','spmT')]);
             else
-            this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep all_conditions{this_condition,1}]);
-            this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(all_conditions{this_condition,1},'con','spmT')]);
+                this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep all_conditions{this_condition,1}]);
+                this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep strrep(all_conditions{this_condition,1},'con','spmT')]);
             end
             if group(crun) == 1 % Controls
                 group2_mrilist(end+1) = this_scan(crun);
@@ -537,14 +537,14 @@ end
 % jobfile{3} = {[scriptdir 'module_univariate_3runs_complex_job.m']};
 % jobfile{4} = {[scriptdir 'module_univariate_4runs_complex_job.m']};
 % inputs = cell(0, nrun);
-% 
+%
 % for crun = 1:nrun
 %     theseepis = find(strncmp(blocksout{crun},'Run',3));
 %     outpath = [preprocessedpathstem subjects{crun} '/'];
 %     filestoanalyse = cell(1,length(theseepis));
-%     
+%
 %     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-%     
+%
 %     inputs{1, crun} = cellstr([outpath 'stats5_multi_3']);
 %     for sess = 1:length(theseepis)
 %         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Native space image is s3r, standard space is s3w
@@ -573,10 +573,10 @@ end
 %             end
 %         end
 %     end
-%     
+%
 %     jobs{crun} = jobfile{length(theseepis)};
 % end
-% 
+%
 % SPMworkedcorrectly = zeros(1,nrun);
 % parfor crun = 1:nrun
 %     spm('defaults', 'fMRI');
@@ -586,7 +586,7 @@ end
 %     elseif exist([inputs{1,crun}{1} '/SPM.mat']) && SPMworkedcorrectly(crun)
 %         continue
 %     end
-%     
+%
 %     try
 %         spm_jobman('run', jobs{crun}, inputs{:,crun});
 %         SPMworkedcorrectly(crun) = 1;
@@ -594,21 +594,21 @@ end
 %         SPMworkedcorrectly(crun) = 0;
 %     end
 % end
-% 
+%
 % % Now repeat without the absent sound
 % nrun = size(subjects,2); % enter the number of runs here
 % jobfile = {};
 % jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_job.m']};
 % jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_job.m']};
 % inputs = cell(0, nrun);
-% 
+%
 % for crun = 1:nrun
 %     theseepis = find(strncmp(blocksout{crun},'Run',3));
 %     outpath = [preprocessedpathstem subjects{crun} '/'];
 %     filestoanalyse = cell(1,length(theseepis));
-%     
+%
 %     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-%     
+%
 %     inputs{1, crun} = cellstr([outpath 'stats5_multi_3_noabsent']);
 %     for sess = 1:length(theseepis)
 %         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
@@ -629,7 +629,7 @@ end
 %         jobs{crun} = jobfile{length(theseepis)};
 %     end
 % end
-% 
+%
 % SPMworkedcorrectly = zeros(1,nrun);
 % parfor crun = 1:nrun
 %     spm('defaults', 'fMRI');
@@ -639,7 +639,7 @@ end
 %     elseif exist([inputs{1,crun}{1} '/SPM.mat']) && SPMworkedcorrectly(crun)
 %         continue
 %     end
-%     
+%
 %     try
 %         spm_jobman('run', jobs{crun}, inputs{:,crun});
 %         SPMworkedcorrectly(crun) = 1;
@@ -647,17 +647,17 @@ end
 %         SPMworkedcorrectly(crun) = 0;
 %     end
 % end
-% 
+%
 % %
 % % %Now repeat with 8mm smoothing
-% % 
+% %
 % % for crun = 1:nrun
 % %     theseepis = find(strncmp(blocksout{crun},'Run',3));
 % %     outpath = [preprocessedpathstem subjects{crun} '/'];
 % %     filestoanalyse = cell(1,length(theseepis));
-% %     
+% %
 % %     tempDesign = module_get_complex_event_times_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
-% %     
+% %
 % %     inputs{1, crun} = cellstr([outpath 'stats5_multi_8']);
 % %     for sess = 1:length(theseepis)
 % %         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
@@ -681,7 +681,7 @@ end
 % %         inputs{find(cellfun(@isempty,inputs(:,crun))),crun} = tr*(length(filestoanalyse{sess})-1);
 % %     end
 % % end
-% % 
+% %
 % % SPMworkedcorrectly = zeros(1,nrun);
 % % parfor crun = 1:nrun
 % %     spm('defaults', 'fMRI');
@@ -693,7 +693,7 @@ end
 % %         SPMworkedcorrectly(crun) = 0;
 % %     end
 % % end
-% 
+%
 % % %% Now create a more complex SPM with variable levels of AR whitening, with word omissions specified
 % %
 % % jobfile = {};
@@ -769,7 +769,7 @@ end
 % %         SPMworkedcorrectly(thisone) = 0;
 % %     end
 % % end
- 
+
 %% Now create a ReML SPM without modelling the written word separately for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {};
@@ -927,7 +927,7 @@ end
 %% Now run the cross validated Mahalanobis distance and RSM on each subject on the whole brain downsampled at 2 (quick)
 nrun = size(subjects,2); % enter the number of runs here
 mahalanobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
@@ -980,7 +980,7 @@ end
 %% Do an RSA analysis separately if you want (already integrated into previous step for vowels, but now can compare new models etc without repeating the time consuming cross-nobis)
 nrun = size(subjects,2); % enter the number of runs here
 RSAnobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
@@ -995,7 +995,7 @@ end
 %% Do a partial-correlation based RSA analysis to tease apart the written and spoken word representations
 nrun = size(subjects,2); % enter the number of runs here
 partialRSAnobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
@@ -1010,7 +1010,7 @@ end
 %% Now normalise the native space RSA maps into template space with CAT12 deformation fields calculated earlier
 nrun = size(subjects,2); % enter the number of runs here
 native2templateworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
@@ -1026,45 +1026,46 @@ end
 %% Now do a second level analysis on the searchlights
 crun = 1;
 age_lookup = readtable('Pinfa_ages.csv');
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 rmpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI') %Stops SPM getting defaults for second level if on path
 
 GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Template, first subject
 outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
 
 searchlightsecondlevel = [];
-searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
+%searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
+searchlightsecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 
-%% Now do a correlation analysis with the Bayesian perceptual model parameters against selected models
-model_run_date = '13-May-2021';
-try
-    load(['./modelparameters/modelparameters_' model_run_date '.mat'])
-catch
-    [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
-    save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
-end
-
-downsamp_ratio = 1;
-age_lookup = readtable('Pinfa_ages.csv');
-
-Basefilepath = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2/TDTcrossnobis/spearman/weffect-map_']; %Template, first subject
-outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'correlations' filesep 'prediction_precision' filesep]; %Results directory
-
-condition_names = {
-  'M to MM Shared Segments:  Cross Negative partialling '
-  'Match Clear to Mismatch Unclear only cross.nii'
-};
-
-covariatesecondlevelworkedcorrectly = zeros(1,size(condition_names,1));
-for crun = 1:length(condition_names)
-    thisfilepath = [Basefilepath condition_names{crun} '.nii'];
-    thisoutpath = [outpath condition_names{crun}];
-    covariatesecondlevelworkedcorrectly(crun) = module_multivariate_correlation(nanmean(all_sigma_pred),thisfilepath,subjects,age_lookup,thisoutpath);
-    % cd(deblank(thisoutpath))
-    % pause % If you want to view the outputs.
-end
-
-XXX WIP
+% %% Now do a correlation analysis with the Bayesian perceptual model parameters against selected models
+% model_run_date = '13-May-2021';
+% try
+%     load(['./modelparameters/modelparameters_' model_run_date '.mat'])
+% catch
+%     [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
+%     save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
+% end
+%
+% downsamp_ratio = 1;
+% age_lookup = readtable('Pinfa_ages.csv');
+%
+% Basefilepath = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2/TDTcrossnobis/spearman/weffect-map_']; %Template, first subject
+% outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'correlations' filesep 'prediction_precision' filesep]; %Results directory
+%
+% condition_names = {
+%   'M to MM Shared Segments:  Cross Negative partialling '
+%   'Match Clear to Mismatch Unclear only cross.nii'
+% };
+%
+% covariatesecondlevelworkedcorrectly = zeros(1,size(condition_names,1));
+% for crun = 1:length(condition_names)
+%     thisfilepath = [Basefilepath condition_names{crun} '.nii'];
+%     thisoutpath = [outpath condition_names{crun}];
+%     covariatesecondlevelworkedcorrectly(crun) = module_multivariate_correlation(nanmean(all_sigma_pred),thisfilepath,subjects,age_lookup,thisoutpath);
+%     % cd(deblank(thisoutpath))
+%     % pause % If you want to view the outputs.
+% end
+%
+% XXX WIP
 
 %% Now normalise the template space masks into native space
 
@@ -1073,19 +1074,19 @@ images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_ana
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Written_Cluster.nii' %Cross-decoding Match unclear to Mismatch unclear
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_IFG_cross_group_cluster.nii' %M to MM Shared Segments:  Cross Negative partialling
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Temporal_Univariate_MM>M.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PostSTG_Univariate_Interaction.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction1.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction2.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction3.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction1.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction2.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction_combined.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_SSMatchnoself_combined.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Temporal_Univariate_MM>M.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PostSTG_Univariate_Interaction.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction1.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction2.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction3.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction1.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction2.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_Angular_Univariate_Interaction_combined.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_SSMatchnoself_combined.nii'
     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments.nii'
     };
 
@@ -1100,18 +1101,18 @@ images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_ana
 % xA=spm_atlas('load','Neuromorphometrics');
 
 search_labels = {
-%     'Left Superior Temporal Gyrus'
-%     'Left Angular Gyrus'
-%     'Left Precentral Gyrus'
-%     'Left Frontal Operculum'
-%     'Left Inferior Frontal Angular Gyrus'
-%     'Right Superior Temporal Gyrus'
-%     'Right Angular Gyrus'
-%     'Right Precentral Gyrus'
-%     'Right Frontal Operculum'
-%     'Right Inferior Frontal Angular Gyrus'
-%     'Left Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
-%     'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+    %     'Left Superior Temporal Gyrus'
+    %     'Left Angular Gyrus'
+    %     'Left Precentral Gyrus'
+    %     'Left Frontal Operculum'
+    %     'Left Inferior Frontal Angular Gyrus'
+    %     'Right Superior Temporal Gyrus'
+    %     'Right Angular Gyrus'
+    %     'Right Precentral Gyrus'
+    %     'Right Frontal Operculum'
+    %     'Right Inferior Frontal Angular Gyrus'
+    %     'Left Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
+    %     'Right Cerebellar Lobule Cerebellar Vermal Lobules VI-VII'
     };
 
 % cat_install_atlases
@@ -1163,34 +1164,34 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 
 masks = {
     'rwLeft_PrG_All_Shared_Segments'
-%'rwLeft_PrG_SSMatchnoself_combined'
-%     'rwLeft_STG_Univariate8mm_15>3'
-%     'rwLeft_STG_Univariate3mm_15>3'
-%     'rwLeft_Precentral_Univariate_Interaction_combined'
-%     'rwLeft_Angular_Univariate_Interaction_combined'
-%         'rwLeft_PostSTG_Univariate_Interaction'
-%     'rwLeft_Precentral_Univariate_Interaction1'
-%     'rwLeft_Precentral_Univariate_Interaction2'
-%     'rwLeft_Precentral_Univariate_Interaction3'
-%     'rwLeft_Angular_Univariate_Interaction1'
-%     'rwLeft_Angular_Univariate_Interaction2'
-%     'rwLeft_Frontal_Univariate_MM>M'
-%     'rwLeft_Temporal_Univariate_MM>M'
-%     'rwLeft_IFG_cross_group_cluster'
-%     'rwBlank_2016_inflated'
-%     'rwL_STG_cross-segment_cluster'
-%     'rwLeft_Superior_Temporal_Gyrus'
-%     'rwLeft_Angular_Gyrus'
-%     'rwLeft_Precentral_Gyrus'
-%     'rwLeft_Frontal_Operculum'
-%     'rwLeft_Inferior_Frontal_Angular_Gyrus'
-%     'rwRight_Superior_Temporal_Gyrus'
-%     'rwRight_Angular_Gyrus'
-%     'rwRight_Precentral_Gyrus'
-%     'rwRight_Frontal_Operculum'
-%     'rwRight_Inferior_Frontal_Angular_Gyrus'
-%     'rwLeft_IFG_Written_Cluster'
-%     'rwLeft_Precentral_Written_Cluster'
+    %'rwLeft_PrG_SSMatchnoself_combined'
+    %     'rwLeft_STG_Univariate8mm_15>3'
+    %     'rwLeft_STG_Univariate3mm_15>3'
+    %     'rwLeft_Precentral_Univariate_Interaction_combined'
+    %     'rwLeft_Angular_Univariate_Interaction_combined'
+    %         'rwLeft_PostSTG_Univariate_Interaction'
+    %     'rwLeft_Precentral_Univariate_Interaction1'
+    %     'rwLeft_Precentral_Univariate_Interaction2'
+    %     'rwLeft_Precentral_Univariate_Interaction3'
+    %     'rwLeft_Angular_Univariate_Interaction1'
+    %     'rwLeft_Angular_Univariate_Interaction2'
+    %     'rwLeft_Frontal_Univariate_MM>M'
+    %     'rwLeft_Temporal_Univariate_MM>M'
+    %     'rwLeft_IFG_cross_group_cluster'
+    %     'rwBlank_2016_inflated'
+    %     'rwL_STG_cross-segment_cluster'
+    %     'rwLeft_Superior_Temporal_Gyrus'
+    %     'rwLeft_Angular_Gyrus'
+    %     'rwLeft_Precentral_Gyrus'
+    %     'rwLeft_Frontal_Operculum'
+    %     'rwLeft_Inferior_Frontal_Angular_Gyrus'
+    %     'rwRight_Superior_Temporal_Gyrus'
+    %     'rwRight_Angular_Gyrus'
+    %     'rwRight_Precentral_Gyrus'
+    %     'rwRight_Frontal_Operculum'
+    %     'rwRight_Inferior_Frontal_Angular_Gyrus'
+    %     'rwLeft_IFG_Written_Cluster'
+    %     'rwLeft_Precentral_Written_Cluster'
     };
 
 GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
@@ -1202,7 +1203,7 @@ for i = 1:length(temp.SPM.Sess(1).U)
     else
         labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
     end
-end        
+end
 labelnames_denumbered = {};
 for i = 1:length(labelnames)
     labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
@@ -1229,35 +1230,35 @@ nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
 partialRSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
-'rwLeft_PrG_All_Shared_Segments'
-%     'rwLeft_PrG_SSMatchnoself_combined'
-%     'rwLeft_STG_Univariate8mm_15>3'
-%     'rwLeft_STG_Univariate3mm_15>3'
+    'rwLeft_PrG_All_Shared_Segments'
+    %     'rwLeft_PrG_SSMatchnoself_combined'
+    %     'rwLeft_STG_Univariate8mm_15>3'
+    %     'rwLeft_STG_Univariate3mm_15>3'
     %     'rwLeft_Precentral_Univariate_Interaction_combined'
     %     'rwLeft_Angular_Univariate_Interaction_combined'
     %     'rwLeft_PostSTG_Univariate_Interaction'
     %     'rwLeft_Precentral_Univariate_Interaction1'
     %     'rwLeft_Precentral_Univariate_Interaction2'
     %     'rwLeft_Precentral_Univariate_Interaction3'
-%     'rwLeft_Angular_Univariate_Interaction1'
-%     'rwLeft_Angular_Univariate_Interaction2'
-%     'rwLeft_Frontal_Univariate_MM>M'
-%     'rwLeft_Temporal_Univariate_MM>M'
-%     'rwLeft_IFG_cross_group_cluster'
-%     'rwBlank_2016_inflated'
-%     'rwL_STG_cross-segment_cluster'
-%     'rwLeft_Superior_Temporal_Gyrus'
-%     'rwLeft_Angular_Gyrus'
-%     'rwLeft_Precentral_Gyrus'
-%     'rwLeft_Frontal_Operculum'
-%     'rwLeft_Inferior_Frontal_Angular_Gyrus'
-%     'rwRight_Superior_Temporal_Gyrus'
-%     'rwRight_Angular_Gyrus'
-%     'rwRight_Precentral_Gyrus'
-%     'rwRight_Frontal_Operculum'
-%     'rwRight_Inferior_Frontal_Angular_Gyrus'
-%     'rwLeft_IFG_Written_Cluster'
-%     'rwLeft_Precentral_Written_Cluster'
+    %     'rwLeft_Angular_Univariate_Interaction1'
+    %     'rwLeft_Angular_Univariate_Interaction2'
+    %     'rwLeft_Frontal_Univariate_MM>M'
+    %     'rwLeft_Temporal_Univariate_MM>M'
+    %     'rwLeft_IFG_cross_group_cluster'
+    %     'rwBlank_2016_inflated'
+    %     'rwL_STG_cross-segment_cluster'
+    %     'rwLeft_Superior_Temporal_Gyrus'
+    %     'rwLeft_Angular_Gyrus'
+    %     'rwLeft_Precentral_Gyrus'
+    %     'rwLeft_Frontal_Operculum'
+    %     'rwLeft_Inferior_Frontal_Angular_Gyrus'
+    %     'rwRight_Superior_Temporal_Gyrus'
+    %     'rwRight_Angular_Gyrus'
+    %     'rwRight_Precentral_Gyrus'
+    %     'rwRight_Frontal_Operculum'
+    %     'rwRight_Inferior_Frontal_Angular_Gyrus'
+    %     'rwLeft_IFG_Written_Cluster'
+    %     'rwLeft_Precentral_Written_Cluster'
     };
 
 parfor crun = 1:nrun
@@ -1292,24 +1293,41 @@ for i = 1:length(temp.SPM.Sess(1).U)
     else
         labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
     end
-end        
+end
 labelnames_denumbered = {};
 for i = 1:length(labelnames)
     labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
 end
 conditionnames = unique(labelnames_denumbered,'stable');
 
+% Add covariates of interest
+model_run_date = '13-May-2021';
+try
+    load(['./modelparameters/modelparameters_' model_run_date '.mat'])
+catch
+    [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
+    save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
+end
+this_age = [];
+age_lookup = readtable('Pinfa_ages.csv');
+
+for crun = 1:length(subjects)
+    this_age(crun) = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
+end
+covariates = [this_age',nanmean(all_sigma_pred)'];
+
+%Now build model space for testing
 clear this_model_name mask_names
 this_model_name{1} = {
-%     'Match Unclear vowels'
-%     'Match Clear vowels'
-%     'Mismatch Unclear vowels'
-%     'Mismatch Clear vowels'
+    %     'Match Unclear vowels'
+    %     'Match Clear vowels'
+    %     'Mismatch Unclear vowels'
+    %     'Mismatch Clear vowels'
     'Match Unclear shared_segments'
     'Match Clear shared_segments'
     'Mismatch Unclear shared_segments'
     'Mismatch Clear shared_segments'
-%     'Written vowels'
+    %     'Written vowels'
     'Written shared_segments'
     };
 
@@ -1326,10 +1344,18 @@ this_model_name{2} = {
     'Match Clear to Mismatch Clear Cross-decode_Match'
     'Match Clear to Mismatch Clear SS_Match'
     'Match Clear to Mismatch Clear SS_Match - no self'
-    'Match Unclear to Written Cross-decode_Match'
-    'Match Clear to Written Cross-decode_Match'
-    'Mismatch Unclear to Written Cross-decode_Match'
-    'Mismatch Clear to Written Cross-decode_Match'
+%     'Match Unclear to Written Cross-decode_Match'
+%     'Match Clear to Written Cross-decode_Match'
+%     'Mismatch Unclear to Written Cross-decode_Match'
+%     'Mismatch Clear to Written Cross-decode_Match'
+    'Match Unclear to Written SS_Match'
+    'Match Clear to Written SS_Match'
+    'Mismatch Unclear to Written SS_Match'
+    'Mismatch Clear to Written SS_Match'
+%     'Match Unclear to Written SS_Match - no self'
+%     'Match Clear to Written SS_Match - no self'
+%     'Mismatch Unclear to Written SS_Match - no self'
+%     'Mismatch Clear to Written SS_Match - no self'
     };
 
 this_model_name{3} = {'All spoken Cross-decode_Match'
@@ -1381,7 +1407,7 @@ nrun = size(subjects,2); % enter the number of runs here
 RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 mask_names{1} = {
-         'rwLeft_IFG_cross_group_cluster'
+    'rwLeft_IFG_cross_group_cluster'
     %     'rwLeft_Superior_Temporal_Gyrus';
     'rwL_STG_cross-segment_cluster'
     %     'rwBlank_2016_inflated'
@@ -1413,7 +1439,8 @@ mask_names{1} = {
 %     'rwRight_Frontal_Operculum'
 %     'rwRight_Inferior_Frontal_Angular_Gyrus'
 %     };
-
+all_rho = [];
+all_corr_ps = [];
 for j = 1:length(this_model_name)
     for k = 1:length(mask_names)
         for i = 1:length(mask_names{k})
@@ -1442,6 +1469,14 @@ for j = 1:length(this_model_name)
             disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
             all_data(:,:,RSA_ROI_data_exist==0) = NaN;
             
+            %Test covariates
+            for m = 1:length(this_model_name{j})
+                [all_rho(j,k,i,m,:),all_corr_ps(j,k,i,m,:)] = corr(covariates,squeeze(all_data(m,this_ROI,:)),'rows','pairwise');
+                if all_corr_ps(j,k,i,m,2) < 0.05
+                    disp(['Exploratory correlation in ' mask_names{k}{i}(3:end) ' ' this_model_name{j}{m}])
+                end
+            end
+            
             %this_ROI = find(strcmp('rwLeft_Superior_Temporal_Gyrus',roi_names));
             this_ROI = find(strcmp(mask_names{k}{i},roi_names));
             figure
@@ -1468,7 +1503,13 @@ for j = 1:length(this_model_name)
             if sum(h)~=0
                 plot(find(h),these_y_lims(2)-diff(these_y_lims/20),'kx')
             end
+            for m = 1:length(this_model_name{j})
+                if all_corr_ps(j,k,i,m,2) < 0.05 && ~all_corr_ps(j,k,i,m,2)==0
+                    plot(find(all_corr_ps(j,k,i,:,2)<0.05&~all_corr_ps(j,k,i,:,2)==0), these_y_lims(2),'k<')
+                end
+            end
             drawnow
+           
         end
     end
 end
@@ -1484,7 +1525,7 @@ for i = 1:length(temp.SPM.Sess(1).U)
     else
         labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
     end
-end        
+end
 labelnames_denumbered = {};
 for i = 1:length(labelnames)
     labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
@@ -1543,8 +1584,8 @@ plot_behavioural_data(subjects, dates, group, graph_individuals) % Requires matl
 % %% In progress - extract the neural RDM from a given mask
 % nrun = size(subjects,2); % enter the number of runs here
 % avneuralRDM_clusterworkedcorrectly = zeros(1,nrun);
-% downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed). 
-% 
+% downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+%
 % extraction_masks = {'rwL_STG_cross-segment_cluster.nii'};
 % parfor crun = 1:nrun
 %     addpath(genpath('./RSA_scripts'))
@@ -1567,13 +1608,13 @@ plot_behavioural_data(subjects, dates, group, graph_individuals) % Requires matl
 
 this_smooth = 8;
 all_conditions = {
-        'con_0010.nii','Mismatch > Match';
-        'con_0015.nii','Normal > Written';
-        'con_0020.nii','Written > Normal';
-        'con_0030.nii','Clear > Unclear';
-        'con_0035.nii','Unclear > Clear';
-        'con_0040.nii','Clarity Congruency Interaction'
-        };
+    'con_0010.nii','Mismatch > Match';
+    'con_0015.nii','Normal > Written';
+    'con_0020.nii','Written > Normal';
+    'con_0030.nii','Clear > Unclear';
+    'con_0035.nii','Unclear > Clear';
+    'con_0040.nii','Clarity Congruency Interaction'
+    };
 explore_univariate_contrast(subjects,preprocessedpathstem,this_smooth,all_conditions)
 
 %% Now run the freesurfer (Must be done after traditional segmentation for masking)

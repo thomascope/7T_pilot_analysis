@@ -1,5 +1,9 @@
-function module_nativemap_2_template(GLMDir,downsamp_ratio,StrDir)
+function module_nativemap_2_template(GLMDir,downsamp_ratio,StrDir,runagain)
 % Normalise effect-maps to MNI template
+
+if ~exist('runagain','var')
+    runagain = 0;
+end
 
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
@@ -14,12 +18,14 @@ versionCurrent = 'spearman';
     % Gather images for current subject
 if downsamp_ratio == 1
     images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^effect-map_.*.nii'));
-    images_done = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^weffect-map_.*.nii'));
+    images_done = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis/' versionCurrent '/'], '^whireseffect-map_.*.nii'));
 else
     images = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis_downsamp_' num2str(downsamp_ratio) '/' versionCurrent '/'], '^effect-map_.*.nii'));
-    images_done = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis_downsamp_' num2str(downsamp_ratio) '/' versionCurrent '/'], '^weffect-map_.*.nii'));
+    images_done = cellstr(spm_select('FPList', [GLMDir '/TDTcrossnobis_downsamp_' num2str(downsamp_ratio) '/' versionCurrent '/'], '^whireseffect-map_.*.nii'));
 end
-images = setdiff(images,strrep(images_done,'weffect-map','effect-map'));
+if ~runagain
+images = setdiff(images,strrep(images_done,'whireseffect-map','effect-map'));
+end
 
 % Write out masks
 images_mask = {};
@@ -29,7 +35,7 @@ for i=1:length(images)
     Y(~isnan(Y)) = 1;
     Y(isnan(Y)) = 0;
     images_mask{i,1} = strrep(images{i},'effect-map','nativeSpaceMask');
-    saveMRImage(Y,images_mask{i,1},V.mat);
+%     saveMRImage(Y,images_mask{i,1},V.mat);
 end
 
 % Normalize
@@ -37,12 +43,18 @@ matlabbatch{1}.spm.spatial.normalise.write.subj.resample = [images; images_mask]
 matlabbatch{1}.spm.spatial.normalise.write.subj.def =  cellstr([StrDir 'mri/y_structural_csf.nii']);
 
 if downsamp_ratio == 1
-save(fullfile(GLMDir,'TDTcrossnobis',versionCurrent,'NormalizeTDTcrossnobis.mat'), 'matlabbatch');
+    save(fullfile(GLMDir,'TDTcrossnobis',versionCurrent,'NormalizeTDTcrossnobis.mat'), 'matlabbatch');
 else
     save(fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)],versionCurrent,'NormalizeTDTcrossnobis.mat'), 'matlabbatch');
 end
+% spm_jobman('initcfg')
+% spm_jobman('run', matlabbatch);
+
+matlabbatch{1}.spm.spatial.normalise.write.woptions.prefix = 'whires';
+matlabbatch{1}.spm.spatial.normalise.write.woptions.vox = [1 1 1];
 spm_jobman('initcfg')
 spm_jobman('run', matlabbatch);
+
 
 clear images images_mask
 

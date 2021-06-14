@@ -175,13 +175,13 @@ end
 	end
 	
 	if ~isempty(bw_title)
-		title(bw_title, 'fontsize',14);
+		title(bw_title, 'fontsize',14,'Interpreter','none');
 	end
 	if ~isempty(bw_xlabel)
-		xlabel(bw_xlabel, 'fontsize',14);
+		xlabel(bw_xlabel, 'fontsize',14,'Interpreter','none');
 	end
 	if ~isempty(bw_ylabel)
-		ylabel(bw_ylabel, 'fontsize',14);
+		ylabel(bw_ylabel, 'fontsize',14,'Interpreter','none');
 	end
 	
 	set(gca, 'xticklabel', groupnames, 'box', 'off', 'ticklength', [0 0], 'fontsize', 12, 'xtick',1:numgroups, 'linewidth', 2,'xgrid','off','ygrid','off');
