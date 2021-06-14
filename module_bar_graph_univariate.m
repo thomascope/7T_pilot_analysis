@@ -1,7 +1,9 @@
 addpath ./plotting
 masknames = {
     %     'Left_Precentral_Univariate_Interaction_combined';
-    'Left_STG_Univariate3mm_15>3'
+    %   'Left_STG_Univariate3mm_15>3'
+    %'Left_Frontal_Univariate_MM>M'
+    'Left_Temporal_Univariate_MM>M'
     };
 secondlevelnames = {
     'Clarity Congruency Interaction Positive';
@@ -42,9 +44,13 @@ for this_mask = 1:length(masknames)
                 end
             end
             all_subj_weighted_activations(crun,:) = mean(normr(squeeze(all_data(crun,1:num_sess,:))));
+            all_subj_unweighted_activations(crun,:) = mean(squeeze(all_data(crun,1:num_sess,:)));
         end
         
         figure
-        barweb([mean(all_subj_weighted_activations(group==1,:));mean(all_subj_weighted_activations(group==2,:))],[std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted normalised betas in ' maskname{this_mask}],[],'Weighted beta value',[],[],{'Match 3';'Match 15';'MisMatch 3';'MisMatch 15'}) ;
+        barweb([mean(all_subj_weighted_activations(group==1,:));mean(all_subj_weighted_activations(group==2,:))],[std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted normalised betas in ' masknames{this_mask}],[],'Weighted beta value',[],[],{'Match 3';'Match 15';'MisMatch 3';'MisMatch 15'}) ;
+        figure
+        barweb([mean(all_subj_unweighted_activations(group==1,:));mean(all_subj_unweighted_activations(group==2,:))],[std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted betas in ' masknames{this_mask}],[],'Unweighted beta value',[],[],{'Match 3';'Match 15';'MisMatch 3';'MisMatch 15'}) ;
+        
     end
 end
