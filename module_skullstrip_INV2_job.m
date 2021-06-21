@@ -4,11 +4,11 @@
 % cfg_basicio BasicIO - Unknown
 %-----------------------------------------------------------------------
 matlabbatch{1}.spm.spatial.preproc.channel(1).vols = '<UNDEFINED>';
-matlabbatch{1}.spm.spatial.preproc.channel(1).biasreg = 0.0001;
+matlabbatch{1}.spm.spatial.preproc.channel(1).biasreg = 0.00001;
 matlabbatch{1}.spm.spatial.preproc.channel(1).biasfwhm = 30;
 matlabbatch{1}.spm.spatial.preproc.channel(1).write = [0 0];
 matlabbatch{1}.spm.spatial.preproc.channel(2).vols = '<UNDEFINED>';
-matlabbatch{1}.spm.spatial.preproc.channel(2).biasreg = 0.0001;
+matlabbatch{1}.spm.spatial.preproc.channel(2).biasreg = 0.00001;
 matlabbatch{1}.spm.spatial.preproc.channel(2).biasfwhm = 30;
 matlabbatch{1}.spm.spatial.preproc.channel(2).write = [0 0];
 matlabbatch{1}.spm.spatial.preproc.tissue(1).tpm = {'/imaging/local/software/spm_cbu_svn/releases/spm12_latest/tpm/TPM.nii,1'};

@@ -115,9 +115,11 @@ for i = 1:length(mask_names)
     
     basemodels.shared_segments = 1-basemodels.shared_segments;
     
+    basemodels.shared_segments_mismatch = circshift(basemodels.shared_segments,[8 8]); %Consistent relationship for mismatch - 8 items later
+       
     basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); %I think this is correct, but need to 100% check the off-diagonals
     
-    basemodelNames = {'vowels','shared_segments','shared_segments_cross'};
+    basemodelNames = {'vowels','shared_segments','shared_segments_mismatch'};
     
     load(fullfile(cfg.results.dir,'res_other_average.mat'));
     data = results.other_average.output;
@@ -270,6 +272,18 @@ for i = 1:length(mask_names)
     end
     basemodels.shared_segments(1:17:end) = 0;
     
+    for j = 1:length(basemodelNames)
+        for i = 1:length(modelNames)
+            models{end+1}{1} = modeltemplate;
+            this_model_name{end+1}{1} = [modelNames{i} ' ' basemodelNames{j}];
+            models{end}{1}(strcmp(modelNames{i},labelnames_denumbered),strcmp(modelNames{i},labelnames_denumbered))=basemodels.(basemodelNames{j});
+            
+            models{end}{2} = modeltemplate;
+            this_basemodelnumber = mod(j,length(basemodelNames))+1;
+            this_model_name{end}{2} = [modelNames{i} ' ' basemodelNames{this_basemodelnumber}];
+            models{end}{2}(strcmp(modelNames{i},labelnames_denumbered),strcmp(modelNames{i},labelnames_denumbered))=basemodels.(basemodelNames{this_basemodelnumber});
+        end
+    end
     
     %
     %
@@ -536,15 +550,15 @@ for i = 1:length(mask_names)
     % %modelNames = {'ProbM' 'ProbMM' 'EntropyM' 'EntropyMM'};
 
     % % Optional - to visualise a model
-    % b = imagesc(models{end}{1},[0 1]);
-    % set(b,'AlphaData',~isnan(models{end}{1}))
-    % title(this_model_name{end}{1},'Interpreter','none')
-    % colorbar
-    % pause
-    % b = imagesc(models{end}{2},[0 1]);
-    % set(b,'AlphaData',~isnan(models{end}{2}))
-    % title(this_model_name{end}{2},'Interpreter','none')
-    % colorbar
+    b = imagesc(models{end}{1},[0 1]);
+    set(b,'AlphaData',~isnan(models{end}{1}))
+    title(this_model_name{end}{1},'Interpreter','none')
+    colorbar
+    pause
+    b = imagesc(models{end}{2},[0 1]);
+    set(b,'AlphaData',~isnan(models{end}{2}))
+    title(this_model_name{end}{2},'Interpreter','none')
+    colorbar
     
     
     roi_names = results.roi_names;

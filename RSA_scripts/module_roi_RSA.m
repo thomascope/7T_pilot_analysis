@@ -118,7 +118,9 @@ for i = 1:length(mask_names)
     
     basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); %I think this is correct, but need to 100% check the off-diagonals
     
-    basemodelNames = {'vowels','shared_segments'};
+    basemodels.shared_segments_both = (basemodels.shared_segments_mismatch + basemodels.shared_segments)/2;
+    
+    basemodelNames = {'vowels','shared_segments','shared_segments_mismatch','shared_segments_both'};
     
     load(fullfile(cfg.results.dir,'res_other_average.mat'));
     data = results.other_average.output;

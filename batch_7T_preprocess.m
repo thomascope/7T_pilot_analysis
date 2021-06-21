@@ -927,7 +927,7 @@ end
 %% Now run the cross validated Mahalanobis distance and RSM on each subject on the whole brain downsampled at 2 (quick)
 nrun = size(subjects,2); % enter the number of runs here
 mahalanobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
@@ -980,7 +980,7 @@ end
 %% Do an RSA analysis separately if you want (already integrated into previous step for vowels, but now can compare new models etc without repeating the time consuming cross-nobis)
 nrun = size(subjects,2); % enter the number of runs here
 RSAnobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
@@ -995,7 +995,7 @@ end
 %% Do a partial-correlation based RSA analysis to tease apart the written and spoken word representations
 nrun = size(subjects,2); % enter the number of runs here
 partialRSAnobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
@@ -1010,7 +1010,7 @@ end
 %% Now normalise the native space RSA maps into template space with CAT12 deformation fields calculated earlier
 nrun = size(subjects,2); % enter the number of runs here
 native2templateworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
@@ -1026,7 +1026,7 @@ end
 %% Now do a second level analysis on the searchlights
 crun = 1;
 age_lookup = readtable('Pinfa_ages.csv');
-downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 rmpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI') %Stops SPM getting defaults for second level if on path
 
 GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Template, first subject
@@ -1231,34 +1231,34 @@ RSAroiworkedcorrectly = zeros(1,nrun);
 partialRSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
     'rwLeft_PrG_All_Shared_Segments'
-    %     'rwLeft_PrG_SSMatchnoself_combined'
-    %     'rwLeft_STG_Univariate8mm_15>3'
-    %     'rwLeft_STG_Univariate3mm_15>3'
-    %     'rwLeft_Precentral_Univariate_Interaction_combined'
-    %     'rwLeft_Angular_Univariate_Interaction_combined'
-    %     'rwLeft_PostSTG_Univariate_Interaction'
-    %     'rwLeft_Precentral_Univariate_Interaction1'
-    %     'rwLeft_Precentral_Univariate_Interaction2'
-    %     'rwLeft_Precentral_Univariate_Interaction3'
-    %     'rwLeft_Angular_Univariate_Interaction1'
-    %     'rwLeft_Angular_Univariate_Interaction2'
-    %     'rwLeft_Frontal_Univariate_MM>M'
-    %     'rwLeft_Temporal_Univariate_MM>M'
-    %     'rwLeft_IFG_cross_group_cluster'
-    %     'rwBlank_2016_inflated'
-    %     'rwL_STG_cross-segment_cluster'
-    %     'rwLeft_Superior_Temporal_Gyrus'
-    %     'rwLeft_Angular_Gyrus'
-    %     'rwLeft_Precentral_Gyrus'
-    %     'rwLeft_Frontal_Operculum'
-    %     'rwLeft_Inferior_Frontal_Angular_Gyrus'
-    %     'rwRight_Superior_Temporal_Gyrus'
-    %     'rwRight_Angular_Gyrus'
-    %     'rwRight_Precentral_Gyrus'
-    %     'rwRight_Frontal_Operculum'
-    %     'rwRight_Inferior_Frontal_Angular_Gyrus'
-    %     'rwLeft_IFG_Written_Cluster'
-    %     'rwLeft_Precentral_Written_Cluster'
+        'rwLeft_PrG_SSMatchnoself_combined'
+        'rwLeft_STG_Univariate8mm_15>3'
+        'rwLeft_STG_Univariate3mm_15>3'
+        'rwLeft_Precentral_Univariate_Interaction_combined'
+        'rwLeft_Angular_Univariate_Interaction_combined'
+        'rwLeft_PostSTG_Univariate_Interaction'
+        'rwLeft_Precentral_Univariate_Interaction1'
+        'rwLeft_Precentral_Univariate_Interaction2'
+        'rwLeft_Precentral_Univariate_Interaction3'
+        'rwLeft_Angular_Univariate_Interaction1'
+        'rwLeft_Angular_Univariate_Interaction2'
+        'rwLeft_Frontal_Univariate_MM>M'
+        'rwLeft_Temporal_Univariate_MM>M'
+        'rwLeft_IFG_cross_group_cluster'
+        'rwBlank_2016_inflated'
+        'rwL_STG_cross-segment_cluster'
+        'rwLeft_Superior_Temporal_Gyrus'
+        'rwLeft_Angular_Gyrus'
+        'rwLeft_Precentral_Gyrus'
+        'rwLeft_Frontal_Operculum'
+        'rwLeft_Inferior_Frontal_Angular_Gyrus'
+        'rwRight_Superior_Temporal_Gyrus'
+        'rwRight_Angular_Gyrus'
+        'rwRight_Precentral_Gyrus'
+        'rwRight_Frontal_Operculum'
+        'rwRight_Inferior_Frontal_Angular_Gyrus'
+        'rwLeft_IFG_Written_Cluster'
+        'rwLeft_Precentral_Written_Cluster'
     };
 
 parfor crun = 1:nrun
@@ -1319,17 +1319,48 @@ covariates = [this_age',nanmean(all_sigma_pred)'];
 %Now build model space for testing
 clear this_model_name mask_names
 this_model_name{1} = {
-    %     'Match Unclear vowels'
-    %     'Match Clear vowels'
-    %     'Mismatch Unclear vowels'
-    %     'Mismatch Clear vowels'
     'Match Unclear shared_segments'
+%     'Match Unclear shared_segments_mismatch'
+%     'Match Unclear shared_segments_both'
     'Match Clear shared_segments'
-    'Mismatch Unclear shared_segments'
-    'Mismatch Clear shared_segments'
+%     'Match Clear shared_segments_mismatch'
+%     'Match Clear shared_segments_both'
+%     'Mismatch Unclear shared_segments'
+    'Mismatch Unclear shared_segments_mismatch'
+%     'Mismatch Unclear shared_segments_both'
+%     'Mismatch Clear shared_segments'
+    'Mismatch Clear shared_segments_mismatch'
+%     'Mismatch Clear shared_segments_both'
     %     'Written vowels'
     'Written shared_segments'
     };
+
+% this_model_name{2} = {
+%     'Match Clear shared_segments: _mismatch partialling '
+%     'Match Clear: shared_segments_mismatch partialling vowels'
+%     'Match Clear shared_segments:  partialling _mismatch'
+%     'Match Clear: shared_segments partialling vowels'
+%     'Match Clear: vowels partialling shared_segments'
+%     'Match Clear: vowels partialling shared_segments_mismatch'
+%     'Match Unclear shared_segments: _mismatch partialling '
+%     'Match Unclear: shared_segments_mismatch partialling vowels'
+%     'Match Unclear shared_segments:  partialling _mismatch'
+%     'Match Unclear: shared_segments partialling vowels'
+%     'Match Unclear: vowels partialling shared_segments'
+%     'Match Unclear: vowels partialling shared_segments_mismatch'
+%     'Mismatch Clear shared_segments: _mismatch partialling '
+%     'Mismatch Clear: shared_segments_mismatch partialling vowels'
+%     'Mismatch Clear shared_segments:  partialling _mismatch'
+%     'Mismatch Clear: shared_segments partialling vowels'
+%     'Mismatch Clear: vowels partialling shared_segments'
+%     'Mismatch Clear: vowels partialling shared_segments_mismatch'
+%     'Mismatch Unclear shared_segments: _mismatch partialling '
+%     'Mismatch Unclear: shared_segments_mismatch partialling vowels'
+%     'Mismatch Unclear shared_segments:  partialling _mismatch'
+%     'Mismatch Unclear: shared_segments partialling vowels'
+%     'Mismatch Unclear: vowels partialling shared_segments'
+%     'Mismatch Unclear: vowels partialling shared_segments_mismatch'
+%     };
 
 this_model_name{2} = {
     'Match Unclear to Mismatch Unclear Cross-decode_Match'
@@ -1469,6 +1500,7 @@ for j = 1:length(this_model_name)
             disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
             all_data(:,:,RSA_ROI_data_exist==0) = NaN;
             
+            this_ROI = find(strcmp(mask_names{k}{i},roi_names));
             %Test covariates
             for m = 1:length(this_model_name{j})
                 [all_rho(j,k,i,m,:),all_corr_ps(j,k,i,m,:)] = corr(covariates,squeeze(all_data(m,this_ROI,:)),'rows','pairwise');
@@ -1478,7 +1510,7 @@ for j = 1:length(this_model_name)
             end
             
             %this_ROI = find(strcmp('rwLeft_Superior_Temporal_Gyrus',roi_names));
-            this_ROI = find(strcmp(mask_names{k}{i},roi_names));
+            
             figure
             set(gcf,'Position',[100 100 1600 800]);
             set(gcf, 'PaperPositionMode', 'auto');
@@ -1584,7 +1616,7 @@ plot_behavioural_data(subjects, dates, group, graph_individuals) % Requires matl
 % %% In progress - extract the neural RDM from a given mask
 % nrun = size(subjects,2); % enter the number of runs here
 % avneuralRDM_clusterworkedcorrectly = zeros(1,nrun);
-% downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+% downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 %
 % extraction_masks = {'rwL_STG_cross-segment_cluster.nii'};
 % parfor crun = 1:nrun
