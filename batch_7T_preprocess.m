@@ -335,6 +335,54 @@ end
 
 module_vbm_job(group1_mrilist, group1_ages, group2_mrilist, group2_ages, preprocessedpathstem, segmented)
 
+%% Now run the freesurfer (Must be done after traditional segmentation for masking)
+skullstripped = 2; %Use segmentation with imfill to mask the raw image - works best.
+if skullstripped == 1
+   this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/']; 
+elseif skullstripped == 0
+    this_subjects_dir = [preprocessedpathstem '/freesurfer/']; 
+elseif skullstripped == 2
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/']; 
+end
+setenv('SUBJECTS_DIR',this_subjects_dir);
+module_run_freesurfer;
+
+%% Now do stats on the freesurfer
+datafolder = [preprocessedpathstem '/freesurfer_masked/'];
+group_names = {'Control','nfvPPA'};
+age_lookup = readtable('Pinfa_ages.csv');
+studyname = 'PINFA';
+precached = 0;
+view_data = 0;
+smoothing_kernel = 15; %In mm
+module_make_FSGD(subjects, group, group_names, age_lookup, datafolder, studyname)
+module_run_FSGLM(datafolder, group_names, studyname, precached, view_data, smoothing_kernel)
+
+%% Now extract regions of interest from freesurfer
+Regions_of_interest = {
+    'lh_bankssts'
+    'lh_transversetemporal'
+    'lh_precentral'
+    'lh_parsopercularis'
+    'lh_parstriangularis'
+    };
+skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
+if skullstripped == 1
+   this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/']; 
+elseif skullstripped == 0
+    this_subjects_dir = [preprocessedpathstem '/freesurfer/']; 
+elseif skullstripped == 2
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/']; 
+end
+extract_run_date = '22-Jun-2021';
+try
+    load(['./freesurfer_stats/roi_thicknesses_' extract_run_date '.mat'])
+catch
+    setenv('SUBJECTS_DIR',this_subjects_dir);
+    all_roi_thicknesses = module_extract_freesurfer(Regions_of_interest,subjects,group);
+    save(['./freesurfer_stats/roi_thicknesses_' date '.mat'],'all_roi_thicknesses');
+end
+
 %% Now normalise write for visualisation and smooth at 3 and 8
 nrun = size(subjects,2); % enter the number of runs here
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
@@ -1649,17 +1697,4 @@ all_conditions = {
     };
 explore_univariate_contrast(subjects,preprocessedpathstem,this_smooth,all_conditions)
 
-%% Now run the freesurfer (Must be done after traditional segmentation for masking)
-skullstripped = 2; %Use segmentation with imfill to mask the raw image - works best.
-module_run_freesurfer;
 
-%% Now do stats on the freesurfer
-datafolder = [preprocessedpathstem '/freesurfer_masked/'];
-group_names = {'Control','nfvPPA'};
-age_lookup = readtable('Pinfa_ages.csv');
-studyname = 'PINFA';
-precached = 0;
-view_data = 0;
-smoothing_kernel = 15; %In mm
-module_make_FSGD(subjects, group, group_names, age_lookup, datafolder, studyname)
-module_run_FSGLM(datafolder, group_names, studyname, precached, view_data, smoothing_kernel)

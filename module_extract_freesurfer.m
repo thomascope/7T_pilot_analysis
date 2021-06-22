@@ -1,3 +1,5 @@
+function all_roi_thicknesses = module_extract_freesurfer(Regions_of_interest,subjects,group)
+
 all_subj_names = strcat(subjects{:},' ');
 all_subj_names = strrep(all_subj_names,'P7',' P7');
 cmd = ['aparcstats2table --subjects' all_subj_names ' --hemi lh --meas thickness --tablefile ./freesurfer_stats/all_subj_thicknesses'];
@@ -73,6 +75,8 @@ end
 set(gca,'XTick',1:j)
 set(gca,'XTickLabel',all_patient_thickness_table.Properties.VariableNames(all_is),'XTickLabelRotation',60,'TickLabelInterpreter','None')
 legend({'nfvPPA','Control'})
+
+all_roi_thicknesses = all_thicknessess(:,all_is);
 
 % 
 % patient_nobetween = es_removeBetween(all_patient_thickness_table{:,:});
