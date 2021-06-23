@@ -349,6 +349,52 @@ for i = 1:length(mask_names)
         models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
     end
     basemodels.shared_segments(1:17:end) = 0;
+    models{end+1} = modeltemplate;
+    this_model_name{end+1} = ['Spoken to Written Cross-decode_written'];
+    for i = 1:2
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
+    end
+    for i = 3:4
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = MisMatch_Cross_decode_base;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base';
+    end
+    models{end+1} = modeltemplate;
+    this_model_name{end+1} = ['Spoken to Written Cross-decode_written-lowpe'];
+    for i = 2
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
+    end
+    for i = 3
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = MisMatch_Cross_decode_base;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base';
+    end
+    models{end+1} = modeltemplate;
+    this_model_name{end+1} = ['Spoken to Written Cross-decode_written-highpe'];
+    for i = 1
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
+    end
+    for i = 4
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = MisMatch_Cross_decode_base;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = MisMatch_Cross_decode_base';
+    end
+    models{end+1} = modeltemplate;
+    this_model_name{end+1} = ['Spoken to Written SS_written - no self'];
+    basemodels.shared_segments(1:17:end) = NaN;
+    basemodels.shared_segments_cross(9:17:end/2) = NaN;
+    basemodels.shared_segments_cross(end/2+1:17:end) = NaN;
+    for i = 1:2
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
+    end
+    for i = 3:4
+        models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross;
+        models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross';
+    end
+    basemodels.shared_segments_cross(9:17:end/2) = 0;
+    basemodels.shared_segments_cross(end/2+1:17:end) = 0;
+    basemodels.shared_segments(1:17:end) = 0;
     
     % Now look at Match-Mismatch written word cross decoding
     cross_decode_label_pairs = {

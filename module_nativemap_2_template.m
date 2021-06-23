@@ -35,7 +35,7 @@ for i=1:length(images)
     Y(~isnan(Y)) = 1;
     Y(isnan(Y)) = 0;
     images_mask{i,1} = strrep(images{i},'effect-map','nativeSpaceMask');
-%     saveMRImage(Y,images_mask{i,1},V.mat);
+     saveMRImage(Y,images_mask{i,1},V.mat);
 end
 
 % Normalize
@@ -47,8 +47,8 @@ if downsamp_ratio == 1
 else
     save(fullfile(GLMDir,['TDTcrossnobis_downsamp_' num2str(downsamp_ratio)],versionCurrent,'NormalizeTDTcrossnobis.mat'), 'matlabbatch');
 end
-% spm_jobman('initcfg')
-% spm_jobman('run', matlabbatch);
+spm_jobman('initcfg')
+spm_jobman('run', matlabbatch);
 
 matlabbatch{1}.spm.spatial.normalise.write.woptions.prefix = 'whires';
 matlabbatch{1}.spm.spatial.normalise.write.woptions.vox = [1 1 1];
