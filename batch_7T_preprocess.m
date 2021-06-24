@@ -354,9 +354,27 @@ age_lookup = readtable('Pinfa_ages.csv');
 studyname = 'PINFA';
 precached = 0;
 view_data = 0;
-smoothing_kernel = 15; %In mm
+smoothing_kernel = 10; %In mm
 module_make_FSGD(subjects, group, group_names, age_lookup, datafolder, studyname)
 module_run_FSGLM(datafolder, group_names, studyname, precached, view_data, smoothing_kernel)
+
+%% Now run a correlation analysis in freesurfer for prior precision
+datafolder = [preprocessedpathstem '/freesurfer_masked/'];
+group_names = {'Control','nfvPPA'};
+age_lookup = readtable('Pinfa_ages.csv');
+studyname = 'PINFA';
+fsstats_already_done = 1; %If you have run this once with the same design matrix can skip resampling
+view_data = 0;
+smoothing_kernel = 10; %In mm
+model_run_date = '13-May-2021';
+try
+    load(['./modelparameters/modelparameters_' model_run_date '.mat'])
+catch
+    [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
+    save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
+end
+module_make_FSGD_covariate(subjects, group, group_names, age_lookup, datafolder, studyname, nanmean(all_sigma_pred)')
+module_run_FSGLM_covariate(datafolder, group_names, studyname, fsstats_already_done, view_data, smoothing_kernel, nanmean(all_sigma_pred)')
 
 %% Now extract regions of interest from freesurfer
 Regions_of_interest = {

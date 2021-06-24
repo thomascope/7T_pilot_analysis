@@ -31,7 +31,7 @@ lm_all{1} = [-2.5 -2.5 -2.5 -2.5 -2.5 -2.5 -2.5 -2.5 -2.5];
 ls_all{1} = [2 2 2 2 2 2 2 2 2]; 
 
 %XXX Define the precision of the sensory input based on vocode report performance (25% chance, 100% perfect)
-la_all{1} = (repmat(squeeze(report_data(t,optimise_this_subject,:))',[1 3])-25)./100;
+la_all{1} = (repmat(squeeze(report_data(t,optimise_this_subject,:))',[1 3])-25)./75;
 
 % likelihood category B
 lm_all{2} = [2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5]; 
