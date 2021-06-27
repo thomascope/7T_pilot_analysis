@@ -338,11 +338,11 @@ module_vbm_job(group1_mrilist, group1_ages, group2_mrilist, group2_ages, preproc
 %% Now run the freesurfer (Must be done after traditional segmentation for masking)
 skullstripped = 2; %Use segmentation with imfill to mask the raw image - works best.
 if skullstripped == 1
-   this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/']; 
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/'];
 elseif skullstripped == 0
-    this_subjects_dir = [preprocessedpathstem '/freesurfer/']; 
+    this_subjects_dir = [preprocessedpathstem '/freesurfer/'];
 elseif skullstripped == 2
-    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/']; 
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
 end
 setenv('SUBJECTS_DIR',this_subjects_dir);
 module_run_freesurfer;
@@ -386,11 +386,11 @@ Regions_of_interest = {
     };
 skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
 if skullstripped == 1
-   this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/']; 
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/'];
 elseif skullstripped == 0
-    this_subjects_dir = [preprocessedpathstem '/freesurfer/']; 
+    this_subjects_dir = [preprocessedpathstem '/freesurfer/'];
 elseif skullstripped == 2
-    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/']; 
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
 end
 extract_run_date = '22-Jun-2021';
 try
@@ -1298,34 +1298,34 @@ RSAroiworkedcorrectly = zeros(1,nrun);
 partialRSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
     'rwLeft_PrG_All_Shared_Segments'
-        'rwLeft_PrG_SSMatchnoself_combined'
-        'rwLeft_STG_Univariate8mm_15>3'
-        'rwLeft_STG_Univariate3mm_15>3'
-        'rwLeft_Precentral_Univariate_Interaction_combined'
-        'rwLeft_Angular_Univariate_Interaction_combined'
-        'rwLeft_PostSTG_Univariate_Interaction'
-        'rwLeft_Precentral_Univariate_Interaction1'
-        'rwLeft_Precentral_Univariate_Interaction2'
-        'rwLeft_Precentral_Univariate_Interaction3'
-        'rwLeft_Angular_Univariate_Interaction1'
-        'rwLeft_Angular_Univariate_Interaction2'
-        'rwLeft_Frontal_Univariate_MM>M'
-        'rwLeft_Temporal_Univariate_MM>M'
-        'rwLeft_IFG_cross_group_cluster'
-        'rwBlank_2016_inflated'
-        'rwL_STG_cross-segment_cluster'
-        'rwLeft_Superior_Temporal_Gyrus'
-        'rwLeft_Angular_Gyrus'
-        'rwLeft_Precentral_Gyrus'
-        'rwLeft_Frontal_Operculum'
-        'rwLeft_Inferior_Frontal_Angular_Gyrus'
-        'rwRight_Superior_Temporal_Gyrus'
-        'rwRight_Angular_Gyrus'
-        'rwRight_Precentral_Gyrus'
-        'rwRight_Frontal_Operculum'
-        'rwRight_Inferior_Frontal_Angular_Gyrus'
-        'rwLeft_IFG_Written_Cluster'
-        'rwLeft_Precentral_Written_Cluster'
+    'rwLeft_PrG_SSMatchnoself_combined'
+    'rwLeft_STG_Univariate8mm_15>3'
+    'rwLeft_STG_Univariate3mm_15>3'
+    'rwLeft_Precentral_Univariate_Interaction_combined'
+    'rwLeft_Angular_Univariate_Interaction_combined'
+    'rwLeft_PostSTG_Univariate_Interaction'
+    'rwLeft_Precentral_Univariate_Interaction1'
+    'rwLeft_Precentral_Univariate_Interaction2'
+    'rwLeft_Precentral_Univariate_Interaction3'
+    'rwLeft_Angular_Univariate_Interaction1'
+    'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Frontal_Univariate_MM>M'
+    'rwLeft_Temporal_Univariate_MM>M'
+    'rwLeft_IFG_cross_group_cluster'
+    'rwBlank_2016_inflated'
+    'rwL_STG_cross-segment_cluster'
+    'rwLeft_Superior_Temporal_Gyrus'
+    'rwLeft_Angular_Gyrus'
+    'rwLeft_Precentral_Gyrus'
+    'rwLeft_Frontal_Operculum'
+    'rwLeft_Inferior_Frontal_Angular_Gyrus'
+    'rwRight_Superior_Temporal_Gyrus'
+    'rwRight_Angular_Gyrus'
+    'rwRight_Precentral_Gyrus'
+    'rwRight_Frontal_Operculum'
+    'rwRight_Inferior_Frontal_Angular_Gyrus'
+    'rwLeft_IFG_Written_Cluster'
+    'rwLeft_Precentral_Written_Cluster'
     };
 
 parfor crun = 1:nrun
@@ -1399,19 +1399,24 @@ covariate_names = horzcat('Age','Prior_Precision',all_roi_thicknesses.Properties
 clear this_model_name mask_names
 this_model_name{1} = {
     'Match Unclear shared_segments'
-%     'Match Unclear shared_segments_mismatch'
-%     'Match Unclear shared_segments_both'
+    'Match Unclear shared_features'
+    %     'Match Unclear shared_segments_mismatch'
+    %     'Match Unclear shared_segments_both'
     'Match Clear shared_segments'
-%     'Match Clear shared_segments_mismatch'
-%     'Match Clear shared_segments_both'
-%     'Mismatch Unclear shared_segments'
+    'Match Clear shared_features'
+    %     'Match Clear shared_segments_mismatch'
+    %     'Match Clear shared_segments_both'
+    'Mismatch Unclear shared_segments'
+    'Mismatch Unclear shared_features'
     'Mismatch Unclear shared_segments_mismatch'
-%     'Mismatch Unclear shared_segments_both'
-%     'Mismatch Clear shared_segments'
+    %     'Mismatch Unclear shared_segments_both'
+    'Mismatch Clear shared_segments'
+    'Mismatch Clear shared_features'
     'Mismatch Clear shared_segments_mismatch'
-%     'Mismatch Clear shared_segments_both'
+    %     'Mismatch Clear shared_segments_both'
     %     'Written vowels'
     'Written shared_segments'
+    'Written shared_features'
     };
 
 % this_model_name{2} = {
@@ -1462,10 +1467,10 @@ this_model_name{2} = {
     'Match Clear to Written SS_Match'
     'Mismatch Unclear to Written Shared Segments - no self'
     'Mismatch Clear to Written Shared Segments - no self'
-%     'Match Unclear to Written SS_Match - no self'
-%     'Match Clear to Written SS_Match - no self'
-%     'Mismatch Unclear to Written SS_Match - no self'
-%     'Mismatch Clear to Written SS_Match - no self'
+    %     'Match Unclear to Written SS_Match - no self'
+    %     'Match Clear to Written SS_Match - no self'
+    %     'Mismatch Unclear to Written SS_Match - no self'
+    %     'Mismatch Clear to Written SS_Match - no self'
     };
 
 this_model_name{3} = {'All spoken Cross-decode_Match'
@@ -1594,9 +1599,9 @@ for j = 1:length(this_model_name)
             for m = 1:length(this_model_name{j})
                 [all_rho(j,k,i,m,:),all_corr_ps(j,k,i,m,:)] = corr(covariates,squeeze(all_data(m,this_ROI,:)),'rows','pairwise');
                 for this_corr = 1:size(all_corr_ps,5);
-                if all_corr_ps(j,k,i,m,this_corr) < 0.05
-                    disp(['Exploratory correlation in ' mask_names{k}{i}(3:end) ' ' this_model_name{j}{m} ' for ' covariate_names{this_corr}])
-                end
+                    if all_corr_ps(j,k,i,m,this_corr) < 0.05
+                        disp(['Exploratory correlation in ' mask_names{k}{i}(3:end) ' ' this_model_name{j}{m} ' for ' covariate_names{this_corr}])
+                    end
                 end
             end
             
@@ -1645,7 +1650,7 @@ for j = 1:length(this_model_name)
                 end
             end
             drawnow
-           saveas(gcf,[outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
+            saveas(gcf,[outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
             
             for m = 1:length(this_model_name{j})
                 [all_corrected_rho(j,k,i,m,:),all_corrected_corr_ps(j,k,i,m,:)] = corr(covariates,squeeze(all_data(m,this_ROI,:)),'rows','pairwise');
@@ -1700,10 +1705,154 @@ for j = 1:length(this_model_name)
             end
             drawnow
             saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
-                       
+            
         end
     end
 end
+
+%% Re-plot the simple within condition effects as simple interactions and test with RM-ANOVAs
+outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm'];
+mkdir(outdir)
+group_names = {'Control','nfvPPA'};
+clear this_model_name mask_names
+this_model_name{1} = { % NB: Models must be 2x2+1
+    'Match Unclear shared_segments'
+    'Match Clear shared_segments'
+    'Mismatch Unclear shared_segments'
+    'Mismatch Clear shared_segments'
+    %'Written shared_segments'
+    };
+this_model_name{2} = {
+    'Match Unclear shared_segments'
+    'Match Clear shared_segments'
+    'Mismatch Unclear shared_segments_mismatch'
+    'Mismatch Clear shared_segments_mismatch'
+    %'Written shared_segments'
+    };
+
+mask_names{1} = {
+    %     'rwLeft_IFG_cross_group_cluster'
+    %     %     'rwLeft_Superior_Temporal_Gyrus';
+    %     'rwL_STG_cross-segment_cluster'
+    %     'rwBlank_2016_inflated'
+    'rwLeft_Frontal_Univariate_MM>M'
+    'rwLeft_Temporal_Univariate_MM>M'
+    %     'rwLeft_PostSTG_Univariate_Interaction'
+    %             'rwLeft_Precentral_Univariate_Interaction1'
+    %             'rwLeft_Precentral_Univariate_Interaction2'
+    %             'rwLeft_Precentral_Univariate_Interaction3'
+    %     'rwLeft_Angular_Univariate_Interaction1'
+    %     'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Precentral_Univariate_Interaction_combined'
+    %     'rwLeft_Angular_Univariate_Interaction_combined'
+    %     'rwLeft_STG_Univariate8mm_15>3'
+    'rwLeft_STG_Univariate3mm_15>3'
+    'rwLeft_PrG_SSMatchnoself_combined'
+    'rwLeft_PrG_All_Shared_Segments'
+    };
+
+for j = 1:length(this_model_name)
+    for k = 1:length(mask_names)
+        for i = 1:length(mask_names{k})
+            all_data = [];
+            all_corrected_data = [];
+            for crun = 1:nrun
+                %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+                ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{k}{i} '/RSA/spearman'];
+                if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{1} '.mat']),'file')
+                    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI' mask_names{k}{i} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+                end
+                for m = 1:length(this_model_name{j})
+                    try
+                        temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{m} '.mat']));
+                        all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                        RSA_ROI_data_exist(crun) = 1;
+                    catch
+                        warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                        %error
+                        RSA_ROI_data_exist(crun) = 0;
+                        continue
+                    end
+                end
+            end
+            roi_names = temp_data.roi_names;
+            clear temp_data
+            disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
+            all_data(:,:,RSA_ROI_data_exist==0) = NaN;
+            
+            this_ROI = find(strcmp(mask_names{k}{i},roi_names));
+            all_corrected_data(:,this_ROI,group==1) = es_removeBetween_rotated(all_data(:,this_ROI,group==1),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
+            all_corrected_data(:,this_ROI,group==2) = es_removeBetween_rotated(all_data(:,this_ROI,group==2),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
+            
+            
+            
+            %Fit repeated measures ANOVA
+            RM_table = [table(group_names(group)','VariableNames',{'Diagnosis'}),array2table(squeeze(all_data(1:4,this_ROI,:))','VariableNames',strrep(this_model_name{j}(1:4),' ','_'))];
+            factorNames = {'Congruency','Clarity'};
+            all_congruencies = {};
+            all_clarities = {};
+            for this_condition = 1:4
+                split_model_name = strsplit(strrep(this_model_name{j}{this_condition},' ','_'),'_');
+                all_congruencies{this_condition} = split_model_name{1};
+                all_clarities{this_condition} = split_model_name{2};
+            end
+            withindesign = table(all_congruencies',all_clarities','VariableNames',factorNames);
+            rm = fitrm(RM_table,[strrep(this_model_name{j}{1},' ','_') '-' strrep(this_model_name{j}{4},' ','_') '~Diagnosis'],'WithinDesign',withindesign);
+            ranovatbl = ranova(rm, 'WithinModel','Congruency*Clarity');
+            
+            figure
+            set(gcf,'Position',[100 100 1600 800]);
+            set(gcf, 'PaperPositionMode', 'auto');
+            hold on
+            errorbar([1:2]-0.05,nanmean(squeeze(all_corrected_data(1:2,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(1:2,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'k-x')
+            errorbar([1:2]-0.025,nanmean(squeeze(all_corrected_data(3:4,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(3:4,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'k--x')
+            errorbar([1:2]+0.025,nanmean(squeeze(all_corrected_data(1:2,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(1:2,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'r-x')
+            errorbar([1:2]+0.05,nanmean(squeeze(all_corrected_data(3:4,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(3:4,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'r--x')
+            xlim([0.5 2.5]);
+            %set(gca,'xtick',[1:2],'xticklabels',unique(all_clarities,'stable'))
+            set(gca,'xtick',[1:2],'xticklabels',{'3 channel','15 channel'})
+            if verLessThan('matlab', '9.2')
+                legend({[all_congruencies{1} ' ' group_names{1}],[all_congruencies{3} ' ' group_names{1}],[all_congruencies{1} ' ' group_names{2}],[all_congruencies{3} ' ' group_names{2}]},'location','northeast')
+            else
+                legend({[all_congruencies{1} ' ' group_names{1}],[all_congruencies{3} ' ' group_names{1}],[all_congruencies{1} ' ' group_names{2}],[all_congruencies{3} ' ' group_names{2}]},'location','northeast','AutoUpdate','off')
+            end
+            these_y_lims = ylim;
+            ylim([min(0,these_y_lims(1)), max(0,these_y_lims(2))]);
+            set(gca,'FontSize',20)
+            title(['Corrected ' mask_names{k}{i}(3:end) ' RSA'],'Interpreter','none')
+            plot([0 length(this_model_name{j})+1],[0,0],'k--')
+            
+            %Add RM ANOVA results
+            %             if ranovatbl.pValueGG('(Intercept)')<0.05
+            %                 text(0.7,these_y_lims(2)-diff(these_y_lims/40),['Overall main effect, p = ' num2str(ranovatbl.pValueGG('(Intercept)'))], 'Color', 'r')
+            %             else
+            %                 text(0.7,these_y_lims(2)-diff(these_y_lims/40),['No overall main effect, p = ' num2str(ranovatbl.pValueGG('(Intercept)'))], 'Color', 'k')
+            %             end
+            %
+            %             if ranovatbl.pValueGG('Diagnosis')<0.05
+            %                 text(0.7,these_y_lims(2)-diff(these_y_lims/20),['Main effect of diagnosis, p = ' num2str(ranovatbl.pValueGG('Diagnosis'))], 'Color', 'r')
+            %             else
+            %                 text(0.7,these_y_lims(2)-diff(these_y_lims/20),['No main effect of diagnosis, p = ' num2str(ranovatbl.pValueGG('Diagnosis'))], 'Color', 'k')
+            %             end
+            %
+            %             if ranovatbl.pValueGG('Diagnosis')<0.05
+            %                 text(0.7,these_y_lims(2)-diff(these_y_lims/20),['Main effect of diagnosis, p = ' num2str(ranovatbl.pValueGG('Diagnosis'))], 'Color', 'r')
+            %             else
+            %                 text(0.7,these_y_lims(2)-diff(these_y_lims/20),['No main effect of diagnosis, p = ' num2str(ranovatbl.pValueGG('Diagnosis'))], 'Color', 'k')
+            %             end
+            
+            these_sigs = find(ranovatbl.pValueGG<0.05);
+            for this_sig = 1:length(these_sigs)
+                text(0.7,these_y_lims(2)-(this_sig*diff(these_y_lims/40)),[ranovatbl.Properties.RowNames{these_sigs(this_sig)} ', p = ' num2str(ranovatbl.pValueGG(these_sigs(this_sig)))], 'Color', 'r')
+            end
+            
+            drawnow
+            saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
+        end
+    end
+end
+
+
 
 
 %% Now compare across ROI for each condition - WORK IN PROGRESS
