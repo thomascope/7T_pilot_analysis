@@ -1383,35 +1383,38 @@ end
 this_age = [];
 age_lookup = readtable('Pinfa_ages.csv');
 
-Regions_of_interest = {
-    'lh_bankssts'
-    'lh_transversetemporal'
-    'lh_precentral'
-    'lh_parsopercularis'
-    'lh_parstriangularis'
-    };
-skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
-if skullstripped == 1
-    this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/'];
-elseif skullstripped == 0
-    this_subjects_dir = [preprocessedpathstem '/freesurfer/'];
-elseif skullstripped == 2
-    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
-end
-extract_run_date = '22-Jun-2021';
-try
-    load(['./freesurfer_stats/roi_thicknesses_' extract_run_date '.mat'])
-catch
-    setenv('SUBJECTS_DIR',this_subjects_dir);
-    all_roi_thicknesses = module_extract_freesurfer(Regions_of_interest,subjects,group);
-    save(['./freesurfer_stats/roi_thicknesses_' date '.mat'],'all_roi_thicknesses');
-end
+% Regions_of_interest = {
+%     'lh_bankssts'
+%     'lh_transversetemporal'
+%     'lh_precentral'
+%     'lh_parsopercularis'
+%     'lh_parstriangularis'
+%     };
+% skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
+% if skullstripped == 1
+%     this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/'];
+% elseif skullstripped == 0
+%     this_subjects_dir = [preprocessedpathstem '/freesurfer/'];
+% elseif skullstripped == 2
+%     this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
+% end
+% extract_run_date = '22-Jun-2021';
+% try
+%     load(['./freesurfer_stats/roi_thicknesses_' extract_run_date '.mat'])
+% catch
+%     setenv('SUBJECTS_DIR',this_subjects_dir);
+%     all_roi_thicknesses = module_extract_freesurfer(Regions_of_interest,subjects,group);
+%     save(['./freesurfer_stats/roi_thicknesses_' date '.mat'],'all_roi_thicknesses');
+% end
 
 for crun = 1:length(subjects)
     this_age(crun) = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
 end
-covariates = [this_age',nanmean(all_sigma_pred)',all_roi_thicknesses{:,:}];
-covariate_names = horzcat('Age','Prior_Precision',all_roi_thicknesses.Properties.VariableNames);
+% covariates = [this_age',nanmean(all_sigma_pred)',all_roi_thicknesses{:,:}];
+% covariate_names = horzcat('Age','Prior_Precision',all_roi_thicknesses.Properties.VariableNames);
+covariates = [this_age',nanmean(all_sigma_pred)'];
+covariate_names = horzcat({'Age'},{'Prior_Precision'});
+
 
 %Now build model space for testing
 clear this_model_name mask_names
@@ -1449,7 +1452,6 @@ this_model_name{1} = {
 %     'Mismatch Unclear: vowels partialling shared_segments'
 %     'Mismatch Unclear: vowels partialling shared_segments_mismatch'
 %     };
-
 this_model_name{2} = {
     'Match Unclear to Mismatch Unclear Cross-decode_Match'
     'Match Unclear to Mismatch Unclear SS_Match'
@@ -1504,6 +1506,13 @@ this_model_name{5} = {
     'M to MM Shared Segments:  Cross Negative partialling '
     'M to MM Shared Segments:  partialling  Cross Negative';
     };
+
+this_model_name{6} = {
+    'Match Unclear to Mismatch Unclear SS_Match'
+    'Match Unclear to Mismatch Clear SS_Match'
+    'Match Clear to Mismatch Unclear SS_Match'
+    'Match Clear to Mismatch Clear SS_Match'
+        };
 
 
 % this_model_name{6} = {
