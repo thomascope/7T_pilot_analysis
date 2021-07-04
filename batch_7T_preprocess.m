@@ -1417,24 +1417,19 @@ covariate_names = horzcat('Age','Prior_Precision',all_roi_thicknesses.Properties
 clear this_model_name mask_names
 this_model_name{1} = {
     'Match Unclear shared_segments'
-    'Match Unclear shared_features'
     %     'Match Unclear shared_segments_mismatch'
     %     'Match Unclear shared_segments_both'
     'Match Clear shared_segments'
-    'Match Clear shared_features'
     %     'Match Clear shared_segments_mismatch'
     %     'Match Clear shared_segments_both'
     'Mismatch Unclear shared_segments'
-    'Mismatch Unclear shared_features'
-    'Mismatch Unclear shared_segments_mismatch'
+    %'Mismatch Unclear shared_segments_mismatch'
     %     'Mismatch Unclear shared_segments_both'
     'Mismatch Clear shared_segments'
-    'Mismatch Clear shared_features'
-    'Mismatch Clear shared_segments_mismatch'
+    %'Mismatch Clear shared_segments_mismatch'
     %     'Mismatch Clear shared_segments_both'
     %     'Written vowels'
     'Written shared_segments'
-    'Written shared_features'
     };
 
 % this_model_name{2} = {
@@ -1739,15 +1734,15 @@ this_model_name{1} = { % NB: Models must be 2x2+1
     'Match Clear shared_segments'
     'Mismatch Unclear shared_segments'
     'Mismatch Clear shared_segments'
-    %'Written shared_segments'
+    'Written shared_segments'
     };
-this_model_name{2} = {
-    'Match Unclear shared_segments'
-    'Match Clear shared_segments'
-    'Mismatch Unclear shared_segments_mismatch'
-    'Mismatch Clear shared_segments_mismatch'
-    %'Written shared_segments'
-    };
+% this_model_name{2} = {
+%     'Match Unclear shared_segments'
+%     'Match Clear shared_segments'
+%     'Mismatch Unclear shared_segments_mismatch'
+%     'Mismatch Clear shared_segments_mismatch'
+%     %'Written shared_segments'
+%     };
 
 mask_names{1} = {
     %     'rwLeft_IFG_cross_group_cluster'
@@ -1868,6 +1863,22 @@ for j = 1:length(this_model_name)
             
             drawnow
             saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
+            
+                    figure
+        %Reorder to match behaviour
+                    errorbar([1:2]-0.05,nanmean(squeeze(all_corrected_data(1:2,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(1:2,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'k-x')
+            errorbar([1:2]-0.025,nanmean(squeeze(all_corrected_data(3:4,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(3:4,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'k--x')
+            errorbar([1:2]+0.025,nanmean(squeeze(all_corrected_data(1:2,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(1:2,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'r-x')
+            errorbar([1:2]+0.05,nanmean(squeeze(all_corrected_data(3:4,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(3:4,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'r--x')
+         
+        
+        figure
+        all_subj_weighted_activations = squeeze(all_corrected_data([1,3,2,4,5],this_ROI,:))';
+        barweb([mean(all_subj_unweighted_activations(group==1,:));mean(all_subj_unweighted_activations(group==2,:))],[std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted betas in ' masknames{this_mask}],[],'Unweighted beta value',[],[],{'Match 3';'MisMatch 3';'Match 15';'MisMatch 15';'Written'}) ;
+        ylim([(min(mean(all_subj_unweighted_activations))-4*max(std(all_subj_unweighted_activations)/sqrt(sum(group==2)))),(max(mean(all_subj_unweighted_activations))+4*max(std(all_subj_unweighted_activations)/sqrt(sum(group==2))))])
+        saveas(gcf, ['./univariate_bars/Extracted betas in ' masknames{this_mask} '.pdf']);
+        saveas(gcf, ['./univariate_bars/Extracted betas in ' masknames{this_mask} '.png']);
+            
         end
     end
 end

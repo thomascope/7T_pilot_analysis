@@ -8,6 +8,9 @@ masknames = {
 secondlevelnames = {
     'Clarity Congruency Interaction Positive';
     };
+if ~exist('./univariate_bars')
+    mkdir('./univariate_bars')
+end
 
 for this_mask = 1:length(masknames)
     for this_second_level = 1:length(secondlevelnames)
@@ -64,11 +67,21 @@ for this_mask = 1:length(masknames)
         end
         
         figure
-        barweb([mean(all_subj_weighted_activations(group==1,:));mean(all_subj_weighted_activations(group==2,:))],[std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted normalised betas in ' masknames{this_mask}],[],'Weighted beta value',[],[],{'Match 3';'Match 15';'MisMatch 3';'MisMatch 15';'Written'}) ;
+        %         barweb([mean(all_subj_weighted_activations(group==1,:));mean(all_subj_weighted_activations(group==2,:))],[std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted normalised betas in ' masknames{this_mask}],[],'Weighted beta value',[],[],{'Match 3';'Match 15';'MisMatch 3';'MisMatch 15';'Written'}) ;
+        %Reorder to match behaviour
+        all_subj_weighted_activations = all_subj_weighted_activations(:,[1,3,2,4,5]);
+        barweb([mean(all_subj_weighted_activations(group==1,:));mean(all_subj_weighted_activations(group==2,:))],[std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_weighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted normalised betas in ' masknames{this_mask}],[],'Weighted beta value',[],[],{'Match 3';'MisMatch 3';'Match 15';'MisMatch 15';'Written'}) ;
         ylim([(min(mean(all_subj_weighted_activations))-4*max(std(all_subj_weighted_activations)/sqrt(sum(group==2)))),(max(mean(all_subj_weighted_activations))+4*max(std(all_subj_weighted_activations)/sqrt(sum(group==2))))])
-        figure
-        barweb([mean(all_subj_unweighted_activations(group==1,:));mean(all_subj_unweighted_activations(group==2,:))],[std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted betas in ' masknames{this_mask}],[],'Unweighted beta value',[],[],{'Match 3';'Match 15';'MisMatch 3';'MisMatch 15';'Written'}) ;
-        ylim([(min(mean(all_subj_unweighted_activations))-4*max(std(all_subj_unweighted_activations)/sqrt(sum(group==2)))),(max(mean(all_subj_unweighted_activations))+4*max(std(all_subj_unweighted_activations)/sqrt(sum(group==2))))])
+        saveas(gcf, ['./univariate_bars/Extracted normalised betas in ' masknames{this_mask} '.pdf']);
+        saveas(gcf, ['./univariate_bars/Extracted normalised betas in ' masknames{this_mask} '.png']);
         
+        figure
+        %         barweb([mean(all_subj_unweighted_activations(group==1,:));mean(all_subj_unweighted_activations(group==2,:))],[std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted betas in ' masknames{this_mask}],[],'Unweighted beta value',[],[],{'Match 3';'Match 15';'MisMatch 3';'MisMatch 15';'Written'}) ;
+        %Reorder to match behaviour
+        all_subj_unweighted_activations = all_subj_unweighted_activations(:,[1,3,2,4,5]);
+        barweb([mean(all_subj_unweighted_activations(group==1,:));mean(all_subj_unweighted_activations(group==2,:))],[std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1));std(all_subj_unweighted_activations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Extracted betas in ' masknames{this_mask}],[],'Unweighted beta value',[],[],{'Match 3';'MisMatch 3';'Match 15';'MisMatch 15';'Written'}) ;
+        ylim([(min(mean(all_subj_unweighted_activations))-4*max(std(all_subj_unweighted_activations)/sqrt(sum(group==2)))),(max(mean(all_subj_unweighted_activations))+4*max(std(all_subj_unweighted_activations)/sqrt(sum(group==2))))])
+        saveas(gcf, ['./univariate_bars/Extracted betas in ' masknames{this_mask} '.pdf']);
+        saveas(gcf, ['./univariate_bars/Extracted betas in ' masknames{this_mask} '.png']);
     end
 end

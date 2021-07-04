@@ -40,6 +40,8 @@ set(gca,'XTick',1:i)
 set(gca,'XTickLabel',all_patient_thickness_table.Properties.VariableNames,'XTickLabelRotation',90,'TickLabelInterpreter','None')
 legend({'nfvPPA','Control'})
 significant_regions_thickness = all_patient_thickness_table.Properties.VariableNames(logical(h));
+saveas(gcf, ['./freesurfer_stats/All_Thicknesses.pdf']);
+
 
 %Now plot only regions of interest
 % Regions_of_interest = {
@@ -77,6 +79,7 @@ set(gca,'XTickLabel',all_patient_thickness_table.Properties.VariableNames(all_is
 legend({'nfvPPA','Control'})
 
 all_roi_thicknesses = all_thicknessess(:,all_is);
+saveas(gcf, ['./freesurfer_stats/ROI_Thicknesses.pdf']);
 
 % 
 % patient_nobetween = es_removeBetween(all_patient_thickness_table{:,:});
