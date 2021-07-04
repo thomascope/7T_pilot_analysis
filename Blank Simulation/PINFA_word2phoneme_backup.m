@@ -39,17 +39,6 @@ vowels_to_features_all10 = [...
     0	0	1	0	0	0	1	1	0	1  0; ...
     0	0	1	0	0   1   0   0   1   0  1]; 
 
-% 02.06.21 TEC - Collapsed into one dimension per feature, important to ensure
-% all features equally weighted in the modelling
-%(1) height (five features: high, mid-high, mid, mid-low, low)
-vowels_to_features_3d{1} = vowels_to_features_all10(:,1:5);
-%(2) backness (two features: front, back)
-vowels_to_features_3d{2} = vowels_to_features_all10(:,6:7);
-%(3) rounding (two features: rounded, unrounded)
-vowels_to_features_3d{3} = vowels_to_features_all10(:,8:9);
-%(4) length/diphthong (two features: long, short)
-vowels_to_features_3d{4} = vowels_to_features_all10(:,10:11);
-
 % This matrix was corrected on 05.03.2015 - f = non-sibilant
 % 24.06.21 l _ and r Added by TEC
 % 13 consonant features
@@ -71,37 +60,21 @@ consonants_to_features = [...
     0   0   0   0   1   0   0   1   0   0   1   0   1; ...
     0   0   0   0   1   0   0   0   1   0   1   0   1]; 
 
-% 02.06.21 TEC - Collapsed into one dimension per feature, important to ensure
-% all features equally weighted in the modelling
-%(1) place of articulation (six features: bilabial, labiodental, dental, alveolar,
-% palato-alveolar, velar)
-consonants_to_features_3d{1} = consonants_to_features(:,1:6);
-%(2) manner of articulation (three features:
-% stop, sibilant, non-sibilant)
-consonants_to_features_3d{2} = consonants_to_features(:,7:9);
-%(3) nasality (three features: nasal, oral) - actually only two features
-consonants_to_features_3d{3} = consonants_to_features(:,10:11);
-%(4) voicing (two features: voiceless, voiced) 
-consonants_to_features_3d{4} = consonants_to_features(:,12:13);
-
 % initialize final output matrix
-feature_mat_words = {};
+feature_mat_words = zeros(length(phonemelist), 37);
 % loop throught phoneme list
 for i = 1:numel(phonemelist)
     phoneme = phonemelist{i};
     curr_consonant1 = phoneme(1);
     curr_vowel      = phoneme(2);
     curr_consonant2 = phoneme(3);
-        
+    
     feature_consonant1 = ~cellfun('isempty',(regexp(consonantsDISC, curr_consonant1)));
     feature_vowel      = ~cellfun('isempty',(regexp(vowelsDISC, curr_vowel)));
     feature_consonant2 = ~cellfun('isempty',(regexp(consonantsDISC, curr_consonant2)));
-    
-    for j = 1:4
-    feature_mat_words{j}(i,:) = consonants_to_features_3d{j}(feature_consonant1, :);
-    feature_mat_words{4+j}(i,:) = vowels_to_features_3d{j}(feature_vowel, :);
-    feature_mat_words{8+j}(i,:) = consonants_to_features_3d{j}(feature_consonant2, :);
-    end
+    feature_mat_words(i,:) = [consonants_to_features(feature_consonant1, :), ...
+        vowels_to_features_all10(feature_vowel, :), ...
+        consonants_to_features(feature_consonant2, :)];
 end
 
 end

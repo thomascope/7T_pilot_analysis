@@ -119,7 +119,31 @@ for i = 1:length(mask_names)
        
     basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); %I think this is correct, but need to 100% check the off-diagonals
     
-    basemodelNames = {'vowels','shared_segments','shared_segments_mismatch'};
+    basemodels.shared_features = [ % Based on Helen Blank's feature model. Similar but not identical to shared segments.
+        1.0000    0.7533    0.7533    0.5067    0.5067    0.3833    0.3833    0.2600    0.5067    0.3833    0.3833    0.2600    0.2600    0.3833    0.2600    0.3833
+        0.7533    1.0000    0.5067    0.7533    0.2600    0.2600    0.1367    0.1367    0.2600    0.2600    0.1367    0.1367    0.1367    0.1367    0.1367    0.1367
+        0.7533    0.5067    1.0000    0.7533    0.2600    0.1367    0.2600    0.1367    0.5067    0.3833    0.3833    0.2600    0.3833    0.5067    0.5067    0.6300
+        0.5067    0.7533    0.7533    1.0000    0.0133    0.0133    0.0133    0.0133    0.2600    0.2600    0.1367    0.1367    0.2600    0.2600    0.3833    0.3833
+        0.5067    0.2600    0.2600    0.0133    1.0000    0.8767    0.8767    0.7533    0.6300    0.5067    0.5067    0.3833   -0.1100    0.0133   -0.1100    0.0133
+        0.3833    0.2600    0.1367    0.0133    0.8767    1.0000    0.7533    0.8767    0.5067    0.6300    0.3833    0.5067   -0.1100   -0.1100   -0.1100   -0.1100
+        0.3833    0.1367    0.2600    0.0133    0.8767    0.7533    1.0000    0.8767    0.6300    0.5067    0.5067    0.3833   -0.1100    0.0133   -0.1100    0.0133
+        0.2600    0.1367    0.1367    0.0133    0.7533    0.8767    0.8767    1.0000    0.5067    0.6300    0.3833    0.5067   -0.1100   -0.1100   -0.1100   -0.1100
+        0.5067    0.2600    0.5067    0.2600    0.6300    0.5067    0.6300    0.5067    1.0000    0.8767    0.8767    0.7533    0.1367    0.2600    0.2600    0.3833
+        0.3833    0.2600    0.3833    0.2600    0.5067    0.6300    0.5067    0.6300    0.8767    1.0000    0.7533    0.8767    0.1367    0.1367    0.2600    0.2600
+        0.3833    0.1367    0.3833    0.1367    0.5067    0.3833    0.5067    0.3833    0.8767    0.7533    1.0000    0.8767    0.0133    0.1367    0.1367    0.2600
+        0.2600    0.1367    0.2600    0.1367    0.3833    0.5067    0.3833    0.5067    0.7533    0.8767    0.8767    1.0000    0.0133    0.0133    0.1367    0.1367
+        0.2600    0.1367    0.3833    0.2600   -0.1100   -0.1100   -0.1100   -0.1100    0.1367    0.1367    0.0133    0.0133    1.0000    0.8767    0.8767    0.7533
+        0.3833    0.1367    0.5067    0.2600    0.0133   -0.1100    0.0133   -0.1100    0.2600    0.1367    0.1367    0.0133    0.8767    1.0000    0.7533    0.8767
+        0.2600    0.1367    0.5067    0.3833   -0.1100   -0.1100   -0.1100   -0.1100    0.2600    0.2600    0.1367    0.1367    0.8767    0.7533    1.0000    0.8767
+        0.3833    0.1367    0.6300    0.3833    0.0133   -0.1100    0.0133   -0.1100    0.3833    0.2600    0.2600    0.1367    0.7533    0.8767    0.8767    1.0000
+        ];
+    basemodels.shared_features = 1-basemodels.shared_features;
+    
+    basemodels.shared_features_cross = circshift(basemodels.shared_features,[8 0]);
+    
+    basemodelNames = {'vowels','shared_segments','shared_segments_cross','shared_features','shared_features_cross'};
+    
+    %basemodelNames = {'vowels','shared_segments','shared_segments_mismatch'};
     
     load(fullfile(cfg.results.dir,'res_other_average.mat'));
     data = results.other_average.output;
@@ -145,6 +169,10 @@ for i = 1:length(mask_names)
     basemodels.shared_segments_cross_noself = basemodels.shared_segments;
     basemodels.shared_segments_cross_noself(1:17:end) = NaN;
     basemodels.shared_segments_cross_noself = circshift(basemodels.shared_segments_cross_noself,[8 0]);
+    
+    basemodels.shared_features_cross_noself = basemodels.shared_features;
+    basemodels.shared_features_cross_noself(1:17:end) = NaN;
+    basemodels.shared_features_cross_noself = circshift(basemodels.shared_features_cross_noself,[8 0]);
     
     basemodels.shared_segments(1:17:end) = NaN;
     basemodels.combined_SS = basemodels.shared_segments-basemodels.shared_segments_cross_noself;
@@ -271,6 +299,39 @@ for i = 1:length(mask_names)
         models{end}{2}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
     end
     basemodels.shared_segments(1:17:end) = 0;
+    
+    % Next model
+    models{end+1}{1} = modeltemplate;
+    this_model_name{end+1}{1} = ['M to MM Shared features Cross Negative'];
+    for i = 1:size(cross_decode_label_pairs,1)
+        models{end}{1}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = 1-basemodels.shared_features_cross_noself;
+        models{end}{1}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = 1-basemodels.shared_features_cross_noself';
+    end
+    
+    models{end}{2} = modeltemplate;
+    this_model_name{end}{2} = ['M to MM Shared features'];
+    for i = 1:size(cross_decode_label_pairs,1)
+        models{end}{2}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_features;
+        models{end}{2}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_features';
+    end
+    
+    % Next model
+    models{end+1}{1} = modeltemplate;
+    this_model_name{end+1}{1} = ['M to MM Shared features Cross Negative'];
+    for i = 1:size(cross_decode_label_pairs,1)
+        models{end}{1}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = 1-basemodels.shared_features_cross_noself;
+        models{end}{1}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = 1-basemodels.shared_features_cross_noself';
+    end
+    
+    basemodels.shared_features(1:17:end) = NaN;
+    models{end}{2} = modeltemplate;
+    this_model_name{end}{2} = ['M to MM Shared features - no self'];
+    for i = 1:size(cross_decode_label_pairs,1)
+        models{end}{2}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_features;
+        models{end}{2}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_features';
+    end
+    basemodels.shared_features(1:17:end) = 0;
+
     
     for j = 1:length(basemodelNames)
         for i = 1:length(modelNames)
@@ -549,16 +610,16 @@ for i = 1:length(mask_names)
     %
     % %modelNames = {'ProbM' 'ProbMM' 'EntropyM' 'EntropyMM'};
 
-    % % Optional - to visualise a model
-    b = imagesc(models{end}{1},[0 1]);
-    set(b,'AlphaData',~isnan(models{end}{1}))
-    title(this_model_name{end}{1},'Interpreter','none')
-    colorbar
-    pause
-    b = imagesc(models{end}{2},[0 1]);
-    set(b,'AlphaData',~isnan(models{end}{2}))
-    title(this_model_name{end}{2},'Interpreter','none')
-    colorbar
+%     % % Optional - to visualise a model
+%     b = imagesc(models{end}{1},[0 1]);
+%     set(b,'AlphaData',~isnan(models{end}{1}))
+%     title(this_model_name{end}{1},'Interpreter','none')
+%     colorbar
+%     pause
+%     b = imagesc(models{end}{2},[0 1]);
+%     set(b,'AlphaData',~isnan(models{end}{2}))
+%     title(this_model_name{end}{2},'Interpreter','none')
+%     colorbar
     
     
     roi_names = results.roi_names;

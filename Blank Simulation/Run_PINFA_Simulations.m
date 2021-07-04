@@ -41,7 +41,7 @@ for i = 1:length(subjects)
             disp(['Missing Clarity Rating data for subject ' subjects{i} ' at timepoint ' timepoints{t} '. Please check.'])
             clarity_data(t,i,:) = nan(1,9);
         else
-            assert(length(temp_data_path)==1,['More than one Vocode Report file found for subject ' subjects{i} ' at timepoint ' timepoints{t} '. Aborting.'])
+            assert(length(temp_data_path)==1,['More than one Clarity Rating file found for subject ' subjects{i} ' at timepoint ' timepoints{t} '. Aborting.'])
             these_clarity_data = load([clarity_data_dir temp_data_path(1).name]);
             if group(i) == 1
                 these_clarity_data = these_clarity_data.condat;
@@ -57,6 +57,8 @@ end
 connum = 0;
 patnum = 0;
 scanner_report_data = [];
+scanner_report_signal = [];
+%Now optimise each subject as per Cope et al 2017.
 for optimise_this_subject = 1:length(subjects)
     if group(optimise_this_subject) == 1
         connum = connum+1;
@@ -123,33 +125,44 @@ for optimise_this_subject = 1:length(subjects)
         end
     end
     
+    %Now take these optimised parameters into the scanner setting, using a
+    %Blank 2016 model as a basis
+    
+    % First read in Vocode Report Performance for the scanner words
+    temp_data_path = dir([report_data_dir 'beh__NEW*' subjects{optimise_this_subject} '*Post_' dates{optimise_this_subject}(3:end) '.mat']);
+    if isempty(temp_data_path)
+        disp(['Missing Scanner Report data for subject ' subjects{optimise_this_subject} '. Please check.'])
+        scanner_report_data(i,:) = nan(1,2);
+    else
+        assert(length(temp_data_path)==1,['More than one Vocode Report file found for subject ' subjects{optimise_this_subject} '. Aborting.'])
+        these_report_data = load([report_data_dir temp_data_path(1).name]);
+        if group(optimise_this_subject) == 1
+            these_report_data = these_report_data.Condat; %Sorry about the capitalisation
+        else
+            these_report_data = these_report_data.patdat;
+        end
+        scanner_report_data(optimise_this_subject,:) = [these_report_data.meansarray(1,1),these_report_data.meansarray(3,1)]; %Average across distractor types, end up with 3-element vector per participant for low, med, high vocoder detail
+        scanner_report_signal(optimise_this_subject,:) = (scanner_report_data(optimise_this_subject,:)-25)/75; %25% chance - proportion above chance
+    end
+    
     try
-        [posterior_match_word_Iterative(optimise_this_subject,:,:), IterationCounter(optimise_this_subject,:,:,:),residual_noise_mismatch(optimise_this_subject,:,:), residual_noise_match(optimise_this_subject,:,:),mismatch_feature_Accumulated(optimise_this_subject,:,:,:), match_feature_Accumulated(optimise_this_subject,:,:,:)] = PINFA_simulationModel_withPrecision_simplified([nanmean(all_sigma_pred(:,optimise_this_subject),1),nanmean(all_thresholds(:,optimise_this_subject),1)]);
+        %[posterior_match_word_Iterative(optimise_this_subject,:,:), IterationCounter(optimise_this_subject,:,:,:),residual_noise_mismatch(optimise_this_subject,:,:), residual_noise_match(optimise_this_subject,:,:),mismatch_feature_Accumulated(optimise_this_subject,:,:,:), match_feature_Accumulated(optimise_this_subject,:,:,:)] = PINFA_simulationModel_withPrecision_simplified(nanmean(all_sigma_pred(:,optimise_this_subject),1),nanmean(all_thresholds(:,optimise_this_subject),1),scanner_report_signal(optimise_this_subject,:));
+        [sum_iterative_prediction_error(optimise_this_subject,:,:), sum_iterative_sensory_error(optimise_this_subject,:,:), this_correlation(optimise_this_subject,:,:),heard_correct_word(optimise_this_subject,:,:), amount_above_second(optimise_this_subject,:,:), amount_above_average(optimise_this_subject,:,:)] = PINFA_blank_simplified(nanmean(all_sigma_pred(:,optimise_this_subject),1),nanmean(all_thresholds(:,optimise_this_subject),1),scanner_report_signal(optimise_this_subject,:));
     catch
-        posterior_match_word_Iterative(optimise_this_subject,:,:) = nan(size(posterior_match_word_Iterative,2),size(posterior_match_word_Iterative,3));
-        IterationCounter(optimise_this_subject,:,:,:) = nan(size(IterationCounter,2),size(IterationCounter,3),size(IterationCounter,4));
-        residual_noise_mismatch(optimise_this_subject,:,:) = nan(size(residual_noise_mismatch,2),size(residual_noise_mismatch,3));
-        residual_noise_match(optimise_this_subject,:,:) = nan(size(residual_noise_match,2),size(residual_noise_match,3));
-        mismatch_feature_Accumulated(optimise_this_subject,:,:,:) = nan(size(mismatch_feature_Accumulated,2),size(mismatch_feature_Accumulated,3),size(mismatch_feature_Accumulated,4));
-        match_feature_Accumulated(optimise_this_subject,:,:,:) = nan(size(match_feature_Accumulated,2),size(match_feature_Accumulated,3),size(match_feature_Accumulated,4));
+        %         posterior_match_word_Iterative(optimise_this_subject,:,:) = nan(size(posterior_match_word_Iterative,2),size(posterior_match_word_Iterative,3));
+        %         IterationCounter(optimise_this_subject,:,:,:) = nan(size(IterationCounter,2),size(IterationCounter,3),size(IterationCounter,4));
+        %         residual_noise_mismatch(optimise_this_subject,:,:) = nan(size(residual_noise_mismatch,2),size(residual_noise_mismatch,3));
+        %         residual_noise_match(optimise_this_subject,:,:) = nan(size(residual_noise_match,2),size(residual_noise_match,3));
+        %         mismatch_feature_Accumulated(optimise_this_subject,:,:,:) = nan(size(mismatch_feature_Accumulated,2),size(mismatch_feature_Accumulated,3),size(mismatch_feature_Accumulated,4));
+        %         match_feature_Accumulated(optimise_this_subject,:,:,:) = nan(size(match_feature_Accumulated,2),size(match_feature_Accumulated,3),size(match_feature_Accumulated,4));
+        sum_iterative_prediction_error(optimise_this_subject,:,:) = nan(size(sum_iterative_prediction_error,2),size(sum_iterative_prediction_error,3));
+        sum_iterative_sensory_error(optimise_this_subject,:,:) = nan(size(sum_iterative_sensory_error,2),size(sum_iterative_sensory_error,3));
+        this_correlation(optimise_this_subject,:,:) = nan(size(this_correlation,2),size(this_correlation,3));
+        heard_correct_word(optimise_this_subject,:,:) = nan(size(heard_correct_word,2),size(heard_correct_word,3));
+        amount_above_average(optimise_this_subject,:,:) = nan(size(amount_above_average,2),size(amount_above_average,3));
     end
 
-%     % First read in Vocode Report Performance for the scanner words
-%     temp_data_path = dir([report_data_dir 'beh__NEW*' subjects{optimise_this_subject} '*Post_' dates{optimise_this_subject}(3:end) '.mat']);
-%     if isempty(temp_data_path)
-%         disp(['Missing Scanner Report data for subject ' subjects{optimise_this_subject} '. Please check.'])
-%         scanner_report_data(i,:) = nan(1,2);
-%     else
-%         assert(length(temp_data_path)==1,['More than one Vocode Report file found for subject ' subjects{optimise_this_subject} '. Aborting.'])
-%         these_report_data = load([report_data_dir temp_data_path(1).name]);
-%         if group(optimise_this_subject) == 1
-%             these_report_data = these_report_data.Condat; %Sorry about the capitalisation
-%         else
-%             these_report_data = these_report_data.patdat;
-%         end
-%         scanner_report_data(optimise_this_subject,:) = [these_report_data.meansarray(1,1),these_report_data.meansarray(3,1)]; %Average across distractor types, end up with 3-element vector per participant for low, med, high vocoder detail
-%         scanner_report_signal = (scanner_report_data-25)/75; %25% chance - proportion above chance
-%     end
+
 %     nanmean_clarity_data = squeeze(nanmean(clarity_data));
 %     %order: MisMatch 3, Match 3, MisMatch 15, Match 15
 %     this_clarity_data = [nanmean_clarity_data(optimise_this_subject,1),nanmean_clarity_data(optimise_this_subject,7),nanmean_clarity_data(optimise_this_subject,3),nanmean_clarity_data(optimise_this_subject,9)];
@@ -178,9 +191,64 @@ for optimise_this_subject = 1:length(subjects)
 %     
 end
 
+%% Now simulate the behavioural results (model face value validity)
+
+%Confidence - assume that if correlation gap to 1 is less than the
+%correlation gap to second you are sure, otherwise divide the difference
+confidence = min(1,squeeze(nanmean(amount_above_second(:,:,:),3))./(1-squeeze(nanmean(this_correlation(:,:,:),3))),'includenan');
+
+condat.match3 = [];
+condat.match15 = [];
+condat.mismatch3 = [];
+condat.mismatch15 = [];
+patdat.match3=[];
+patdat.match15 = [];
+patdat.mismatch3 = [];
+patdat.mismatch15 = [];
+all_patient_meansarray = [];
+all_control_meansarray = [];
+for i = 1:length(subjects)
+    if group(i)==1&&~isnan(confidence(i,1))
+        condat.match3=[condat.match3,confidence(i,3)];
+        condat.match15=[condat.match15,confidence(i,4)];
+        condat.mismatch3=[condat.mismatch3,confidence(i,1)];
+        condat.mismatch15=[condat.mismatch15,confidence(i,2)];
+    elseif group(i)==2&&~isnan(confidence(i,1))
+        patdat.match3=[patdat.match3,confidence(i,3)];
+        patdat.match15=[patdat.match15,confidence(i,4)];
+        patdat.mismatch3=[patdat.mismatch3,confidence(i,1)];
+        patdat.mismatch15=[patdat.mismatch15,confidence(i,2)];
+    end
+end
+all_control_meansarray = [mean(condat.match3),mean(condat.mismatch3);mean(condat.match15),mean(condat.mismatch15)];
+all_patient_meansarray = [mean(patdat.match3),mean(patdat.mismatch3);mean(patdat.match15),mean(patdat.mismatch15)];
+
+ste_control_meansarray = [std(condat.match3),std(condat.mismatch3);std(condat.match15),std(condat.mismatch15)]/sqrt(length(condat.match15));
+ste_patient_meansarray = [std(patdat.match3),std(patdat.mismatch3);std(patdat.match15),std(patdat.mismatch15)]/sqrt(length(patdat.match15));
+
+
+figure
+set(gcf,'position',[100,100,1200,800])
+barweb(all_patient_meansarray,ste_patient_meansarray,[],{'3 channels';'15 channels'},['Neural confidence by Prime Type and Vocoder Channels for All Patients'],[],'Mean Confidence Rating',[],[],{'Match','Mismatch'}) ;
+legend('Match','Mismatch','location','NorthWest');
+%set(gca,'ylim',[0,1])
+
+figure
+set(gcf,'position',[100,100,1200,800])
+barweb(all_control_meansarray,ste_control_meansarray,[],{'3 channels';'15 channels'},['Neural confidence by Prime Type and Vocoder Channels for All Controls'],[],'Mean Confidence Rating',[],[],{'Match','Mismatch'}) ;
+legend('Match','Mismatch','location','NorthWest');
+%set(gca,'ylim',[0,1])
+
+%% Now simulate the univariate and multivariate results (framework validity)
+
+
+
+
+
 for this_group = unique(group)
     %IterationCounter(subject,congruency,clarity,word)
     IterationCounterMeanPerCondition = squeeze(nanmean(nanmean(IterationCounter(group==this_group,:,:,:),4),1))
+end
     XXX UP TO HERE XXX
     IterationCounterMeanPerCondition = squeeze(mean(mean(IterationCounter, 3), 5));
     IterationCounterse = se(squeeze(...
@@ -190,8 +258,8 @@ for this_group = unique(group)
         IterationCounterMeanPerCondition(2,2,:)])');
 
     % 1. plot univariate results based on iterations
-    figure;bar([IterationCounterMean(1,1), IterationCounterMean(2,1), ...
-        IterationCounterMean(1,2), IterationCounterMean(2,2)]);
+    figure;bar([IterationCounterMeanPerCondition(1,1), IterationCounterMeanPerCondition(2,1), ...
+        IterationCounterMeanPerCondition(1,2), IterationCounterMeanPerCondition(2,2)]);
     hold on; errorbar([IterationCounterMean(1,1), IterationCounterMean(2,1), ...
         IterationCounterMean(1,2), IterationCounterMean(2,2)], ...
         [IterationCounterse(1,1), IterationCounterse(1,3), ...

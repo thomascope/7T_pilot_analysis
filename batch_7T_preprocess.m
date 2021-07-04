@@ -1098,9 +1098,9 @@ rmpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/
 GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Template, first subject
 outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
 
-searchlightsecondlevel = [];
-searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
-searchlighthighressecondlevel = [];
+% searchlightsecondlevel = []; % Sampling at 2mm isotropic
+% searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
+searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
 searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 
 % %% Now do a correlation analysis with the Bayesian perceptual model parameters against selected models
@@ -1154,7 +1154,8 @@ images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_ana
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_SSMatchnoself_combined.nii'
-    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments.nii'
+%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments.nii'
+    '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments_hires.nii'
     };
 
 % search_labels = {
@@ -1230,7 +1231,8 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 %     };
 
 masks = {
-    'rwLeft_PrG_All_Shared_Segments'
+'rwLeft_PrG_All_Shared_Segments_hires'
+%'rwLeft_PrG_All_Shared_Segments'
     %'rwLeft_PrG_SSMatchnoself_combined'
     %     'rwLeft_STG_Univariate8mm_15>3'
     %     'rwLeft_STG_Univariate3mm_15>3'
@@ -1297,35 +1299,36 @@ nrun = size(subjects,2); % enter the number of runs here
 RSAroiworkedcorrectly = zeros(1,nrun);
 partialRSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
-    'rwLeft_PrG_All_Shared_Segments'
-    'rwLeft_PrG_SSMatchnoself_combined'
-    'rwLeft_STG_Univariate8mm_15>3'
-    'rwLeft_STG_Univariate3mm_15>3'
-    'rwLeft_Precentral_Univariate_Interaction_combined'
-    'rwLeft_Angular_Univariate_Interaction_combined'
-    'rwLeft_PostSTG_Univariate_Interaction'
-    'rwLeft_Precentral_Univariate_Interaction1'
-    'rwLeft_Precentral_Univariate_Interaction2'
-    'rwLeft_Precentral_Univariate_Interaction3'
-    'rwLeft_Angular_Univariate_Interaction1'
-    'rwLeft_Angular_Univariate_Interaction2'
-    'rwLeft_Frontal_Univariate_MM>M'
-    'rwLeft_Temporal_Univariate_MM>M'
-    'rwLeft_IFG_cross_group_cluster'
-    'rwBlank_2016_inflated'
-    'rwL_STG_cross-segment_cluster'
-    'rwLeft_Superior_Temporal_Gyrus'
-    'rwLeft_Angular_Gyrus'
-    'rwLeft_Precentral_Gyrus'
-    'rwLeft_Frontal_Operculum'
-    'rwLeft_Inferior_Frontal_Angular_Gyrus'
-    'rwRight_Superior_Temporal_Gyrus'
-    'rwRight_Angular_Gyrus'
-    'rwRight_Precentral_Gyrus'
-    'rwRight_Frontal_Operculum'
-    'rwRight_Inferior_Frontal_Angular_Gyrus'
-    'rwLeft_IFG_Written_Cluster'
-    'rwLeft_Precentral_Written_Cluster'
+    'rwLeft_PrG_All_Shared_Segments_hires'
+%     'rwLeft_PrG_All_Shared_Segments'
+%     'rwLeft_PrG_SSMatchnoself_combined'
+%     'rwLeft_STG_Univariate8mm_15>3'
+%     'rwLeft_STG_Univariate3mm_15>3'
+%     'rwLeft_Precentral_Univariate_Interaction_combined'
+%     'rwLeft_Angular_Univariate_Interaction_combined'
+%     'rwLeft_PostSTG_Univariate_Interaction'
+%     'rwLeft_Precentral_Univariate_Interaction1'
+%     'rwLeft_Precentral_Univariate_Interaction2'
+%     'rwLeft_Precentral_Univariate_Interaction3'
+%     'rwLeft_Angular_Univariate_Interaction1'
+%     'rwLeft_Angular_Univariate_Interaction2'
+%     'rwLeft_Frontal_Univariate_MM>M'
+%     'rwLeft_Temporal_Univariate_MM>M'
+%     'rwLeft_IFG_cross_group_cluster'
+%     'rwBlank_2016_inflated'
+%     'rwL_STG_cross-segment_cluster'
+%     'rwLeft_Superior_Temporal_Gyrus'
+%     'rwLeft_Angular_Gyrus'
+%     'rwLeft_Precentral_Gyrus'
+%     'rwLeft_Frontal_Operculum'
+%     'rwLeft_Inferior_Frontal_Angular_Gyrus'
+%     'rwRight_Superior_Temporal_Gyrus'
+%     'rwRight_Angular_Gyrus'
+%     'rwRight_Precentral_Gyrus'
+%     'rwRight_Frontal_Operculum'
+%     'rwRight_Inferior_Frontal_Angular_Gyrus'
+%     'rwLeft_IFG_Written_Cluster'
+%     'rwLeft_Precentral_Written_Cluster'
     };
 
 parfor crun = 1:nrun
@@ -1380,6 +1383,21 @@ end
 this_age = [];
 age_lookup = readtable('Pinfa_ages.csv');
 
+Regions_of_interest = {
+    'lh_bankssts'
+    'lh_transversetemporal'
+    'lh_precentral'
+    'lh_parsopercularis'
+    'lh_parstriangularis'
+    };
+skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
+if skullstripped == 1
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/'];
+elseif skullstripped == 0
+    this_subjects_dir = [preprocessedpathstem '/freesurfer/'];
+elseif skullstripped == 2
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
+end
 extract_run_date = '22-Jun-2021';
 try
     load(['./freesurfer_stats/roi_thicknesses_' extract_run_date '.mat'])
@@ -1543,7 +1561,8 @@ mask_names{1} = {
     %     'rwLeft_STG_Univariate8mm_15>3'
     'rwLeft_STG_Univariate3mm_15>3'
     'rwLeft_PrG_SSMatchnoself_combined'
-    'rwLeft_PrG_All_Shared_Segments'
+%     'rwLeft_PrG_All_Shared_Segments'
+    'rwLeft_PrG_All_Shared_Segments_hires'
     };
 
 % mask_names{2} = {
@@ -1748,7 +1767,8 @@ mask_names{1} = {
     %     'rwLeft_STG_Univariate8mm_15>3'
     'rwLeft_STG_Univariate3mm_15>3'
     'rwLeft_PrG_SSMatchnoself_combined'
-    'rwLeft_PrG_All_Shared_Segments'
+    %'rwLeft_PrG_All_Shared_Segments'
+    'rwLeft_PrG_All_Shared_Segments_hires'
     };
 
 for j = 1:length(this_model_name)

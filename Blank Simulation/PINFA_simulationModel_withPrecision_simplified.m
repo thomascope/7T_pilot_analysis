@@ -1,4 +1,5 @@
-function [posterior_match_word_Iterative, IterationCounter,residual_noise_mismatch, residual_noise_match, mismatch_feature_Accumulated, match_feature_Accumulated] = PINFA_simulationModel_withPrecision_simplified(tooptimise)
+function [posterior_match_word_Iterative, IterationCounter,residual_noise_mismatch, residual_noise_match, mismatch_feature_Accumulated, match_feature_Accumulated] ...
+    = PINFA_simulationModel_withPrecision_simplified(sigma_pred, threshold, sensory_detail)
 % An adaptation of Helen Blank's 2016 computational modelling, integrated
 % with Thomas Cope's 2017 Nature Comms Bayesian modelling, which was in
 % turn based on Ed Sohoglu's Bayesian Prediction Error modelling.
@@ -11,12 +12,12 @@ update = [ones(1,9)*0.5]; % determines how much priors are updated by prediction
 % prior category A: pm = mean [condition 1, 2, 3 etc.] ps = standard deviation, pa = area under curve
 % (simulating prior knowledge by changing area parameter)
 pm_all{1} = [-2.5 -2.5 -2.5 -2.5 -2.5 -2.5 -2.5 -2.5 -2.5]; 
-ps_all{1} = ones(1,9)*tooptimise(1); % Standard deviation of the prior could potentially be a floating variable for optimisation
+ps_all{1} = ones(1,9)*sigma_pred; % Standard deviation of the prior could potentially be a floating variable for optimisation
 pa_all{1} = [0 0 0 0 0 0 0.5 0.5 0.5]; %XXX This has changed as otherwise difficult to explain similar responses for mismatch and neutral. Given that there are an infinite number of possible words, I think it is reasonable for mismatch and neutral priors have the same sharpening effect. Possibly in future could optimise this, to reflect 'confusion' of a mismatch, but negatively related to sigma_pred so this is problematic.
 
 % prior category B
 pm_all{2} = [2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5 2.5]; %At the moment these values are arbitrary, and don't reflect in the distribution of the posterior. This is a candidate for optimisation if we want to model a neutral effect, but not implemented for now.
-ps_all{2} = ones(1,9)*tooptimise(1);
+ps_all{2} = ones(1,9)*sigma_pred;
 pa_all{2} = [0.5 0.5 0.5 0 0 0 0 0 0]; 
 
 % likelihood category A: lm = mean [condition 1, 2, 3 etc.], ls = standard deviation, la = area under curve
@@ -84,7 +85,7 @@ for i=1:length(pm_all{1})
     % store prediction error and identification of A vs B
     error_all(i) = sum(abs(PE_features{1}+PE_features{2}));
     identification_all(i) = log(prior_phonemes_updated{1})-log(prior_phonemes_updated{2});
-    raw_above_threshold(i) = (input{1}+(pa_all{1}(i)*(input{1}/(tooptimise(1)^2))))-tooptimise(2); % XXX New - AUC of sensory detail + weighting*AUC of sensory detail*Precision of prior (1/prior variance) - perceptual threshold
+    raw_above_threshold(i) = (input{1}+(pa_all{1}(i)*(input{1}/(sigma_pred^2))))-threshold; % XXX New - AUC of sensory detail + weighting*AUC of sensory detail*Precision of prior (1/prior variance) - perceptual threshold
     amount_above_threshold(i) = max(raw_above_threshold(i),0); % XXX If below perceptual threshold then zero
                     
     %plot activation levels - not necessary for optimisation and significantly slows it down
@@ -96,8 +97,8 @@ for i=1:length(pm_all{1})
 %     subplot(3,3,4); bar(1,PE_phonemes_scaled{1},'b'); hold on; bar(2,PE_phonemes_scaled{2},'r'); ylim([-1 1]); title('Prediction error','FontSize',12); set(gca,'xtick',[1:2]); set(gca,'xticklabel',{'A' 'B'}); set(gca,'FontSize',12);
 %     subplot(3,3,7); bar(1,prior_phonemes_updated_scaled{1},'b'); hold on; bar(2,prior_phonemes_updated_scaled{2},'r'); ylim([0 1]); title('Prediction (updated)','FontSize',12); set(gca,'xtick',[1:2]); set(gca,'xticklabel',{'A' 'B'}); set(gca,'FontSize',12);
 %     subplot(3,3,3); bar(1,input{1},'b'); hold on; bar(2,input{2},'r'); ylim([0 1]); title('Model input','FontSize',12); set(gca,'xtick',[1:2]); set(gca,'xticklabel',{'A' 'B'}); set(gca,'FontSize',12);
-%     subplot(3,3,6); bar(1,(input{1}+(pa_all{1}(i)*(input{1}/(tooptimise(1)^2)))),'b'); hold on; ylim([0 1]); plot([0 2],[tooptimise(2) tooptimise(2)],'r'); title('Posterior','FontSize',12); set(gca,'xtick',[]); set(gca,'xticklabel',{}); set(gca,'FontSize',12);
-%     subplot(3,3,9); bar(1,normalised_model_meansarray(i),'b'); hold on; ylim([0 4]); plot([0 2],tooptimise(2),'r'); title('Clarity Rating','FontSize',12); set(gca,'xtick',[]); set(gca,'xticklabel',{''}); set(gca,'FontSize',12);
+%     subplot(3,3,6); bar(1,(input{1}+(pa_all{1}(i)*(input{1}/(sigma_pred^2)))),'b'); hold on; ylim([0 1]); plot([0 2],[threshold threshold],'r'); title('Posterior','FontSize',12); set(gca,'xtick',[]); set(gca,'xticklabel',{}); set(gca,'FontSize',12);
+%     subplot(3,3,9); bar(1,normalised_model_meansarray(i),'b'); hold on; ylim([0 4]); plot([0 2],threshold,'r'); title('Clarity Rating','FontSize',12); set(gca,'xtick',[]); set(gca,'xticklabel',{''}); set(gca,'FontSize',12);
 
     % save figure of activation levels for current condition
     %print(['Activations_condition' num2str(i) '_Sohoglu2012'],'-depsc');
@@ -108,7 +109,7 @@ end
 %parameters = [0.355900000000000, 0.582500000000000, 0.0341400000000000, 0.407000000000000, 1.32700000000000, 0.00281000000000000]
 lowClarity = amount_above_threshold(1);
 highClarity = amount_above_threshold(3);
-prior_update_weight = (tooptimise(1)^2)/100; %Prior variance
+prior_update_weight = (sigma_pred^2)/100; %Prior variance
 STOPcriterion = 1; % From Helen Blank Sensitivity analysis
 
 %% make specifications

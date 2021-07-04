@@ -139,7 +139,9 @@ basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); 
 ];
 basemodels.shared_features = 1-basemodels.shared_features;
 
-basemodelNames = {'vowels','shared_segments','shared_segments_cross','shared_features'};
+basemodels.shared_features_cross = circshift(basemodels.shared_features,[8 0]);
+
+basemodelNames = {'vowels','shared_segments','shared_segments_cross','shared_features','shared_features_cross'};
 
 load(fullfile(cfg.results.dir,'res_other_average.mat'));
 data = results.other_average.output;
@@ -165,6 +167,10 @@ Match_Cross_decode_base = 1-eye(16);
 basemodels.shared_segments_cross_noself = basemodels.shared_segments;
 basemodels.shared_segments_cross_noself(1:17:end) = NaN;
 basemodels.shared_segments_cross_noself = circshift(basemodels.shared_segments_cross_noself,[8 0]);
+
+basemodels.shared_features_cross_noself = basemodels.shared_features;
+basemodels.shared_features_cross_noself(1:17:end) = NaN;
+basemodels.shared_features_cross_noself = circshift(basemodels.shared_features_cross_noself,[8 0]);
 
 basemodels.shared_segments(1:17:end) = NaN;
 basemodels.combined_SS = basemodels.shared_segments-basemodels.shared_segments_cross_noself;
@@ -292,6 +298,37 @@ for i = 1:size(cross_decode_label_pairs,1)
 end
 basemodels.shared_segments(1:17:end) = 0;
 
+% Next model
+models{end+1}{1} = modeltemplate;
+this_model_name{end+1}{1} = ['M to MM Shared features Cross Negative'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}{1}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = 1-basemodels.shared_features_cross_noself;
+    models{end}{1}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = 1-basemodels.shared_features_cross_noself';
+end
+
+models{end}{2} = modeltemplate;
+this_model_name{end}{2} = ['M to MM Shared features'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}{2}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_features;
+    models{end}{2}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_features';
+end
+
+% Next model
+models{end+1}{1} = modeltemplate;
+this_model_name{end+1}{1} = ['M to MM Shared features Cross Negative'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}{1}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = 1-basemodels.shared_features_cross_noself;
+    models{end}{1}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = 1-basemodels.shared_features_cross_noself';
+end
+
+basemodels.shared_features(1:17:end) = NaN;
+models{end}{2} = modeltemplate;
+this_model_name{end}{2} = ['M to MM Shared features - no self'];
+for i = 1:size(cross_decode_label_pairs,1)
+    models{end}{2}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_features;
+    models{end}{2}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_features';
+end
+basemodels.shared_features(1:17:end) = 0;
 
 % 
 % 

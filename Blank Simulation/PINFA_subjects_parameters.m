@@ -16,7 +16,7 @@ preprocessedpathstem = '/imaging/mlr/users/tc02/PINFA_preprocessed_2021/';
 % 
 % contrast_labels = {'Sum all conditions';'Match-MisMatch'; 'Clear minus Unclear'; 'Gradient difference M-MM'};
 % contrast_weights = [1, 1, 1, 1, 1, 1; -1, 1, -1, 1, -1, 1; -1, -1, 0, 0, 1, 1; -1, 1, 0, 0, 1, -1];
-conditions = {'Match 3' 'Match 16' 'Mismatch 3' 'Mismatch 16' 'Written'};
+conditions = {'Match 3' 'Match 15' 'Mismatch 3' 'Mismatch 15' 'Written'};
 
 %% Set up global variables 
 
