@@ -836,6 +836,187 @@ end
 % %     end
 % % end
 
+%% Now implement a Psychophysiological Interaction using PPPI toolbox - WIP
+addpath(genpath('./PPPI'))
+
+connectivity_ROIs = {
+    [scriptdir '/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'];
+    [scriptdir '/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'];
+    [scriptdir '/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'];
+    };
+connectivity_region_names = {
+    'STG';
+    'Precentral';
+    'IFG';
+    };
+
+nrun = size(subjects,2);
+this_dir = pwd;
+
+for this_smooth = [3,8];
+    for crun = 1:nrun
+        for this_ROI = 1:length(connectivity_ROIs)
+            P.subject=subjects{crun};
+            P.directory=[preprocessedpathstem subjects{crun} '/stats6_' num2str(this_smooth)];
+            P.VOI=connectivity_ROIs{this_ROI};
+            P.Estimate=1;
+            P.contrast=0;
+            P.extract='eig';
+            P.Tasks={'1'  'Match Unclear'  'Match Clear'  'MisMatch Unclear' 'MisMatch Clear' 'Written Trials'};
+            P.Weights=[];
+            P.analysis='psy';
+            P.method='cond';
+            P.CompContrasts=1;
+            P.Weighted=0;
+            P.Contrasts(1).left={'Match Unclear' 'Match Clear'};
+            P.Contrasts(1).right={'MisMatch Unclear' 'MisMatch Clear'};
+            P.Contrasts(1).STAT='T';
+            P.Contrasts(1).Weighted=0;
+            P.Contrasts(1).MinEvents=5;
+            P.Contrasts(1).name='Match > MisMatch';
+            P.Contrasts(2).left={'MisMatch Unclear' 'MisMatch Clear'};
+            P.Contrasts(2).right={'Match Unclear' 'Match Clear'};
+            P.Contrasts(2).STAT='T';
+            P.Contrasts(2).Weighted=0;
+            P.Contrasts(2).MinEvents=5;
+            P.Contrasts(2).name='MisMatch > Match';
+            P.Contrasts(3).left={'Match Unclear' 'Match Clear' 'MisMatch Unclear' 'MisMatch Clear'};
+            P.Contrasts(3).right={'Written Trials'};
+            P.Contrasts(3).STAT='T';
+            P.Contrasts(3).Weighted=0; 
+            P.Contrasts(3).MinEvents=5;
+            P.Contrasts(3).name='Normal > Written';
+            P.Contrasts(4).left={'Written Trials'};
+            P.Contrasts(4).right={'Match Unclear' 'Match Clear' 'MisMatch Unclear' 'MisMatch Clear'};
+            P.Contrasts(4).STAT='T';
+            P.Contrasts(4).Weighted=0;
+            P.Contrasts(4).MinEvents=5;
+            P.Contrasts(4).name='Written > Normal';
+            P.Contrasts(5).left={'Match Clear' 'MisMatch Clear'};
+            P.Contrasts(5).right={'Match Unclear' 'MisMatch Unclear'};
+            P.Contrasts(5).STAT='T';
+            P.Contrasts(5).Weighted=0;
+            P.Contrasts(5).MinEvents=5;
+            P.Contrasts(5).name='Clear > Unclear';
+            P.Contrasts(6).left={'Match Unclear' 'MisMatch Unclear'};
+            P.Contrasts(6).right={'Match Clear' 'MisMatch Clear'};
+            P.Contrasts(6).STAT='T';
+            P.Contrasts(6).Weighted=0;
+            P.Contrasts(6).MinEvents=5;
+            P.Contrasts(6).name='Unclear > Clear';
+            P.Contrasts(7).left={'Match Unclear' 'MisMatch Clear'};
+            P.Contrasts(7).right={'Match Clear' 'MisMatch Unclear'};
+            P.Contrasts(7).STAT='T';
+            P.Contrasts(7).Weighted=0;
+            P.Contrasts(7).MinEvents=5;
+            P.Contrasts(7).name='Clarity Congruency Interaction Positive';
+            P.Contrasts(8).left={'Match Clear' 'MisMatch Unclear'};
+            P.Contrasts(8).right={'Match Unclear' 'MisMatch Clear'};
+            P.Contrasts(8).STAT='T';
+            P.Contrasts(8).Weighted=0;
+            P.Contrasts(8).MinEvents=5;
+            P.Contrasts(8).name='Clarity Congruency Interaction Negative';
+            
+            output_directory = [P.directory filesep 'PPPI'];
+            if ~exist(output_directory)
+                mkdir(output_directory)
+            end
+            save([output_directory filesep connectivity_region_names{this_ROI} '.mat'],'P');  
+        end
+    end
+end
+parfor crun = 1:nrun
+    for this_ROI = 1:length(connectivity_ROIs)
+        addpath(genpath('./PPPI'))
+        PPPI([preprocessedpathstem subjects{crun} '/stats6_' num2str(this_smooth) filesep 'PPPI' filesep connectivity_region_names{this_ROI} '.mat'])
+    end
+end
+
+cd(this_dir)
+
+%% Now create a second level PPI SPM with Age as a covariate - one per condition of interest
+connectivity_ROIs = {
+    [scriptdir '/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'];
+    [scriptdir '/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'];
+    [scriptdir '/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'];
+    };
+connectivity_region_names = {
+    'STG';
+    'Precentral';
+    'IFG';
+    };
+all_conditions = {
+    'Match > MisMatch';
+    'MisMatch > Match';
+    'Normal > Written';
+    'Written > Normal';
+    'Clear > Unclear';
+    'Unclear > Clear';
+    'Clarity Congruency Interaction Positive'
+    'Clarity Congruency Interaction Negative'
+    };
+age_lookup = readtable('Pinfa_ages.csv');
+
+
+visual_check = 0;
+nrun = size(all_conditions,1); % enter the number of runs here
+
+for this_smooth = [3,8];
+    for this_ROI = 1:length(connectivity_ROIs)
+        this_scan = {};
+        this_t_scan = {};
+        firstlevel_folder = ['stats6_' num2str(this_smooth)];
+        
+        jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_secondlevel_job.m'};
+        jobs = repmat(jobfile, 1, nrun);
+        inputs = cell(4, nrun);
+        
+        for this_condition = 1:nrun
+            
+            [~, this_ROI_name, ~] = fileparts(connectivity_ROIs{this_ROI});
+            group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
+            group1_ages = [];
+            group2_mrilist = {};
+            group2_ages = [];
+            
+            inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder filesep 'PPI_' connectivity_region_names{this_ROI} filesep all_conditions{this_condition}]);
+            for crun = 1:size(subjects,2)
+                this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
+                this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep 'PPI_' this_ROI_name filesep  'con_PPI_' all_conditions{this_condition} '_' subjects{crun} '.nii']);
+                this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep 'PPI_' this_ROI_name filesep  'spmT_PPI_' all_conditions{this_condition} '_' subjects{crun} '.nii']);
+                if group(crun) == 1 % Controls
+                    group2_mrilist(end+1) = this_scan(crun);
+                    group2_ages(end+1) = this_age;
+                elseif group(crun) == 2 % Patients
+                    group1_mrilist(end+1) = this_scan(crun);
+                    group1_ages(end+1) = this_age;
+                end
+            end
+            
+            inputs{2, this_condition} = group1_mrilist';
+            inputs{3, this_condition} = group2_mrilist';
+            inputs{4, this_condition} = [group1_ages';group2_ages'];
+            if visual_check
+                spm_check_registration(this_t_scan{~cellfun(@isempty,this_t_scan)}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
+                input('Press any key to proceed to second level with these scans')
+            end
+        end
+        
+        secondlevelPPIworkedcorrectly = zeros(length(connectivity_ROIs),nrun);
+        parfor crun = 1:nrun
+            spm('defaults', 'fMRI');
+            spm_jobman('initcfg')
+            try
+                spm_jobman('run', jobs{crun}, inputs{:,crun});
+                secondlevelPPIworkedcorrectly(this_ROI,crun) = 1;
+            catch
+                secondlevelPPIworkedcorrectly(this_ROI,crun) = 0;
+            end
+        end
+    end
+end
+
+
 %% Now create a ReML SPM without modelling the written word separately for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {};
@@ -1103,26 +1284,62 @@ outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp
 searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
 searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 
-% %% Now do a correlation analysis with the Bayesian perceptual model parameters against selected models
-% model_run_date = '13-May-2021';
-% try
-%     load(['./modelparameters/modelparameters_' model_run_date '.mat'])
-% catch
-%     [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
-%     save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
-% end
-%
-% downsamp_ratio = 1;
-% age_lookup = readtable('Pinfa_ages.csv');
-%
-% Basefilepath = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2/TDTcrossnobis/spearman/weffect-map_']; %Template, first subject
-% outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'correlations' filesep 'prediction_precision' filesep]; %Results directory
-%
+%% Now do a correlation analysis with the Bayesian perceptual model parameters against selected models
+model_run_date = '13-May-2021';
+try
+    load(['./modelparameters/modelparameters_' model_run_date '.mat'])
+catch
+    [all_sigma_pred,all_thresholds,controls_sigma_pred,controls_threshold,patients_sigma_pred,patients_threshold] = module_bayesian_behaviour(subjects,group,dates);
+    save(['./modelparameters/modelparameters_' date '.mat'],'all_sigma_pred','all_thresholds','controls_sigma_pred','controls_threshold','patients_sigma_pred','patients_threshold');
+end
+
+downsamp_ratio = 1;
+age_lookup = readtable('Pinfa_ages.csv');
+
+%Basefilepath = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2/TDTcrossnobis/spearman/weffect-map_']; %Template, first subject
+GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
+outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'correlations' filesep 'prediction_precision' filesep]; %Results directory
+
+module_multivariate_all_correlations(nanmean(all_sigma_pred),GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio)
+
+% Repeat for cortical thicknesses
+Regions_of_interest = {
+    'lh_bankssts'
+    'lh_transversetemporal'
+    'lh_precentral'
+    'lh_parsopercularis'
+    'lh_parstriangularis'
+    };
+skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
+if skullstripped == 1
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/'];
+elseif skullstripped == 0
+    this_subjects_dir = [preprocessedpathstem '/freesurfer/'];
+elseif skullstripped == 2
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
+end
+extract_run_date = '22-Jun-2021';
+try
+    load(['./freesurfer_stats/roi_thicknesses_' extract_run_date '.mat'])
+catch
+    setenv('SUBJECTS_DIR',this_subjects_dir);
+    all_roi_thicknesses = module_extract_freesurfer(Regions_of_interest,subjects,group);
+    save(['./freesurfer_stats/roi_thicknesses_' date '.mat'],'all_roi_thicknesses');
+end
+
+for this_roi = 1:length(Regions_of_interest)
+    
+    outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'correlations' filesep Regions_of_interest{this_roi} filesep]; %Results directory
+    
+    module_multivariate_all_correlations(eval(['all_roi_thicknesses.' Regions_of_interest{this_roi} '_thickness']),GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio)
+    
+end
+
 % condition_names = {
 %   'M to MM Shared Segments:  Cross Negative partialling '
 %   'Match Clear to Mismatch Unclear only cross.nii'
 % };
-%
+% 
 % covariatesecondlevelworkedcorrectly = zeros(1,size(condition_names,1));
 % for crun = 1:length(condition_names)
 %     thisfilepath = [Basefilepath condition_names{crun} '.nii'];
@@ -1131,7 +1348,7 @@ searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subj
 %     % cd(deblank(thisoutpath))
 %     % pause % If you want to view the outputs.
 % end
-%
+
 % XXX WIP
 
 %% Now normalise the template space masks into native space
@@ -1383,29 +1600,29 @@ end
 this_age = [];
 age_lookup = readtable('Pinfa_ages.csv');
 
-% Regions_of_interest = {
-%     'lh_bankssts'
-%     'lh_transversetemporal'
-%     'lh_precentral'
-%     'lh_parsopercularis'
-%     'lh_parstriangularis'
-%     };
-% skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
-% if skullstripped == 1
-%     this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/'];
-% elseif skullstripped == 0
-%     this_subjects_dir = [preprocessedpathstem '/freesurfer/'];
-% elseif skullstripped == 2
-%     this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
-% end
-% extract_run_date = '22-Jun-2021';
-% try
-%     load(['./freesurfer_stats/roi_thicknesses_' extract_run_date '.mat'])
-% catch
-%     setenv('SUBJECTS_DIR',this_subjects_dir);
-%     all_roi_thicknesses = module_extract_freesurfer(Regions_of_interest,subjects,group);
-%     save(['./freesurfer_stats/roi_thicknesses_' date '.mat'],'all_roi_thicknesses');
-% end
+Regions_of_interest = {
+    'lh_bankssts'
+    'lh_transversetemporal'
+    'lh_precentral'
+    'lh_parsopercularis'
+    'lh_parstriangularis'
+    };
+skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
+if skullstripped == 1
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_skullstripped/'];
+elseif skullstripped == 0
+    this_subjects_dir = [preprocessedpathstem '/freesurfer/'];
+elseif skullstripped == 2
+    this_subjects_dir = [preprocessedpathstem '/freesurfer_masked/'];
+end
+extract_run_date = '22-Jun-2021';
+try
+    load(['./freesurfer_stats/roi_thicknesses_' extract_run_date '.mat'])
+catch
+    setenv('SUBJECTS_DIR',this_subjects_dir);
+    all_roi_thicknesses = module_extract_freesurfer(Regions_of_interest,subjects,group);
+    save(['./freesurfer_stats/roi_thicknesses_' date '.mat'],'all_roi_thicknesses');
+end
 
 for crun = 1:length(subjects)
     this_age(crun) = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
@@ -1539,7 +1756,7 @@ nrun = size(subjects,2); % enter the number of runs here
 RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 mask_names{1} = {
-    %     'rwLeft_IFG_cross_group_cluster'
+         'rwLeft_IFG_cross_group_cluster'
     %     %     'rwLeft_Superior_Temporal_Gyrus';
     %     'rwL_STG_cross-segment_cluster'
     %     'rwBlank_2016_inflated'
