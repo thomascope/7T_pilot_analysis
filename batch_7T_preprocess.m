@@ -856,11 +856,12 @@ this_dir = pwd;
 for this_smooth = [3,8];
     for crun = 1:nrun
         for this_ROI = 1:length(connectivity_ROIs)
+            clear P
             P.subject=subjects{crun};
             P.directory=[preprocessedpathstem subjects{crun} '/stats6_' num2str(this_smooth)];
             P.VOI=connectivity_ROIs{this_ROI};
             P.Estimate=1;
-            P.contrast=0;
+            %P.contrast=0; %This was a mistake - we want to correct for, e.g., movement regressors
             P.extract='eig';
             P.Tasks={'1'  'Match Unclear'  'Match Clear'  'MisMatch Unclear' 'MisMatch Clear' 'Written Trials'};
             P.Weights=[];
@@ -925,10 +926,12 @@ for this_smooth = [3,8];
         end
     end
 end
-parfor crun = 1:nrun
-    for this_ROI = 1:length(connectivity_ROIs)
-        addpath(genpath('./PPPI'))
-        PPPI([preprocessedpathstem subjects{crun} '/stats6_' num2str(this_smooth) filesep 'PPPI' filesep connectivity_region_names{this_ROI} '.mat'])
+for this_smooth = [3,8];
+    parfor crun = 1:nrun
+        for this_ROI = 1:length(connectivity_ROIs)
+            addpath(genpath('./PPPI'))
+            PPPI([preprocessedpathstem subjects{crun} '/stats6_' num2str(this_smooth) filesep 'PPPI' filesep connectivity_region_names{this_ROI} '.mat'])
+        end
     end
 end
 
@@ -1011,6 +1014,168 @@ for this_smooth = [3,8];
                 secondlevelPPIworkedcorrectly(this_ROI,crun) = 1;
             catch
                 secondlevelPPIworkedcorrectly(this_ROI,crun) = 0;
+            end
+        end
+    end
+end
+
+%% Now implement a Physiophysiological Interaction using PPPI toolbox - WIP
+
+addpath(genpath('./PPPI'))
+
+connectivity_ROIs = {
+    [scriptdir '/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'];
+    [scriptdir '/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'];
+    [scriptdir '/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'];
+    };
+connectivity_region_names = {
+    'STG';
+    'Precentral';
+    'IFG';
+    };
+
+nrun = size(subjects,2);
+this_dir = pwd;
+
+for this_smooth = [3,8];
+    for crun = 1:nrun
+        for this_ROI = 1:length(connectivity_ROIs)
+            this_other_ROI = mod(this_ROI+1,length(connectivity_ROIs));
+            if this_other_ROI==0
+                this_other_ROI = length(connectivity_ROIs);
+            end
+            clear P
+            P.subject=subjects{crun};
+            P.directory=[preprocessedpathstem subjects{crun} '/stats6_' num2str(this_smooth)];
+            P.VOI=connectivity_ROIs{this_ROI};
+            P.VOI2=connectivity_ROIs{this_other_ROI};
+            P.Estimate=1;
+            %P.contrast=0;
+            P.extract='eig';
+            %P.Tasks={'1'  'Match Unclear'  'Match Clear'  'MisMatch Unclear' 'MisMatch Clear' 'Written Trials'};
+            P.Weights=[];
+            P.analysis='phy'; %NB: Manual says phys but this is a typo
+            P.method='cond';
+            P.CompContrasts=0;
+            P.Weighted=0;
+            P.Region=[connectivity_region_names{this_ROI} ' ' connectivity_region_names{this_other_ROI}];  
+            output_directory = [P.directory filesep 'PPPI'];
+            if ~exist(output_directory)
+                mkdir(output_directory)
+            end
+            save([output_directory filesep connectivity_region_names{this_ROI} '_' connectivity_region_names{this_other_ROI} '.mat'],'P');  
+        end
+    end
+end
+
+for this_smooth = [3,8];
+    parfor crun = 1:nrun
+        for this_ROI = 1:length(connectivity_ROIs)
+            this_other_ROI = mod(this_ROI+1,length(connectivity_ROIs));
+            if this_other_ROI==0
+                this_other_ROI = length(connectivity_ROIs);
+            end
+            addpath(genpath('./PPPI'))
+            PPPI([preprocessedpathstem subjects{crun} '/stats6_' num2str(this_smooth) filesep 'PPPI' filesep connectivity_region_names{this_ROI} '_' connectivity_region_names{this_other_ROI} '.mat'])
+        end
+    end
+end
+
+%Manually specify the contrasts for each ROI plus the physphys interaction
+jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_PhysPhyscontrast_job.m'};
+jobs = repmat(jobfile, 1, nrun);
+for this_smooth = [3,8];
+    parfor crun = 1:nrun
+        spm('defaults', 'fMRI');
+        spm_jobman('initcfg')
+        for this_ROI = 1:length(connectivity_ROIs)
+            this_other_ROI = mod(this_ROI+1,length(connectivity_ROIs));
+            if this_other_ROI==0
+                this_other_ROI = length(connectivity_ROIs);
+            end
+            inputs = cell(1, 1);
+            inputs{1, 1} = cellstr([preprocessedpathstem subjects{crun} '/stats6_' num2str(this_smooth) filesep 'PPI_' connectivity_region_names{this_ROI} '_' connectivity_region_names{this_other_ROI} filesep 'SPM.mat']); % Contrast Manager: Select SPM.mat - cfg_files
+            spm_jobman('run', jobs{crun}, inputs{1,1})
+        end
+    end
+end
+
+%% Now create a second level PhysioPhysiological interaction SPM with Age as a covariate - one per ROI contrast
+connectivity_ROIs = {
+    [scriptdir '/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'];
+    [scriptdir '/atlas_Neuromorphometrics/Left_Precentral_Univariate_Interaction_combined.nii'];
+    [scriptdir '/atlas_Neuromorphometrics/Left_Frontal_Univariate_MM>M.nii'];
+    };
+connectivity_region_names = {
+    'STG';
+    'Precentral';
+    'IFG';
+    };
+all_conditions = {
+    'PPI_con';
+    'ROI_1';
+    'ROI_2';
+    'ROI_1-ROI_2';
+    'ROI_2-ROI_1';
+    };
+age_lookup = readtable('Pinfa_ages.csv');
+
+
+visual_check = 0;
+nrun = size(all_conditions,1); % enter the number of runs here
+
+for this_smooth = [3,8];
+    for this_ROI = 1:length(connectivity_ROIs)
+        this_scan = {};
+        this_t_scan = {};
+        firstlevel_folder = ['stats6_' num2str(this_smooth)];
+        
+        jobfile = {'/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/module_secondlevel_job.m'};
+        jobs = repmat(jobfile, 1, nrun);
+        inputs = cell(4, nrun);
+        
+        for this_condition = 1:nrun
+            this_other_ROI = mod(this_ROI+1,length(connectivity_ROIs));
+            if this_other_ROI==0
+                this_other_ROI = length(connectivity_ROIs);
+            end
+            group1_mrilist = {}; %NB: Patient MRIs, so here group 2 (sorry)
+            group1_ages = [];
+            group2_mrilist = {};
+            group2_ages = [];
+            
+            inputs{1, this_condition} = cellstr([preprocessedpathstem firstlevel_folder filesep 'PPI_' connectivity_region_names{this_ROI} '_' connectivity_region_names{this_other_ROI} filesep all_conditions{this_condition}]);
+            for crun = 1:size(subjects,2)
+                this_age = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
+                this_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep 'PPI_' connectivity_region_names{this_ROI} '_' connectivity_region_names{this_other_ROI} filesep 'con_' num2str(this_condition,'%0.4i') '.nii']);
+                this_t_scan(crun) = cellstr([preprocessedpathstem subjects{crun} filesep firstlevel_folder filesep 'PPI_' connectivity_region_names{this_ROI} '_' connectivity_region_names{this_other_ROI} filesep  'spmT' num2str(this_condition,'%0.4i') '.nii']);
+                if group(crun) == 1 % Controls
+                    group2_mrilist(end+1) = this_scan(crun);
+                    group2_ages(end+1) = this_age;
+                elseif group(crun) == 2 % Patients
+                    group1_mrilist(end+1) = this_scan(crun);
+                    group1_ages(end+1) = this_age;
+                end
+            end
+            
+            inputs{2, this_condition} = group1_mrilist';
+            inputs{3, this_condition} = group2_mrilist';
+            inputs{4, this_condition} = [group1_ages';group2_ages'];
+            if visual_check
+                spm_check_registration(this_t_scan{~cellfun(@isempty,this_t_scan)}) % Optional visual check of your input images (don't need to be aligned or anything, just to see they're all structurals and exist)
+                input('Press any key to proceed to second level with these scans')
+            end
+        end
+        
+        secondlevelPhysPhysworkedcorrectly = zeros(length(connectivity_ROIs),nrun);
+        parfor crun = 1:nrun
+            spm('defaults', 'fMRI');
+            spm_jobman('initcfg')
+            try
+                spm_jobman('run', jobs{crun}, inputs{:,crun});
+                secondlevelPhysPhysworkedcorrectly(this_ROI,crun) = 1;
+            catch
+                secondlevelPhysPhysworkedcorrectly(this_ROI,crun) = 0;
             end
         end
     end
