@@ -21,8 +21,10 @@ hold on
 title('Thicknesses')
 h = [];
 p = [];
+stats = {};
+output_table = table();
 for i = 1:size(all_patient_thickness_table,2)
-    [h(i),p(i)] = ttest2(all_patient_thickness_table{:,i},all_control_thickness_table{:,i});
+    [h(i),p(i),~,stats{i}] = ttest2(all_patient_thickness_table{:,i},all_control_thickness_table{:,i});
     scatter(i*ones(1,size(all_patient_thickness_table,1))-0.1,all_patient_thickness_table{:,i},'b')
     scatter(i*ones(1,size(all_control_thickness_table,1))+0.1,all_control_thickness_table{:,i},'r')
     if h(i)
@@ -34,13 +36,18 @@ for i = 1:size(all_patient_thickness_table,2)
         errorbar(i+0.1,mean(all_control_thickness_table{:,i}),std(all_control_thickness_table{:,i})/sqrt(size(all_control_thickness_table,1)),'-s','MarkerSize',10,'MarkerEdgeColor','black','MarkerFaceColor','black','LineWidth',1,'color','black')
         
     end
-    
+    output_table(end+1,:) = array2table([mean(all_patient_thickness_table{:,i}), std(all_patient_thickness_table{:,i})/sqrt(size(all_patient_thickness_table,1)), mean(all_control_thickness_table{:,i}), std(all_control_thickness_table{:,i})/sqrt(size(all_control_thickness_table,1)), stats{i}.tstat, stats{i}.df, p(i)]);
 end
+output_table.Properties.RowNames = all_patient_thickness_table.Properties.VariableNames;
+output_table.Properties.VariableNames = {'Patient_Mean','Patient_SE','Control_Mean','Control_SE','t_stat','df','p_value'};
 set(gca,'XTick',1:i)
 set(gca,'XTickLabel',all_patient_thickness_table.Properties.VariableNames,'XTickLabelRotation',90,'TickLabelInterpreter','None')
 legend({'nfvPPA','Control'})
 significant_regions_thickness = all_patient_thickness_table.Properties.VariableNames(logical(h));
+
 saveas(gcf, ['./freesurfer_stats/All_Thicknesses.pdf']);
+save(['./freesurfer_stats/Output_Table'],'output_table')
+writetable(output_table,['./freesurfer_stats/Output_Table.csv'],'WriteRowNames',true)
 
 
 %Now plot only regions of interest
