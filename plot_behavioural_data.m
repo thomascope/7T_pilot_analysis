@@ -17,10 +17,14 @@ all_rt_averages = [];
 all_rt_medians = [];
 AFCs = []; 
 running_average = [];
+control_running_average_bycond = [];
+patient_running_average_bycond = [];
+control_normalised_running_average = [];
+patient_normalised_running_average = [];
 
 for crun = 1:length(subjects)
     
-    [all_response_averages(crun,:), all_rt_averages(crun,:), all_rt_medians(crun,:), AFCs(crun,:), running_average(crun,:)] = AFC_graph_this_subject_2021(subjects{crun}, dates{crun}, graph_this);
+    [all_response_averages(crun,:), all_rt_averages(crun,:), all_rt_medians(crun,:), AFCs(crun,:), running_average(crun,:), running_average_bycond(crun,:,:), normalised_running_average(crun,:)] = AFC_graph_this_subject_2021(subjects{crun}, dates{crun}, graph_this);
     
     if nansum(nansum(all_response_averages(crun,:))) == 0 
         continue % Ignore the patient who did not press any buttons
@@ -31,12 +35,16 @@ for crun = 1:length(subjects)
         control_rt_medians(end+1,:) = all_rt_medians(crun,:);
         control_AFCs(end+1,:) = AFCs(crun,:);
         control_running_average(end+1,:) = running_average(crun,:);
+        control_running_average_bycond(end+1,:,:) = running_average_bycond(crun,:,:);
+        control_normalised_running_average(end+1,:) = normalised_running_average(crun,:);
     elseif group(crun) == 2 % Patients
         patient_response_averages(end+1,:) = all_response_averages(crun,:);
         patient_rt_averages(end+1,:) = all_rt_averages(crun,:);
         patient_rt_medians(end+1,:) = all_rt_medians(crun,:);
         patient_AFCs(end+1,:) = AFCs(crun,:);
         patient_running_average(end+1,:) = running_average(crun,:);
+        patient_running_average_bycond(end+1,:,:) = running_average_bycond(crun,:,:);
+        patient_normalised_running_average(end+1,:) = normalised_running_average(crun,:);
     end
 end
 cd('../')
@@ -105,6 +113,138 @@ suptitle('Running Average Performance')
 for i = 1:4
     text(65,predict(LM{i},66),['p=' num2str(all_model_ps(i),2) ', r2=' num2str(all_r_squareds(i),2)])
 end
+
+figure
+set(gcf,'Position',[100 100 1600 800]);
+subplot(2,1,1)
+title('5 Trial Moving Average')
+hold on
+plot(1:size(patient_normalised_running_average,2),nanmean(patient_normalised_running_average(patient_AFCs==2,:),1),'k--');
+plot(1:size(patient_normalised_running_average,2),nanmean(patient_normalised_running_average(patient_AFCs==4,:),1),'r--');
+plot(1:size(control_normalised_running_average,2),nanmean(control_normalised_running_average(control_AFCs==2,:),1),'k-');
+plot(1:size(control_normalised_running_average,2),nanmean(control_normalised_running_average(control_AFCs==4,:),1),'r-');
+legend({'Patient 2AFC','Patient 4AFC','Control 2AFC','Control 4AFC'},'location','SouthEast')
+xlabel('Trial Number')
+ylabel('Percent Correct')
+
+subplot(2,1,2)
+hold on
+LM{1} = fitlm(1:size(patient_normalised_running_average,2),nanmean(patient_normalised_running_average(patient_AFCs==2,:),1));
+all_r_squareds(1) = LM{1}.Rsquared.Ordinary;
+all_model_ps(1) = LM{1}.anova.pValue(1);
+this_reg_line = plot(LM{1});
+this_reg_line(1).MarkerEdgeColor = 'k';
+this_reg_line(1).Marker = 'none';
+this_reg_line(2).LineStyle = '--';
+this_reg_line(2).Color = 'k';
+this_reg_line(3).Color = 'k';
+this_reg_line(4).Color = 'k';
+LM{2} = fitlm(1:size(patient_normalised_running_average,2),nanmean(patient_normalised_running_average(patient_AFCs==4,:),1));
+all_r_squareds(2) = LM{2}.Rsquared.Ordinary;
+all_model_ps(2) = LM{2}.anova.pValue(1);
+this_reg_line = plot(LM{2});
+this_reg_line(1).MarkerEdgeColor = 'r';
+this_reg_line(1).Marker = 'none';
+this_reg_line(2).LineStyle = '--';
+this_reg_line(2).Color = 'r';
+this_reg_line(3).Color = 'r';
+this_reg_line(4).Color = 'r';
+LM{3} = fitlm(1:size(control_normalised_running_average,2),nanmean(control_normalised_running_average(control_AFCs==2,:),1));
+all_r_squareds(3) = LM{3}.Rsquared.Ordinary;
+all_model_ps(3) = LM{3}.anova.pValue(1);
+this_reg_line = plot(LM{3});
+this_reg_line(1).MarkerEdgeColor = 'k';
+this_reg_line(1).Marker = 'none';
+this_reg_line(2).LineStyle = '-';
+this_reg_line(2).Color = 'k';
+this_reg_line(3).Color = 'k';
+this_reg_line(4).Color = 'k';
+LM{4} = fitlm(1:size(control_normalised_running_average,2),nanmean(control_normalised_running_average(control_AFCs==4,:),1));
+all_r_squareds(4) = LM{4}.Rsquared.Ordinary;
+all_model_ps(4) = LM{4}.anova.pValue(1);
+this_reg_line = plot(LM{4});
+this_reg_line(1).MarkerEdgeColor = 'r';
+this_reg_line(1).Marker = 'none';
+this_reg_line(2).LineStyle = '-';
+this_reg_line(2).Color = 'r';
+this_reg_line(3).Color = 'r';
+this_reg_line(4).Color = 'r';
+title('Linear Model Fits')
+legend('off')
+xlabel('Trial Number')
+ylabel('Percent Correct')
+suptitle('Normalised Running Average Performance')
+for i = 1:4
+    text(65,predict(LM{i},66),['p=' num2str(all_model_ps(i),2) ', r2=' num2str(all_r_squareds(i),2)])
+end
+
+condition_order = {'Match 3','Mismatch 3','Match 15','Mismatch 15'};
+for j = 1:length(condition_order)
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    subplot(2,1,1)
+    title('5 Trial Moving Average')
+    hold on
+    plot(1:size(patient_running_average_bycond,2),nanmean(patient_running_average_bycond(patient_AFCs==2,:,j),1),'k--');
+    plot(1:size(patient_running_average_bycond,2),nanmean(patient_running_average_bycond(patient_AFCs==4,:,j),1),'r--');
+    plot(1:size(control_running_average_bycond,2),nanmean(control_running_average_bycond(control_AFCs==2,:,j),1),'k-');
+    plot(1:size(control_running_average_bycond,2),nanmean(control_running_average_bycond(control_AFCs==4,:,j),1),'r-');
+    legend({'Patient 2AFC','Patient 4AFC','Control 2AFC','Control 4AFC'},'location','SouthEast')
+    xlabel('Trial Number')
+    ylabel('Percent Correct')
+    
+    subplot(2,1,2)
+    hold on
+    LM{1} = fitlm(1:size(patient_running_average_bycond,2),nanmean(patient_running_average_bycond(patient_AFCs==2,:,j),1));
+    all_r_squareds(1) = LM{1}.Rsquared.Ordinary;
+    all_model_ps(1) = LM{1}.anova.pValue(1);
+    this_reg_line = plot(LM{1});
+    this_reg_line(1).MarkerEdgeColor = 'k';
+    this_reg_line(1).Marker = 'none';
+    this_reg_line(2).LineStyle = '--';
+    this_reg_line(2).Color = 'k';
+    this_reg_line(3).Color = 'k';
+    this_reg_line(4).Color = 'k';
+    LM{2} = fitlm(1:size(patient_running_average_bycond,2),nanmean(patient_running_average_bycond(patient_AFCs==4,:,j),1));
+    all_r_squareds(2) = LM{2}.Rsquared.Ordinary;
+    all_model_ps(2) = LM{2}.anova.pValue(1);
+    this_reg_line = plot(LM{2});
+    this_reg_line(1).MarkerEdgeColor = 'r';
+    this_reg_line(1).Marker = 'none';
+    this_reg_line(2).LineStyle = '--';
+    this_reg_line(2).Color = 'r';
+    this_reg_line(3).Color = 'r';
+    this_reg_line(4).Color = 'r';
+    LM{3} = fitlm(1:size(control_running_average_bycond,2),nanmean(control_running_average_bycond(control_AFCs==2,:,j),1));
+    all_r_squareds(3) = LM{3}.Rsquared.Ordinary;
+    all_model_ps(3) = LM{3}.anova.pValue(1);
+    this_reg_line = plot(LM{3});
+    this_reg_line(1).MarkerEdgeColor = 'k';
+    this_reg_line(1).Marker = 'none';
+    this_reg_line(2).LineStyle = '-';
+    this_reg_line(2).Color = 'k';
+    this_reg_line(3).Color = 'k';
+    this_reg_line(4).Color = 'k';
+    LM{4} = fitlm(1:size(control_running_average_bycond,2),nanmean(control_running_average_bycond(control_AFCs==4,:,j),1));
+    all_r_squareds(4) = LM{4}.Rsquared.Ordinary;
+    all_model_ps(4) = LM{4}.anova.pValue(1);
+    this_reg_line = plot(LM{4});
+    this_reg_line(1).MarkerEdgeColor = 'r';
+    this_reg_line(1).Marker = 'none';
+    this_reg_line(2).LineStyle = '-';
+    this_reg_line(2).Color = 'r';
+    this_reg_line(3).Color = 'r';
+    this_reg_line(4).Color = 'r';
+    title('Linear Model Fits')
+    legend('off')
+    xlabel('Trial Number')
+    ylabel('Percent Correct')
+    suptitle(['Running Average Performance for condition ' condition_order{j}])
+    for i = 1:4
+        text(15,predict(LM{i},15),['p=' num2str(all_model_ps(i),2) ', r2=' num2str(all_r_squareds(i),2)])
+    end
+end
+
 
 %% Now plot all individual results
 figure

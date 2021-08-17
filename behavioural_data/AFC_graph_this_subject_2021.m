@@ -1,4 +1,4 @@
-function [all_response_averages, all_rt_averages, all_rt_medians, AFCs, running_average] = AFC_graph_this_subject_2021(subject, date, graph_this)
+function [all_response_averages, all_rt_averages, all_rt_medians, AFCs, running_average, running_average_bycond, normalised_running_average] = AFC_graph_this_subject_2021(subject, date, graph_this)
 
 if ~exist('graph_this','var')
     graph_this = 0;
@@ -102,6 +102,10 @@ if nansum(all_runs_resp_corr)/length(all_runs_resp_corr) < poor_thresh
 end
 
 running_average = movmean(all_runs_resp_corr,5,'omitnan');
+running_average_bycond(:,1) = movmean(all_runs_resp_corr(response_order.this_vocoder_channels==1&response_order.this_cue_types==1),5,'omitnan');
+running_average_bycond(:,2) = movmean(all_runs_resp_corr(response_order.this_vocoder_channels==1&response_order.this_cue_types==2),5,'omitnan');
+running_average_bycond(:,3) = movmean(all_runs_resp_corr(response_order.this_vocoder_channels==2&response_order.this_cue_types==1),5,'omitnan');
+running_average_bycond(:,4) = movmean(all_runs_resp_corr(response_order.this_vocoder_channels==2&response_order.this_cue_types==2),5,'omitnan');
 
 nanpadded_runs_corr = [all_runs_resp_corr NaN(1,(size(response_order.this_vocoder_channels,2)-size(all_runs_resp_corr,2)))];
 nanpadded_runs_resps =  [all_runs_resps NaN(1,(size(response_order.this_vocoder_channels,2)-size(all_runs_resps,2)))];
@@ -128,3 +132,11 @@ else
     all_rt_medians = [nanmedian(nanpadded_runs_rts(response_order.this_vocoder_channels==1&response_order.this_cue_types==1)) nanmedian(nanpadded_runs_rts(response_order.this_vocoder_channels==1&response_order.this_cue_types==2)) nanmedian(nanpadded_runs_rts(response_order.this_vocoder_channels==1&response_order.this_cue_types==3)) nanmedian(nanpadded_runs_rts(response_order.this_vocoder_channels==2&response_order.this_cue_types==1)) nanmedian(nanpadded_runs_rts(response_order.this_vocoder_channels==2&response_order.this_cue_types==2)) nanmedian(nanpadded_runs_rts(response_order.this_vocoder_channels==2&response_order.this_cue_types==3))];
 end
 
+%Now normalise running averages for single subject difficulty of trial types
+normalised_all_runs_resp_corr = nan(size(all_runs_resp_corr));
+normalised_all_runs_resp_corr(response_order.this_vocoder_channels==1&response_order.this_cue_types==1) = all_runs_resp_corr(response_order.this_vocoder_channels==1&response_order.this_cue_types==1)/all_response_averages(1)*100;
+normalised_all_runs_resp_corr(response_order.this_vocoder_channels==1&response_order.this_cue_types==2) = all_runs_resp_corr(response_order.this_vocoder_channels==1&response_order.this_cue_types==2)/all_response_averages(2)*100;
+normalised_all_runs_resp_corr(response_order.this_vocoder_channels==2&response_order.this_cue_types==1) = all_runs_resp_corr(response_order.this_vocoder_channels==2&response_order.this_cue_types==1)/all_response_averages(4)*100;
+normalised_all_runs_resp_corr(response_order.this_vocoder_channels==2&response_order.this_cue_types==2) = all_runs_resp_corr(response_order.this_vocoder_channels==2&response_order.this_cue_types==2)/all_response_averages(5)*100;
+
+normalised_running_average = movmean(normalised_all_runs_resp_corr,5,'omitnan');
