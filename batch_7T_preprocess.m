@@ -1847,6 +1847,12 @@ this_model_name{2} = {
     'Match Clear to Mismatch Clear Cross-decode_Match'
     'Match Clear to Mismatch Clear SS_Match'
     'Match Clear to Mismatch Clear SS_Match - no self'
+    'Match Unclear to Match Clear Cross-decode_Match'
+    'Match Unclear to Match Clear SS_Match'
+    'Match Unclear to Match Clear SS_Match - no self'
+    'Mismatch Unclear to Mismatch Clear Cross-decode_Match'
+    'Mismatch Unclear to Mismatch Clear SS_Match'
+    'Mismatch Unclear to Mismatch Clear SS_Match - no self'
     'Match Unclear to Written Cross-decode_Match'
     'Match Clear to Written Cross-decode_Match'
     'Mismatch Unclear to Written Cross-decode'
@@ -1894,8 +1900,50 @@ this_model_name{6} = {
     'Match Unclear to Mismatch Clear SS_Match'
     'Match Clear to Mismatch Unclear SS_Match'
     'Match Clear to Mismatch Clear SS_Match'
-        };
+    };
 
+this_model_name{7} = {
+    'Match Unclear to Mismatch Unclear Cross-decode'
+    'Match Unclear to Mismatch Unclear Shared Segments - cross'
+    'Match Unclear to Mismatch Unclear Shared Segments - no self'
+    'Match Unclear to Mismatch Clear Cross-decode'
+    'Match Unclear to Mismatch Clear Shared Segments - cross'
+    'Match Unclear to Mismatch Clear Shared Segments - no self'
+    'Match Clear to Mismatch Unclear Cross-decode'
+    'Match Clear to Mismatch Unclear Shared Segments - cross'
+    'Match Clear to Mismatch Unclear Shared Segments - no self'
+    'Match Clear to Mismatch Clear Cross-decode'
+    'Match Clear to Mismatch Clear Shared Segments - cross'
+    'Match Clear to Mismatch Clear Shared Segments - no self'
+    'Match Unclear to Written Cross-decode_Match'
+    'Match Clear to Written Cross-decode_Match'
+    'Mismatch Unclear to Written Cross-decode'
+    'Mismatch Clear to Written Cross-decode'
+    'Match Unclear to Written SS_Match'
+    'Match Clear to Written SS_Match'
+    'Mismatch Unclear to Written Shared Segments - no self'
+    'Mismatch Clear to Written Shared Segments - no self'
+    %     'Match Unclear to Written SS_Match - no self'
+    %     'Match Clear to Written SS_Match - no self'
+    %     'Mismatch Unclear to Written SS_Match - no self'
+    %     'Mismatch Clear to Written SS_Match - no self'
+    };
+
+this_model_name{8} = {
+    'Match Unclear to Mismatch Unclear SS_Match - no self'
+    'Match Unclear to Mismatch Clear SS_Match - no self'
+    'Match Clear to Mismatch Unclear SS_Match - no self'
+    'Match Clear to Mismatch Clear SS_Match - no self'
+    'Match Unclear to Match Clear SS_Match - no self'
+    'Mismatch Unclear to Mismatch Clear SS_Match - no self'
+    'Match Unclear to Mismatch Unclear Shared Segments - no self'
+    'Match Unclear to Mismatch Clear Shared Segments - no self'
+    'Match Clear to Mismatch Unclear Shared Segments - no self'
+    'Match Clear to Mismatch Clear Shared Segments - no self'
+    'Match Unclear to Match Clear Shared Segments - no self'
+    'Mismatch Unclear to Mismatch Clear Shared Segments - no self'
+    };
+    
 
 % this_model_name{6} = {
 %     'Match Unclear to Mismatch Unclear Cross-decode'
@@ -2009,6 +2057,10 @@ for j = 1:length(this_model_name)
             hold on
             errorbar([1:length(this_model_name{j})]-0.1,nanmean(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
             errorbar([1:length(this_model_name{j})]+0.1,nanmean(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+            for m = 1:length(this_model_name{j})
+                scatter(repmat(m-0.1,1,size(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2)),squeeze(all_data(m,this_ROI,group==1&RSA_ROI_data_exist))','k')
+                scatter(repmat(m+0.1,1,size(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2)),squeeze(all_data(m,this_ROI,group==2&RSA_ROI_data_exist))','r')
+            end
             xlim([0 length(this_model_name{j})+1])
             set(gca,'xtick',[1:length(this_model_name{j})],'xticklabels',this_model_name{j},'XTickLabelRotation',45,'TickLabelInterpreter','none')
             plot([0 length(this_model_name{j})+1],[0,0],'k--')
@@ -2063,6 +2115,10 @@ for j = 1:length(this_model_name)
             hold on
             errorbar([1:length(this_model_name{j})]-0.1,nanmean(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
             errorbar([1:length(this_model_name{j})]+0.1,nanmean(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+                        for m = 1:length(this_model_name{j})
+                scatter(repmat(m-0.1,1,size(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2)),squeeze(all_corrected_data(m,this_ROI,group==1&RSA_ROI_data_exist))','k')
+                scatter(repmat(m+0.1,1,size(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2)),squeeze(all_corrected_data(m,this_ROI,group==2&RSA_ROI_data_exist))','r')
+            end
             xlim([0 length(this_model_name{j})+1])
             set(gca,'xtick',[1:length(this_model_name{j})],'xticklabels',this_model_name{j},'XTickLabelRotation',45,'TickLabelInterpreter','none')
             plot([0 length(this_model_name{j})+1],[0,0],'k--')
@@ -2372,4 +2428,6 @@ all_conditions = {
     };
 explore_univariate_contrast(subjects,preprocessedpathstem,this_smooth,all_conditions)
 
+%% Extract univariate bar graphs for plotting
+module_bar_graph_univariate
 
