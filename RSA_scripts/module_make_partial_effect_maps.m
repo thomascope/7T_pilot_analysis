@@ -2,6 +2,7 @@ function module_make_partial_effect_maps(GLMDir,downsamp_ratio)
 %For taking already calculated crossnobis distances and doing RSA
 
 redo_maps = 0; %If you want to calculate them again for some reason.
+save_design_matrices = 0; %If you want to output the design matrices for visualisation
 
 if ~exist('downsamp_ratio','var')
     downsamp_ratio = 1;
@@ -119,24 +120,24 @@ basemodels.shared_segments = 1-basemodels.shared_segments;
 
 basemodels.shared_segments_cross = circshift(basemodels.shared_segments,[8 0]); %I think this is correct, but need to 100% check the off-diagonals
 
-    basemodels.shared_features = [ % Based on Helen Blank's feature model. Similar but not identical to shared segments.
-1.0000    0.7533    0.7533    0.5067    0.5067    0.3833    0.3833    0.2600    0.5067    0.3833    0.3833    0.2600    0.2600    0.3833    0.2600    0.3833
-0.7533    1.0000    0.5067    0.7533    0.2600    0.2600    0.1367    0.1367    0.2600    0.2600    0.1367    0.1367    0.1367    0.1367    0.1367    0.1367
-0.7533    0.5067    1.0000    0.7533    0.2600    0.1367    0.2600    0.1367    0.5067    0.3833    0.3833    0.2600    0.3833    0.5067    0.5067    0.6300
-0.5067    0.7533    0.7533    1.0000    0.0133    0.0133    0.0133    0.0133    0.2600    0.2600    0.1367    0.1367    0.2600    0.2600    0.3833    0.3833
-0.5067    0.2600    0.2600    0.0133    1.0000    0.8767    0.8767    0.7533    0.6300    0.5067    0.5067    0.3833   -0.1100    0.0133   -0.1100    0.0133
-0.3833    0.2600    0.1367    0.0133    0.8767    1.0000    0.7533    0.8767    0.5067    0.6300    0.3833    0.5067   -0.1100   -0.1100   -0.1100   -0.1100
-0.3833    0.1367    0.2600    0.0133    0.8767    0.7533    1.0000    0.8767    0.6300    0.5067    0.5067    0.3833   -0.1100    0.0133   -0.1100    0.0133
-0.2600    0.1367    0.1367    0.0133    0.7533    0.8767    0.8767    1.0000    0.5067    0.6300    0.3833    0.5067   -0.1100   -0.1100   -0.1100   -0.1100
-0.5067    0.2600    0.5067    0.2600    0.6300    0.5067    0.6300    0.5067    1.0000    0.8767    0.8767    0.7533    0.1367    0.2600    0.2600    0.3833
-0.3833    0.2600    0.3833    0.2600    0.5067    0.6300    0.5067    0.6300    0.8767    1.0000    0.7533    0.8767    0.1367    0.1367    0.2600    0.2600
-0.3833    0.1367    0.3833    0.1367    0.5067    0.3833    0.5067    0.3833    0.8767    0.7533    1.0000    0.8767    0.0133    0.1367    0.1367    0.2600
-0.2600    0.1367    0.2600    0.1367    0.3833    0.5067    0.3833    0.5067    0.7533    0.8767    0.8767    1.0000    0.0133    0.0133    0.1367    0.1367
-0.2600    0.1367    0.3833    0.2600   -0.1100   -0.1100   -0.1100   -0.1100    0.1367    0.1367    0.0133    0.0133    1.0000    0.8767    0.8767    0.7533
-0.3833    0.1367    0.5067    0.2600    0.0133   -0.1100    0.0133   -0.1100    0.2600    0.1367    0.1367    0.0133    0.8767    1.0000    0.7533    0.8767
-0.2600    0.1367    0.5067    0.3833   -0.1100   -0.1100   -0.1100   -0.1100    0.2600    0.2600    0.1367    0.1367    0.8767    0.7533    1.0000    0.8767
-0.3833    0.1367    0.6300    0.3833    0.0133   -0.1100    0.0133   -0.1100    0.3833    0.2600    0.2600    0.1367    0.7533    0.8767    0.8767    1.0000
-];
+basemodels.shared_features = [ % Based on Helen Blank's feature model. Similar but not identical to shared segments.
+    1.0000    0.7533    0.7533    0.5067    0.5067    0.3833    0.3833    0.2600    0.5067    0.3833    0.3833    0.2600    0.2600    0.3833    0.2600    0.3833
+    0.7533    1.0000    0.5067    0.7533    0.2600    0.2600    0.1367    0.1367    0.2600    0.2600    0.1367    0.1367    0.1367    0.1367    0.1367    0.1367
+    0.7533    0.5067    1.0000    0.7533    0.2600    0.1367    0.2600    0.1367    0.5067    0.3833    0.3833    0.2600    0.3833    0.5067    0.5067    0.6300
+    0.5067    0.7533    0.7533    1.0000    0.0133    0.0133    0.0133    0.0133    0.2600    0.2600    0.1367    0.1367    0.2600    0.2600    0.3833    0.3833
+    0.5067    0.2600    0.2600    0.0133    1.0000    0.8767    0.8767    0.7533    0.6300    0.5067    0.5067    0.3833   -0.1100    0.0133   -0.1100    0.0133
+    0.3833    0.2600    0.1367    0.0133    0.8767    1.0000    0.7533    0.8767    0.5067    0.6300    0.3833    0.5067   -0.1100   -0.1100   -0.1100   -0.1100
+    0.3833    0.1367    0.2600    0.0133    0.8767    0.7533    1.0000    0.8767    0.6300    0.5067    0.5067    0.3833   -0.1100    0.0133   -0.1100    0.0133
+    0.2600    0.1367    0.1367    0.0133    0.7533    0.8767    0.8767    1.0000    0.5067    0.6300    0.3833    0.5067   -0.1100   -0.1100   -0.1100   -0.1100
+    0.5067    0.2600    0.5067    0.2600    0.6300    0.5067    0.6300    0.5067    1.0000    0.8767    0.8767    0.7533    0.1367    0.2600    0.2600    0.3833
+    0.3833    0.2600    0.3833    0.2600    0.5067    0.6300    0.5067    0.6300    0.8767    1.0000    0.7533    0.8767    0.1367    0.1367    0.2600    0.2600
+    0.3833    0.1367    0.3833    0.1367    0.5067    0.3833    0.5067    0.3833    0.8767    0.7533    1.0000    0.8767    0.0133    0.1367    0.1367    0.2600
+    0.2600    0.1367    0.2600    0.1367    0.3833    0.5067    0.3833    0.5067    0.7533    0.8767    0.8767    1.0000    0.0133    0.0133    0.1367    0.1367
+    0.2600    0.1367    0.3833    0.2600   -0.1100   -0.1100   -0.1100   -0.1100    0.1367    0.1367    0.0133    0.0133    1.0000    0.8767    0.8767    0.7533
+    0.3833    0.1367    0.5067    0.2600    0.0133   -0.1100    0.0133   -0.1100    0.2600    0.1367    0.1367    0.0133    0.8767    1.0000    0.7533    0.8767
+    0.2600    0.1367    0.5067    0.3833   -0.1100   -0.1100   -0.1100   -0.1100    0.2600    0.2600    0.1367    0.1367    0.8767    0.7533    1.0000    0.8767
+    0.3833    0.1367    0.6300    0.3833    0.0133   -0.1100    0.0133   -0.1100    0.3833    0.2600    0.2600    0.1367    0.7533    0.8767    0.8767    1.0000
+    ];
 basemodels.shared_features = 1-basemodels.shared_features;
 
 basemodels.shared_features_cross = circshift(basemodels.shared_features,[8 0]);
@@ -330,8 +331,8 @@ for i = 1:size(cross_decode_label_pairs,1)
 end
 basemodels.shared_features(1:17:end) = 0;
 
-% 
-% 
+%
+%
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Mismatch Unclear';
 %     'Match Clear', 'Mismatch Unclear';
@@ -343,7 +344,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     'Match Clear', 'Written';
 %     'Mismatch Unclear', 'Written';
 %     'Mismatch Clear', 'Written'};
-% 
+%
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end+1} = modeltemplate;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = MisMatch_Cross_decode_base;
@@ -354,7 +355,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     %             title(this_model_name{end})
 %     %             pause
 % end
-% 
+%
 % %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
 % %was consistently 8 elements after/before the auditory word
 % for i = 1:size(cross_decode_label_pairs,1)
@@ -367,8 +368,8 @@ basemodels.shared_features(1:17:end) = 0;
 %     %                     title(this_model_name{end})
 %     %                     pause
 % end
-% 
-% 
+%
+%
 % %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
 % %was consistently 8 elements after/before the auditory word
 % basemodels.shared_segments_cross_noself = basemodels.shared_segments;
@@ -385,7 +386,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     %                 colorbar
 %     %                 pause
 % end
-% 
+%
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Mismatch Unclear';
 %     'Match Clear', 'Mismatch Unclear';
@@ -400,7 +401,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     'Match Unclear', 'Written';
 %     'Match Clear', 'Written';
 %     };
-% 
+%
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end+1} = modeltemplate;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
@@ -411,7 +412,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     %             title(this_model_name{end})
 %     %             pause
 % end
-% 
+%
 % %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
 % %was consistently 8 elements after/before the auditory word
 % for i = 1:size(cross_decode_label_pairs,1)
@@ -424,8 +425,8 @@ basemodels.shared_features(1:17:end) = 0;
 %     %                     title(this_model_name{end})
 %     %                     pause
 % end
-% 
-% 
+%
+%
 % %Now attempt cross-condition shared segments RSA without cross decoding, recognising that the MisMatch cue
 % %was consistently 8 elements after/before the auditory word
 % basemodels.shared_segments(1:17:end) = NaN;
@@ -440,7 +441,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     %                     pause
 % end
 % basemodels.shared_segments(1:17:end) = 1;
-% 
+%
 % % Now add combined conditions
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Mismatch Unclear';
@@ -449,14 +450,14 @@ basemodels.shared_features(1:17:end) = 0;
 %     'Match Clear', 'Mismatch Clear';
 %     'Match Unclear', 'Match Clear';
 %     'Mismatch Unclear', 'Mismatch Clear';};
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['All spoken Cross-decode_Match'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = Match_Cross_decode_base;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = Match_Cross_decode_base';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['All spoken SS_Match'];
 % for i = 1:size(cross_decode_label_pairs,1)
@@ -471,7 +472,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
 % end
 % basemodels.shared_segments(1:17:end) = 0;
-% 
+%
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Written';
 %     'Match Clear', 'Written';
@@ -492,7 +493,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments';
 % end
 % basemodels.shared_segments(1:17:end) = 0;
-% 
+%
 % % Now look at Match-Mismatch written word cross decoding
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Mismatch Unclear';
@@ -500,14 +501,14 @@ basemodels.shared_features(1:17:end) = 0;
 %     'Match Unclear', 'Mismatch Clear';
 %     'Match Clear', 'Mismatch Clear';
 %     };
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Match to Mismatch Shared Segments - no self'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.shared_segments_cross_noself;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.shared_segments_cross_noself';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Match to Mismatch SS_Match - no self'];
 % basemodels.shared_segments(1:17:end) = NaN;
@@ -532,21 +533,21 @@ basemodels.shared_features(1:17:end) = 0;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.combined_SS';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Clear to Unclear only cross'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_cross';
 % end
-% 
+%
 % models{end+1} = modeltemplate;
 % this_model_name{end+1} = ['Clear to Unclear only not cross'];
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
 %     models{end}(strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered)) = basemodels.only_not_cross';
 % end
-% 
+%
 % cross_decode_label_pairs = {
 %     'Match Unclear', 'Mismatch Unclear';
 %     'Match Clear', 'Mismatch Unclear';
@@ -555,7 +556,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     'Match Unclear', 'Match Clear';
 %     'Mismatch Unclear', 'Mismatch Clear';
 %     };
-% 
+%
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end+1} = modeltemplate;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.combined_SS;
@@ -566,7 +567,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     %             title(this_model_name{end})
 %     %             pause
 % end
-% 
+%
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end+1} = modeltemplate;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_cross;
@@ -577,7 +578,7 @@ basemodels.shared_features(1:17:end) = 0;
 %     %             title(this_model_name{end})
 %     %             pause
 % end
-% 
+%
 % for i = 1:size(cross_decode_label_pairs,1)
 %     models{end+1} = modeltemplate;
 %     models{end}(strcmp(cross_decode_label_pairs{i,1},labelnames_denumbered),strcmp(cross_decode_label_pairs{i,2},labelnames_denumbered)) = basemodels.only_not_cross;
@@ -613,6 +614,38 @@ clear results % to free memory
 % set(b,'AlphaData',~isnan(models{end}{2}))
 % title(this_model_name{end}{2},'Interpreter','none')
 % colorbar
+
+if save_design_matrices
+    figure
+    set(gcf,'Position',[100 100 1600 800]);
+    set(gcf, 'PaperPositionMode', 'auto');
+    set(gcf,'color','w');
+    multivariate_matrix_dir = './multivariate_design matrices/';
+    if ~exist(multivariate_matrix_dir,'dir')
+        mkdir(multivariate_matrix_dir)
+    end
+    for m=1:length(this_model_name)
+        for i = 1:2
+            if ~all(all(isnan(models{m}{i}(1:64,1:64))))
+                b = imagesc(models{m}{i}(1:64,1:64),[floor(min(min(models{m}{i}(1:64,1:64)))) ceil(max(max(models{m}{i}(1:64,1:64))))]);
+                set(b,'AlphaData',~isnan(models{m}{i}(1:64,1:64)))
+                axis square
+                text(8.5,-1,'Match 3', 'HorizontalAlignment', 'center', 'fontweight', 'bold' )
+                text(16+8.5,-1,'Match 15', 'HorizontalAlignment', 'center', 'fontweight', 'bold' )
+                text(32+8.5,-1,'Mismatch 3', 'HorizontalAlignment', 'center', 'fontweight', 'bold' )
+                text(48+8.5,-1,'Mismatch 15', 'HorizontalAlignment', 'center', 'fontweight', 'bold' )
+                set(gca,'xtick',[0:16:64],'ytick',[0:16:64])
+                drawnow
+                saveas(gcf,[multivariate_matrix_dir 'partial_' this_model_name{m}{i} '.pdf'])
+                saveas(gcf,[multivariate_matrix_dir 'partial_' this_model_name{m}{i} '.png'])
+                colorbar
+                drawnow
+                saveas(gcf,[multivariate_matrix_dir 'partial_' this_model_name{m}{i} '_withcolorbar.pdf'])
+                saveas(gcf,[multivariate_matrix_dir 'partial_' this_model_name{m}{i} '_withcolorbar.png'])
+            end
+        end
+    end
+end
 
 for m=1:length(this_model_name) %Parallelising here impossible due to out of memory on serialisation unless data downsampled
     fprintf('\nComputing effect-map for model %s partialling out model %s\n',this_model_name{m}{1},this_model_name{m}{2});

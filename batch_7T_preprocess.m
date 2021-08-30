@@ -884,7 +884,7 @@ for this_smooth = [3,8];
             P.Contrasts(3).left={'Match Unclear' 'Match Clear' 'MisMatch Unclear' 'MisMatch Clear'};
             P.Contrasts(3).right={'Written Trials'};
             P.Contrasts(3).STAT='T';
-            P.Contrasts(3).Weighted=0; 
+            P.Contrasts(3).Weighted=0;
             P.Contrasts(3).MinEvents=5;
             P.Contrasts(3).name='Normal > Written';
             P.Contrasts(4).left={'Written Trials'};
@@ -922,7 +922,7 @@ for this_smooth = [3,8];
             if ~exist(output_directory)
                 mkdir(output_directory)
             end
-            save([output_directory filesep connectivity_region_names{this_ROI} '.mat'],'P');  
+            save([output_directory filesep connectivity_region_names{this_ROI} '.mat'],'P');
         end
     end
 end
@@ -1058,12 +1058,12 @@ for this_smooth = [3,8];
             P.method='cond';
             P.CompContrasts=0;
             P.Weighted=0;
-            P.Region=[connectivity_region_names{this_ROI} ' ' connectivity_region_names{this_other_ROI}];  
+            P.Region=[connectivity_region_names{this_ROI} ' ' connectivity_region_names{this_other_ROI}];
             output_directory = [P.directory filesep 'PPPI'];
             if ~exist(output_directory)
                 mkdir(output_directory)
             end
-            save([output_directory filesep connectivity_region_names{this_ROI} '_' connectivity_region_names{this_other_ROI} '.mat'],'P');  
+            save([output_directory filesep connectivity_region_names{this_ROI} '_' connectivity_region_names{this_other_ROI} '.mat'],'P');
         end
     end
 end
@@ -1504,7 +1504,7 @@ end
 %   'M to MM Shared Segments:  Cross Negative partialling '
 %   'Match Clear to Mismatch Unclear only cross.nii'
 % };
-% 
+%
 % covariatesecondlevelworkedcorrectly = zeros(1,size(condition_names,1));
 % for crun = 1:length(condition_names)
 %     thisfilepath = [Basefilepath condition_names{crun} '.nii'];
@@ -1536,7 +1536,7 @@ images2normalise = {%'/group/language/data/thomascope/7T_full_paradigm_pilot_ana
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate8mm_15>3.nii'
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_STG_Univariate3mm_15>3.nii'
     %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_SSMatchnoself_combined.nii'
-%     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments.nii'
+    %     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments.nii'
     '/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/atlas_Neuromorphometrics/Left_PrG_All_Shared_Segments_hires.nii'
     };
 
@@ -1613,8 +1613,8 @@ addpath(genpath('/imaging/mlr/users/tc02/toolboxes')); %Where is the RSA toolbox
 %     };
 
 masks = {
-'rwLeft_PrG_All_Shared_Segments_hires'
-%'rwLeft_PrG_All_Shared_Segments'
+    'rwLeft_PrG_All_Shared_Segments_hires'
+    %'rwLeft_PrG_All_Shared_Segments'
     %'rwLeft_PrG_SSMatchnoself_combined'
     %     'rwLeft_STG_Univariate8mm_15>3'
     %     'rwLeft_STG_Univariate3mm_15>3'
@@ -1682,35 +1682,35 @@ RSAroiworkedcorrectly = zeros(1,nrun);
 partialRSAroiworkedcorrectly = zeros(1,nrun);
 masks = {
     'rwLeft_PrG_All_Shared_Segments_hires'
-%     'rwLeft_PrG_All_Shared_Segments'
-%     'rwLeft_PrG_SSMatchnoself_combined'
-%     'rwLeft_STG_Univariate8mm_15>3'
-%     'rwLeft_STG_Univariate3mm_15>3'
-%     'rwLeft_Precentral_Univariate_Interaction_combined'
-%     'rwLeft_Angular_Univariate_Interaction_combined'
-%     'rwLeft_PostSTG_Univariate_Interaction'
-%     'rwLeft_Precentral_Univariate_Interaction1'
-%     'rwLeft_Precentral_Univariate_Interaction2'
-%     'rwLeft_Precentral_Univariate_Interaction3'
-%     'rwLeft_Angular_Univariate_Interaction1'
-%     'rwLeft_Angular_Univariate_Interaction2'
-%     'rwLeft_Frontal_Univariate_MM>M'
-%     'rwLeft_Temporal_Univariate_MM>M'
-%     'rwLeft_IFG_cross_group_cluster'
-%     'rwBlank_2016_inflated'
-%     'rwL_STG_cross-segment_cluster'
-%     'rwLeft_Superior_Temporal_Gyrus'
-%     'rwLeft_Angular_Gyrus'
-%     'rwLeft_Precentral_Gyrus'
-%     'rwLeft_Frontal_Operculum'
-%     'rwLeft_Inferior_Frontal_Angular_Gyrus'
-%     'rwRight_Superior_Temporal_Gyrus'
-%     'rwRight_Angular_Gyrus'
-%     'rwRight_Precentral_Gyrus'
-%     'rwRight_Frontal_Operculum'
-%     'rwRight_Inferior_Frontal_Angular_Gyrus'
-%     'rwLeft_IFG_Written_Cluster'
-%     'rwLeft_Precentral_Written_Cluster'
+    %     'rwLeft_PrG_All_Shared_Segments'
+    %     'rwLeft_PrG_SSMatchnoself_combined'
+    %     'rwLeft_STG_Univariate8mm_15>3'
+    %     'rwLeft_STG_Univariate3mm_15>3'
+    %     'rwLeft_Precentral_Univariate_Interaction_combined'
+    %     'rwLeft_Angular_Univariate_Interaction_combined'
+    %     'rwLeft_PostSTG_Univariate_Interaction'
+    %     'rwLeft_Precentral_Univariate_Interaction1'
+    %     'rwLeft_Precentral_Univariate_Interaction2'
+    %     'rwLeft_Precentral_Univariate_Interaction3'
+    %     'rwLeft_Angular_Univariate_Interaction1'
+    %     'rwLeft_Angular_Univariate_Interaction2'
+    %     'rwLeft_Frontal_Univariate_MM>M'
+    %     'rwLeft_Temporal_Univariate_MM>M'
+    %     'rwLeft_IFG_cross_group_cluster'
+    %     'rwBlank_2016_inflated'
+    %     'rwL_STG_cross-segment_cluster'
+    %     'rwLeft_Superior_Temporal_Gyrus'
+    %     'rwLeft_Angular_Gyrus'
+    %     'rwLeft_Precentral_Gyrus'
+    %     'rwLeft_Frontal_Operculum'
+    %     'rwLeft_Inferior_Frontal_Angular_Gyrus'
+    %     'rwRight_Superior_Temporal_Gyrus'
+    %     'rwRight_Angular_Gyrus'
+    %     'rwRight_Precentral_Gyrus'
+    %     'rwRight_Frontal_Operculum'
+    %     'rwRight_Inferior_Frontal_Angular_Gyrus'
+    %     'rwLeft_IFG_Written_Cluster'
+    %     'rwLeft_Precentral_Written_Cluster'
     };
 
 parfor crun = 1:nrun
@@ -1792,10 +1792,10 @@ end
 for crun = 1:length(subjects)
     this_age(crun) = age_lookup.Age(strcmp(age_lookup.Study_ID,subjects{crun}));
 end
-% covariates = [this_age',nanmean(all_sigma_pred)',all_roi_thicknesses{:,:}];
-% covariate_names = horzcat('Age','Prior_Precision',all_roi_thicknesses.Properties.VariableNames);
-covariates = [this_age',nanmean(all_sigma_pred)'];
-covariate_names = horzcat({'Age'},{'Prior_Precision'});
+covariates = [this_age',nanmean(all_sigma_pred)',all_roi_thicknesses{:,:}];
+covariate_names = horzcat('Age','Prior_Precision',all_roi_thicknesses.Properties.VariableNames);
+%covariates = [this_age',nanmean(all_sigma_pred)'];
+%covariate_names = horzcat({'Age'},{'Prior_Precision'});
 
 
 %Now build model space for testing
@@ -1943,7 +1943,7 @@ this_model_name{8} = {
     'Match Unclear to Match Clear Shared Segments - no self'
     'Mismatch Unclear to Mismatch Clear Shared Segments - no self'
     };
-    
+
 
 % this_model_name{6} = {
 %     'Match Unclear to Mismatch Unclear Cross-decode'
@@ -1969,7 +1969,7 @@ nrun = size(subjects,2); % enter the number of runs here
 RSA_ROI_data_exist = zeros(1,nrun);
 all_data = [];
 mask_names{1} = {
-         'rwLeft_IFG_cross_group_cluster'
+    'rwLeft_IFG_cross_group_cluster'
     %     %     'rwLeft_Superior_Temporal_Gyrus';
     %     'rwL_STG_cross-segment_cluster'
     %     'rwBlank_2016_inflated'
@@ -1986,7 +1986,7 @@ mask_names{1} = {
     %     'rwLeft_STG_Univariate8mm_15>3'
     'rwLeft_STG_Univariate3mm_15>3'
     'rwLeft_PrG_SSMatchnoself_combined'
-%     'rwLeft_PrG_All_Shared_Segments'
+    %     'rwLeft_PrG_All_Shared_Segments'
     'rwLeft_PrG_All_Shared_Segments_hires'
     };
 
@@ -2057,10 +2057,10 @@ for j = 1:length(this_model_name)
             hold on
             errorbar([1:length(this_model_name{j})]-0.1,nanmean(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
             errorbar([1:length(this_model_name{j})]+0.1,nanmean(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
-            for m = 1:length(this_model_name{j})
-                scatter(repmat(m-0.1,1,size(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2)),squeeze(all_data(m,this_ROI,group==1&RSA_ROI_data_exist))','k')
-                scatter(repmat(m+0.1,1,size(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2)),squeeze(all_data(m,this_ROI,group==2&RSA_ROI_data_exist))','r')
-            end
+            %             for m = 1:length(this_model_name{j})
+            %                 scatter(repmat(m-0.1,1,size(squeeze(all_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2)),squeeze(all_data(m,this_ROI,group==1&RSA_ROI_data_exist))','k')
+            %                 scatter(repmat(m+0.1,1,size(squeeze(all_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2)),squeeze(all_data(m,this_ROI,group==2&RSA_ROI_data_exist))','r')
+            %             end
             xlim([0 length(this_model_name{j})+1])
             set(gca,'xtick',[1:length(this_model_name{j})],'xticklabels',this_model_name{j},'XTickLabelRotation',45,'TickLabelInterpreter','none')
             plot([0 length(this_model_name{j})+1],[0,0],'k--')
@@ -2099,6 +2099,7 @@ for j = 1:length(this_model_name)
             end
             drawnow
             saveas(gcf,[outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
+            saveas(gcf,[outdir filesep mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf'])
             
             for m = 1:length(this_model_name{j})
                 [all_corrected_rho(j,k,i,m,:),all_corrected_corr_ps(j,k,i,m,:)] = corr(covariates,squeeze(all_data(m,this_ROI,:)),'rows','pairwise');
@@ -2115,10 +2116,10 @@ for j = 1:length(this_model_name)
             hold on
             errorbar([1:length(this_model_name{j})]-0.1,nanmean(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
             errorbar([1:length(this_model_name{j})]+0.1,nanmean(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
-                        for m = 1:length(this_model_name{j})
-                scatter(repmat(m-0.1,1,size(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2)),squeeze(all_corrected_data(m,this_ROI,group==1&RSA_ROI_data_exist))','k')
-                scatter(repmat(m+0.1,1,size(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2)),squeeze(all_corrected_data(m,this_ROI,group==2&RSA_ROI_data_exist))','r')
-            end
+            %                         for m = 1:length(this_model_name{j})
+            %                 scatter(repmat(m-0.1,1,size(squeeze(all_corrected_data(:,this_ROI,group==1&RSA_ROI_data_exist)),2)),squeeze(all_corrected_data(m,this_ROI,group==1&RSA_ROI_data_exist))','k')
+            %                 scatter(repmat(m+0.1,1,size(squeeze(all_corrected_data(:,this_ROI,group==2&RSA_ROI_data_exist)),2)),squeeze(all_corrected_data(m,this_ROI,group==2&RSA_ROI_data_exist))','r')
+            %             end
             xlim([0 length(this_model_name{j})+1])
             set(gca,'xtick',[1:length(this_model_name{j})],'xticklabels',this_model_name{j},'XTickLabelRotation',45,'TickLabelInterpreter','none')
             plot([0 length(this_model_name{j})+1],[0,0],'k--')
@@ -2157,8 +2158,10 @@ for j = 1:length(this_model_name)
             end
             drawnow
             saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
+            saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf'])
             
         end
+        close all
     end
 end
 
@@ -2304,8 +2307,8 @@ for j = 1:length(this_model_name)
             saveas(gcf,[outdir filesep 'Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png'])
             
             figure
-%             set(gcf,'Position',[100 100 1600 800]);
-%             set(gcf, 'PaperPositionMode', 'auto');
+            %             set(gcf,'Position',[100 100 1600 800]);
+            %             set(gcf, 'PaperPositionMode', 'auto');
             %Reorder to match behaviour
             all_subj_representations = squeeze(all_corrected_data([1,3,2,4,5],this_ROI,:))';
             barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Shared Segments in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Match 3';'MisMatch 3';'Match 15';'MisMatch 15';'Written'}) ;
@@ -2318,7 +2321,7 @@ for j = 1:length(this_model_name)
             drawnow
             saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf']);
             saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png']);
-
+            
         end
     end
 end
@@ -2429,5 +2432,5 @@ all_conditions = {
 explore_univariate_contrast(subjects,preprocessedpathstem,this_smooth,all_conditions)
 
 %% Extract univariate bar graphs for plotting
-module_bar_graph_univariate
+module_bar_graph_univariate_withwritten
 
