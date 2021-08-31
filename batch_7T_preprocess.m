@@ -2212,6 +2212,7 @@ for j = 1:length(this_model_name)
         for i = 1:length(mask_names{k})
             all_data = [];
             all_corrected_data = [];
+            all_corrected_data_nowritten = [];
             for crun = 1:nrun
                 %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
                 ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{k}{i} '/RSA/spearman'];
@@ -2239,7 +2240,8 @@ for j = 1:length(this_model_name)
             this_ROI = find(strcmp(mask_names{k}{i},roi_names));
             all_corrected_data(:,this_ROI,group==1) = es_removeBetween_rotated(all_data(:,this_ROI,group==1),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
             all_corrected_data(:,this_ROI,group==2) = es_removeBetween_rotated(all_data(:,this_ROI,group==2),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
-            
+            all_corrected_data_nowritten(:,this_ROI,group==1) = es_removeBetween_rotated(all_data(1:4,this_ROI,group==1),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
+            all_corrected_data_nowritten(:,this_ROI,group==2) = es_removeBetween_rotated(all_data(1:4,this_ROI,group==2),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
             
             
             %Fit repeated measures ANOVA
@@ -2260,10 +2262,10 @@ for j = 1:length(this_model_name)
             set(gcf,'Position',[100 100 1600 800]);
             set(gcf, 'PaperPositionMode', 'auto');
             hold on
-            errorbar([1:2]-0.05,nanmean(squeeze(all_corrected_data(1:2,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(1:2,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'k-x')
-            errorbar([1:2]-0.025,nanmean(squeeze(all_corrected_data(3:4,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(3:4,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'k--x')
-            errorbar([1:2]+0.025,nanmean(squeeze(all_corrected_data(1:2,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(1:2,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'r-x')
-            errorbar([1:2]+0.05,nanmean(squeeze(all_corrected_data(3:4,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data(3:4,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'r--x')
+            errorbar([1:2]-0.05,nanmean(squeeze(all_corrected_data_nowritten(1:2,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data_nowritten(1:2,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'k-x')
+            errorbar([1:2]-0.025,nanmean(squeeze(all_corrected_data_nowritten(3:4,this_ROI,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data_nowritten(3:4,this_ROI,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'k--x')
+            errorbar([1:2]+0.025,nanmean(squeeze(all_corrected_data_nowritten(1:2,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data_nowritten(1:2,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'r-x')
+            errorbar([1:2]+0.05,nanmean(squeeze(all_corrected_data_nowritten(3:4,this_ROI,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_corrected_data_nowritten(3:4,this_ROI,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'r--x')
             xlim([0.5 2.5]);
             %set(gca,'xtick',[1:2],'xticklabels',unique(all_clarities,'stable'))
             set(gca,'xtick',[1:2],'xticklabels',{'3 channel','15 channel'})
@@ -2322,9 +2324,129 @@ for j = 1:length(this_model_name)
             saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf']);
             saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png']);
             
+                        figure
+            %             set(gcf,'Position',[100 100 1600 800]);
+            %             set(gcf, 'PaperPositionMode', 'auto');
+            %Repeat without written to match behaviour
+            all_subj_representations_nowritten = squeeze(all_corrected_data_nowritten([1,3,2,4],this_ROI,:))';
+            barweb([mean(all_subj_representations_nowritten(group==1,:));mean(all_subj_representations_nowritten(group==2,:))],[std(all_subj_representations_nowritten(group==1,:))/sqrt(sum(group==1));std(all_subj_representations_nowritten(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Shared Segments in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Match 3';'MisMatch 3';'Match 15';'MisMatch 15'}) ;
+            ylim([(min(mean(all_subj_representations_nowritten))-4*max(std(all_subj_representations_nowritten)/sqrt(sum(group==2)))),(max(mean(all_subj_representations_nowritten))+4*max(std(all_subj_representations_nowritten)/sqrt(sum(group==2))))])
+            these_y_lims = ylim;
+            these_sigs = find(ranovatbl.pValueGG<0.05);
+            for this_sig = 1:length(these_sigs)
+                text(0.7,these_y_lims(1)+(this_sig*diff(these_y_lims/20)),[ranovatbl.Properties.RowNames{these_sigs(this_sig)} ', p = ' num2str(ranovatbl.pValueGG(these_sigs(this_sig)))], 'Color', 'r')
+            end
+            drawnow
+            saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '_nowritten.pdf']);
+            saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '_nowritten.png']);
+            
         end
     end
 end
+
+%% Re-plot the between condition effects as interactions and test with RM-ANOVAs
+outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm'];
+mkdir(outdir)
+group_names = {'Control','nfvPPA'};
+clear this_model_name mask_names
+this_model_name{2} = {
+    'Match Unclear to Mismatch Unclear SS_Match - no self'
+    'Match Unclear to Mismatch Clear SS_Match - no self'
+    'Match Clear to Mismatch Unclear SS_Match - no self'
+    'Match Clear to Mismatch Clear SS_Match - no self'
+    'Match Unclear to Match Clear SS_Match - no self'
+    'Mismatch Unclear to Mismatch Clear SS_Match - no self'
+    };
+
+mask_names{1} = {
+    %     'rwLeft_IFG_cross_group_cluster'
+    %     %     'rwLeft_Superior_Temporal_Gyrus';
+    %     'rwL_STG_cross-segment_cluster'
+    %     'rwBlank_2016_inflated'
+    'rwLeft_Frontal_Univariate_MM>M'
+    'rwLeft_Temporal_Univariate_MM>M'
+    %     'rwLeft_PostSTG_Univariate_Interaction'
+    %             'rwLeft_Precentral_Univariate_Interaction1'
+    %             'rwLeft_Precentral_Univariate_Interaction2'
+    %             'rwLeft_Precentral_Univariate_Interaction3'
+    %     'rwLeft_Angular_Univariate_Interaction1'
+    %     'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Precentral_Univariate_Interaction_combined'
+    %     'rwLeft_Angular_Univariate_Interaction_combined'
+    %     'rwLeft_STG_Univariate8mm_15>3'
+    'rwLeft_STG_Univariate3mm_15>3'
+    'rwLeft_PrG_SSMatchnoself_combined'
+    %'rwLeft_PrG_All_Shared_Segments'
+    'rwLeft_PrG_All_Shared_Segments_hires'
+    };
+
+for j = 2
+    for k = 1:length(mask_names)
+        for i = 1:length(mask_names{k})
+            all_data = [];
+            all_corrected_data = [];
+            all_corrected_data_nowritten = [];
+            for crun = 1:nrun
+                %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+                ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{k}{i} '/RSA/spearman'];
+                if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{1} '.mat']),'file')
+                    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI' mask_names{k}{i} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+                end
+                for m = 1:length(this_model_name{j})
+                    try
+                        temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{m} '.mat']));
+                        all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                        RSA_ROI_data_exist(crun) = 1;
+                    catch
+                        warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                        %error
+                        RSA_ROI_data_exist(crun) = 0;
+                        continue
+                    end
+                end
+            end
+            roi_names = temp_data.roi_names;
+            clear temp_data
+            disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
+            all_data(:,:,RSA_ROI_data_exist==0) = NaN;
+            
+            this_ROI = find(strcmp(mask_names{k}{i},roi_names));
+            all_corrected_data(:,this_ROI,group==1) = es_removeBetween_rotated(all_data(:,this_ROI,group==1),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
+            all_corrected_data(:,this_ROI,group==2) = es_removeBetween_rotated(all_data(:,this_ROI,group==2),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here            
+            
+            %Fit repeated measures ANOVA
+            RM_table = [table(group_names(group)','VariableNames',{'Diagnosis'}),array2table(squeeze(all_data(:,this_ROI,:))')];
+            factorNames = {'Condition'};
+            all_congruencies = {'1','2','3','4','5','6'};
+            withindesign = table(all_congruencies','VariableNames',factorNames);
+            rm = fitrm(RM_table,'Var1-Var6~Diagnosis','WithinDesign',withindesign);
+            ranovatbl = ranova(rm, 'WithinModel','Condition');
+            
+            these_sigs = find(ranovatbl.pValueGG<0.05);
+            for this_sig = 1:length(these_sigs)
+                text(0.7,these_y_lims(2)-(this_sig*diff(these_y_lims/40)),[ranovatbl.Properties.RowNames{these_sigs(this_sig)} ', p = ' num2str(ranovatbl.pValueGG(these_sigs(this_sig)))], 'Color', 'r')
+            end
+            
+            figure
+            %             set(gcf,'Position',[100 100 1600 800]);
+            %             set(gcf, 'PaperPositionMode', 'auto');
+            %Reorder to match behaviour
+            all_subj_representations = squeeze(all_corrected_data(:,this_ROI,:))';
+            barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Shared Segments in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Match 3 to Mismatch 3','Match 3 to Mismatch 15', 'Match 15 to Mismatch 3', 'Match 15 to Mismatch 15', 'Match 3 to Match 15', 'Mismatch 3 to Mismatch 15'});
+            ylim([(min(mean(all_subj_representations))-4*max(std(all_subj_representations)/sqrt(sum(group==2)))),(max(mean(all_subj_representations))+4*max(std(all_subj_representations)/sqrt(sum(group==2))))])
+            these_y_lims = ylim;
+            these_sigs = find(ranovatbl.pValueGG<0.05);
+            for this_sig = 1:length(these_sigs)
+                text(0.7,these_y_lims(1)+(this_sig*diff(these_y_lims/20)),[ranovatbl.Properties.RowNames{these_sigs(this_sig)} ', p = ' num2str(ranovatbl.pValueGG(these_sigs(this_sig)))], 'Color', 'r')
+            end
+            drawnow
+            saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf']);
+            saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png']);
+            
+        end
+    end
+end
+
 
 
 

@@ -628,7 +628,7 @@ if save_design_matrices
         for i = 1:2
             if ~all(all(isnan(models{m}{i}(1:64,1:64))))
                 b = imagesc(models{m}{i}(1:64,1:64),[floor(min(min(models{m}{i}(1:64,1:64)))) ceil(max(max(models{m}{i}(1:64,1:64))))]);
-                set(b,'AlphaData',~isnan(models{m}{i}(1:64,1:64)))
+                set(b,'AlphaData',~isnan(models{m}{i}(1:64,1:64)+diag(NaN(1,64))));
                 axis square
                 text(8.5,-1,'Match 3', 'HorizontalAlignment', 'center', 'fontweight', 'bold' )
                 text(16+8.5,-1,'Match 15', 'HorizontalAlignment', 'center', 'fontweight', 'bold' )

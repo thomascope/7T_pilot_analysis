@@ -660,7 +660,7 @@ if save_design_matrices
     for m=1:length(this_model_name)
         if ~all(all(isnan(models{m}(1:64,1:64))))
             b = imagesc(models{m}(1:64,1:64),[floor(min(min(models{m}(1:64,1:64)))) ceil(max(max(models{m}(1:64,1:64))))]);
-            set(b,'AlphaData',~isnan(models{m}(1:64,1:64)))
+            set(b,'AlphaData',~isnan(models{m}(1:64,1:64)+diag(NaN(1,64)))) %Ensure diagonal is NaN because it is ignored by Mahalanobis distance
             axis square
             text(8.5,-1,'Match 3', 'HorizontalAlignment', 'center', 'fontweight', 'bold' )
             text(16+8.5,-1,'Match 15', 'HorizontalAlignment', 'center', 'fontweight', 'bold' )
