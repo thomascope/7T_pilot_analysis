@@ -48,9 +48,9 @@ for i=1:numel(dat)
     end
     XYZ        = double(inv(mat)*[V';ones(1,size(V,1))]);
     
-    disp(['Sampling volume from mesh at a distance of ' num2str(sampling_distance) 'mm. This can take some time'])
+    disp(['Sampling volume from mesh at a distance of ' num2str(sampling_distance) ' voxels. This can take some time'])
 
-    all_data_locations = dat(i).XYZ(1:3,~isnan(dat(i).t));
+    all_data_locations = dat(i).XYZ(1:3,~isnan(dat(i).t)&dat(i).t~=0);
     for this_loc = 1:size(XYZ,2)
         if mod(this_loc,100) == 1
             disp(['Sampling vertex ' num2str(this_loc) ' of ' num2str(size(XYZ,2))])

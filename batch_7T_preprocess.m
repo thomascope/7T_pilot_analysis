@@ -2166,6 +2166,8 @@ for j = 1:length(this_model_name)
 end
 
 %% Re-plot the simple within condition effects as simple interactions and test with RM-ANOVAs
+nrun = size(subjects,2); % enter the number of runs here
+addpath('./plotting')
 outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm'];
 mkdir(outdir)
 group_names = {'Control','nfvPPA'};
@@ -2205,6 +2207,11 @@ mask_names{1} = {
     'rwLeft_PrG_SSMatchnoself_combined'
     %'rwLeft_PrG_All_Shared_Segments'
     'rwLeft_PrG_All_Shared_Segments_hires'
+    };
+mask_names{2} = {
+            'rwLeft_Angular_Univariate_Interaction1'
+        'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Angular_Univariate_Interaction_combined'
     };
 
 for j = 1:length(this_model_name)
@@ -2345,6 +2352,8 @@ for j = 1:length(this_model_name)
 end
 
 %% Re-plot the between condition effects as interactions and test with RM-ANOVAs
+nrun = size(subjects,2); % enter the number of runs here
+addpath('./plotting')
 outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm'];
 mkdir(outdir)
 group_names = {'Control','nfvPPA'};
@@ -2378,6 +2387,11 @@ mask_names{1} = {
     'rwLeft_PrG_SSMatchnoself_combined'
     %'rwLeft_PrG_All_Shared_Segments'
     'rwLeft_PrG_All_Shared_Segments_hires'
+    };
+mask_names{2} = {
+            'rwLeft_Angular_Univariate_Interaction1'
+        'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Angular_Univariate_Interaction_combined'
     };
 
 for j = 2
