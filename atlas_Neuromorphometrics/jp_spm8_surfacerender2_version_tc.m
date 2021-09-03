@@ -105,6 +105,11 @@ if ~isfield(cfg, 'rendfile') || isempty(cfg.rendfile)
   cfg.rendfile = fullfile(spm('dir'), 'canonical', 'cortex_20484.surf.gii');
 end
 
+% if ~isfield(cfg, 'sampling_distance') || isempty(cfg.sampling_distance)
+%   cfg.sampling_distance = 8; %Essentially an inflation factor for when meshes and volumes don't overlap - plot the maximum value within this distance of a vertex. TEC addition.
+% end
+
+
 % get the surface file to render on
 rend = export(gifti(cfg.rendfile),'patch');
 
@@ -273,8 +278,11 @@ end
 
 %-Project data onto surface mesh
 %--------------------------------------------------------------------------
-v = spm_mesh_project_jp(rend, dat);  % jp modification - show both positive and negative
-
+if ~isfield(cfg, 'sampling_distance') || isempty(cfg.sampling_distance)
+    v = spm_mesh_project_jp(rend, dat);  % jp modification - show both positive and negative
+else
+    v = spm_mesh_project_tc(rend, dat, cfg.sampling_distance);  % tc modification - When mesh is lower resolution than overlay image this can be problematic, now displays largest value within a Euclidean distance. Can be slow for high resolution images
+end
 %-Compute mesh curvature texture
 %--------------------------------------------------------------------------
 curv = spm_mesh_curvature(rend) > 0;
@@ -339,7 +347,7 @@ hp = patch(rend, 'Parent',ax,...
 view(ax,myview);
 axis(ax,'image');
 
-l = camlight; set(l,'Parent',ax);
+l = camlight('left'); set(l,'Parent',ax);
 material(Fgraph,'dull');
 setappdata(ax,'camlight',l);
 
@@ -372,8 +380,13 @@ end
 
 %-Project data onto surface mesh
 %--------------------------------------------------------------------------
-v = spm_mesh_project_jp(rend, dat);  % jp modification - show both positive and negative
-v2 = spm_mesh_project_jp(rend, dat2);
+if ~isfield(cfg, 'sampling_distance') || isempty(cfg.sampling_distance)
+    v = spm_mesh_project_jp(rend, dat);  % jp modification - show both positive and negative
+    v2 = spm_mesh_project_jp(rend, dat2);
+else
+    v = spm_mesh_project_tc(rend, dat, cfg.sampling_distance);  % tc modification - When mesh is lower resolution than overlay image this can be problematic, now displays largest value within a Euclidean distance. Can be slow for high resolution images
+    v2 = spm_mesh_project_tc(rend, dat2, cfg.sampling_distance);
+end
 
 %-Compute mesh curvature texture
 %--------------------------------------------------------------------------
@@ -451,7 +464,7 @@ hp = patch(rend, 'Parent',ax,...
 view(ax,myview);
 axis(ax,'image');
 
-l = camlight; set(l,'Parent',ax);
+l = camlight('left'); set(l,'Parent',ax);
 material(Fgraph,'dull');
 setappdata(ax,'camlight',l);
 
