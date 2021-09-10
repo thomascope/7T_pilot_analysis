@@ -1989,6 +1989,11 @@ mask_names{1} = {
     %     'rwLeft_PrG_All_Shared_Segments'
     'rwLeft_PrG_All_Shared_Segments_hires'
     };
+mask_names{2} = {
+            'rwLeft_Angular_Univariate_Interaction1'
+        'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Angular_Univariate_Interaction_combined'
+    };
 
 % mask_names{2} = {
 %     %'rwL_STG_cross-segment_cluster'
@@ -2264,6 +2269,8 @@ for j = 1:length(this_model_name)
             withindesign = table(all_congruencies',all_clarities','VariableNames',factorNames);
             rm = fitrm(RM_table,[strrep(this_model_name{j}{1},' ','_') '-' strrep(this_model_name{j}{4},' ','_') '~Diagnosis'],'WithinDesign',withindesign);
             ranovatbl = ranova(rm, 'WithinModel','Congruency*Clarity');
+            save([outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j)],'ranovatbl')
+            writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
             
             figure
             set(gcf,'Position',[100 100 1600 800]);
@@ -2435,6 +2442,8 @@ for j = 2
             withindesign = table(all_congruencies','VariableNames',factorNames);
             rm = fitrm(RM_table,'Var1-Var6~Diagnosis','WithinDesign',withindesign);
             ranovatbl = ranova(rm, 'WithinModel','Condition');
+            save([outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j)],'ranovatbl')
+            writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
             
             these_sigs = find(ranovatbl.pValueGG<0.05);
             for this_sig = 1:length(these_sigs)
