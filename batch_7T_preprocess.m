@@ -2487,6 +2487,16 @@ this_model_name{4} = {
     'Match to Mismatch only cross'
     'Match to Mismatch only not cross';
     };
+this_model_name{5} = {
+    'Mismatch Unclear to Mismatch Clear only cross'
+    'Mismatch Unclear to Mismatch Clear only not cross';
+    'Match Unclear to Match Clear only cross'
+    'Match Unclear to Match Clear only not cross';
+    'Match Unclear to Mismatch Clear only cross'
+    'Match Unclear to Mismatch Clear only not cross';
+    'Match Clear to Mismatch Unclear only cross'
+    'Match Clear to Mismatch Unclear only not cross';
+    };
 mask_names = {};
 mask_names{1} = {
          'rwLeft_IFG_cross_group_cluster'
@@ -2509,13 +2519,16 @@ mask_names{1} = {
     %'rwLeft_PrG_All_Shared_Segments'
     'rwLeft_PrG_All_Shared_Segments_hires'
     };
-% mask_names{2} = {
-%             'rwLeft_Angular_Univariate_Interaction1'
-%         'rwLeft_Angular_Univariate_Interaction2'
-%     'rwLeft_Angular_Univariate_Interaction_combined'
-%     };
+mask_names{2} = {
+            'rwLeft_Angular_Univariate_Interaction1'
+        'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Angular_Univariate_Interaction_combined'
+    };
+mask_names{3} = {
+'rwBlank_2016_inflated'
+    };
 
-for j = 3:4
+for j = 3:5
     for k = 1:length(mask_names)
         for i = 1:length(mask_names{k})
             all_data = [];
@@ -2551,10 +2564,20 @@ for j = 3:4
             
             %Fit repeated measures ANOVA
             RM_table = [table(group_names(group)','VariableNames',{'Diagnosis'}),array2table(squeeze(all_data(:,this_ROI,:))')];
-            factorNames = {'Condition'};
+            
+            if j == 5
+                factorNames = {'Combination','Condition'};
+                all_congruencies = {'1','1','2','2','3','3','4','4'};
+                all_conditions = {'1','2','1','2','1','2','1','2'};
+                withindesign = table(all_congruencies',all_conditions','VariableNames',factorNames);
+                rm = fitrm(RM_table,'Var1-Var8~Diagnosis','WithinDesign',withindesign);
+            else
+                factorNames = {'Condition'};
             all_congruencies = {'1','2'};
             withindesign = table(all_congruencies','VariableNames',factorNames);
             rm = fitrm(RM_table,'Var1-Var2~Diagnosis','WithinDesign',withindesign);
+            end
+    
             ranovatbl = ranova(rm, 'WithinModel','Condition');
             save([outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j)],'ranovatbl')
             writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
@@ -2573,6 +2596,8 @@ for j = 3:4
             if j == 3
             barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Partial Correlations in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Prediction Error','Phonology'});
             elseif j == 4
+                barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Sparse comparisons in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Prediction Error','Phonology'});
+            elseif j == 5
                 barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Sparse comparisons in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Prediction Error','Phonology'});
             end
             ylim([(min(mean(all_subj_representations))-4*max(std(all_subj_representations)/sqrt(sum(group==2)))),(max(mean(all_subj_representations))+4*max(std(all_subj_representations)/sqrt(sum(group==2))))])
