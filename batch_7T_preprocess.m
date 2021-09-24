@@ -383,6 +383,7 @@ Regions_of_interest = {
     'lh_precentral'
     'lh_parsopercularis'
     'lh_parstriangularis'
+    'lh_superiorparietal'
     };
 skullstripped = 2; %Use segmentation with imfilled SPM segmentation to mask the raw image - works best.
 if skullstripped == 1
@@ -2444,6 +2445,7 @@ for j = 2
             ranovatbl = ranova(rm, 'WithinModel','Condition');
             save([outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j)],'ranovatbl')
             writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
+           writetable(RM_table,[outdir filesep 'rm_anova_data_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
             
             these_sigs = find(ranovatbl.pValueGG<0.05);
             for this_sig = 1:length(these_sigs)

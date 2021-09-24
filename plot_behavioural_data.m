@@ -24,7 +24,7 @@ patient_normalised_running_average = [];
 
 for crun = 1:length(subjects)
     
-    [all_response_averages(crun,:), all_rt_averages(crun,:), all_rt_medians(crun,:), AFCs(crun,:), running_average(crun,:), running_average_bycond(crun,:,:), normalised_running_average(crun,:)] = AFC_graph_this_subject_2021(subjects{crun}, dates{crun}, graph_this);
+    [all_response_averages(crun,:), all_rt_averages(crun,:), all_rt_medians(crun,:), AFCs(crun,:), running_average(crun,:), running_average_bycond(crun,:,:), normalised_running_average(crun,:), response_order(crun)] = AFC_graph_this_subject_2021(subjects{crun}, dates{crun}, graph_this);
     
     if nansum(nansum(all_response_averages(crun,:))) == 0 
         continue % Ignore the patient who did not press any buttons
@@ -245,6 +245,15 @@ for j = 1:length(condition_order)
     end
 end
 
+%Linear mixed effects model
+crun = 1;
+lme_table = table(crun*ones(size(running_average,2),1),group(crun)*ones(size(running_average,2),1),AFCs(crun)*ones(size(running_average,2),1),response_order(crun).this_cue_types',response_order(crun).this_vocoder_channels',[1:size(running_average,2)]',running_average(crun,:)','VariableNames',{'Subject','Diagnosis','AFCs','Congruency','Clarity','Trial','Running_Average'});
+
+for crun = 2:length(subjects)
+    this_subj_table = table(crun*ones(size(running_average,2),1),group(crun)*ones(size(running_average,2),1),AFCs(crun)*ones(size(running_average,2),1),response_order(crun).this_cue_types',response_order(crun).this_vocoder_channels',[1:size(running_average,2)]',running_average(crun,:)','VariableNames',{'Subject','Diagnosis','AFCs','Congruency','Clarity','Trial','Running_Average'});
+    lme_table = [lme_table;this_subj_table];
+end
+lme = fitlme(lme_table,'Running_Average ~ Diagnosis+AFCs+Congruency+Clarity+Clarity:Congruency+Trial+(Trial|Subject)');
 
 %% Now plot all individual results
 figure
@@ -267,6 +276,14 @@ title('Percent Correct')
 set(gca,'XTick',[0:1:6])
 set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
 
+RM_table = [table(group',AFCs,'VariableNames',{'Diagnosis','AFCs'}),array2table(all_response_averages(:,[1:2,4:5]))];
+factorNames = {'Congruency','Clarity'};
+all_congruencies = {'Match','Mismatch','Match','Mismatch'};
+all_clarities = {'3','3','15','15'};
+withindesign = table(all_congruencies',all_clarities','VariableNames',factorNames);
+rm = fitrm(RM_table,'Var1-Var4~Diagnosis+AFCs','WithinDesign',withindesign);
+accuracy_ranovatbl = ranova(rm, 'WithinModel','Congruency*Clarity');
+
 subplot(3,1,2)
 hold on
 for this_x = 1:size(patient_response_averages,2)
@@ -281,6 +298,14 @@ xlim([0 6])
 title('Mean RT')
 set(gca,'XTick',[0:1:6])
 set(gca,'XTickLabel',{'','Match 3','Mismatch 3','','Match 15','Mismatch 15',''},'XTickLabelRotation',15)
+
+RM_table = [table(group',AFCs,'VariableNames',{'Diagnosis','AFCs'}),array2table(all_rt_averages(:,[1:2,4:5]))];
+factorNames = {'Congruency','Clarity'};
+all_congruencies = {'Match','Mismatch','Match','Mismatch'};
+all_clarities = {'3','3','15','15'};
+withindesign = table(all_congruencies',all_clarities','VariableNames',factorNames);
+rm = fitrm(RM_table,'Var1-Var4~Diagnosis+AFCs','WithinDesign',withindesign);
+rt_ranovatbl = ranova(rm, 'WithinModel','Congruency*Clarity');
 
 subplot(3,1,3)
 hold on
@@ -397,5 +422,9 @@ xlim([0 6])
 title('Median RT Difference')
 set(gca,'XTick',[0:1:6])
 set(gca,'XTickLabel',{'','Match 15-3','Mismatch 15-3','','Match-Mismatch 3','Match-Mismatch 15',''},'XTickLabelRotation',15)
+
+saveas(gcf,'Inscanner_Behavioural_Effects.png')
+saveas(gcf,'Inscanner_Behavioural_Effects.pdf')
+
 
 

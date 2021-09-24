@@ -1,4 +1,4 @@
-function [all_response_averages, all_rt_averages, all_rt_medians, AFCs, running_average, running_average_bycond, normalised_running_average] = AFC_graph_this_subject_2021(subject, date, graph_this)
+function [all_response_averages, all_rt_averages, all_rt_medians, AFCs, running_average, running_average_bycond, normalised_running_average, response_order] = AFC_graph_this_subject_2021(subject, date, graph_this)
 
 if ~exist('graph_this','var')
     graph_this = 0;

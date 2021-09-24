@@ -6,6 +6,10 @@ function jp_spm8_surfacerender2_version_tc(img, cmap, cfg, img2, cmap2)
 % lateral views.
 % (I tried but was unable to get it to render medial views.)
 %TEC edits: To allow both symmetricity and thresholding at a given SNR
+%TEC further edits: cfg.sampling_distance - To allow pdist2 sampling, for
+% when voxel image is higher resolution than the mesh
+%TEC further edits: cfg.overwrite - If specify two images, overlap im2 onto
+%im1 as a mask
 %JP_SPM8_SURFACERENDER2 render some data on cortical surfaces.
 %
 % JP_SPM8_SURFACERENDER2(IMG) renders the data from IMG onto surfaces. If
@@ -448,7 +452,11 @@ end
 %     end
 % end
 
-cdat = repmat(~any(v,1)&~any(v2,1),3,1)' .* curv + repmat(any(v,1),3,1)'.* cdat + repmat(any(v2,1),3,1)' .* cdat2;
+if ~cfg.overwrite
+    cdat = repmat(~any(v,1)&~any(v2,1),3,1)' .* curv + repmat(any(v,1),3,1)'.* cdat + repmat(any(v2,1),3,1)' .* cdat2;
+else %Only display image 2 if it overlaps with image 1
+    cdat = repmat(~any(v,1)&~any(v2,1),3,1)' .* curv + repmat(any(v,1)&~any(v2,1),3,1)'.* cdat + repmat(any(v2,1),3,1)' .* cdat2;
+end
 
 %-Display the surface mesh with texture
 %--------------------------------------------------------------------------
