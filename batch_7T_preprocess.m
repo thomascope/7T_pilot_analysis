@@ -2472,69 +2472,185 @@ for j = 2
     end
 end
 
-
-
-
-
-%% Now compare across ROI for each condition - WORK IN PROGRESS
-GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
-temp = load([GLMDir filesep 'SPM.mat']);
-labelnames = {};
-for i = 1:length(temp.SPM.Sess(1).U)
-    if ~strncmp(temp.SPM.Sess(1).U(i).name,{'Match','Mismatch','Written'},5)
-        continue
-    else
-        labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
-    end
-end
-labelnames_denumbered = {};
-for i = 1:length(labelnames)
-    labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
-end
-conditionnames = unique(labelnames_denumbered,'stable');
-
-clear temp labelnames_denumbered labelnames
-
+%% Re-plot the prediction error effects as interactions and test with RM-ANOVAs
 nrun = size(subjects,2); % enter the number of runs here
-% First load in the similarities
-RSA_ROI_data_exist = zeros(1,nrun);
-all_data = [];
-for crun = 1:nrun
-    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
-    for m = 1:length(conditionnames)
-        try
-            temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' conditionnames{m} '.mat']));
-            all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
-            RSA_ROI_data_exist(crun) = 1;
-        catch
-            warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
-            RSA_ROI_data_exist(crun) = 0;
-            continue
+addpath('./plotting')
+outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm'];
+mkdir(outdir)
+group_names = {'Control','nfvPPA'};
+clear this_model_name mask_names
+this_model_name{3} = {
+    'M to MM Shared Segments:  Cross Negative partialling '
+    'M to MM Shared Segments:  partialling  Cross Negative';
+    };
+this_model_name{4} = {
+    'Match to Mismatch only cross'
+    'Match to Mismatch only not cross';
+    };
+mask_names = {};
+mask_names{1} = {
+         'rwLeft_IFG_cross_group_cluster'
+    %     %     'rwLeft_Superior_Temporal_Gyrus';
+    %     'rwL_STG_cross-segment_cluster'
+    %     'rwBlank_2016_inflated'
+    'rwLeft_Frontal_Univariate_MM>M'
+    'rwLeft_Temporal_Univariate_MM>M'
+    %     'rwLeft_PostSTG_Univariate_Interaction'
+    %             'rwLeft_Precentral_Univariate_Interaction1'
+    %             'rwLeft_Precentral_Univariate_Interaction2'
+    %             'rwLeft_Precentral_Univariate_Interaction3'
+    %     'rwLeft_Angular_Univariate_Interaction1'
+    %     'rwLeft_Angular_Univariate_Interaction2'
+    'rwLeft_Precentral_Univariate_Interaction_combined'
+    %     'rwLeft_Angular_Univariate_Interaction_combined'
+    %     'rwLeft_STG_Univariate8mm_15>3'
+    'rwLeft_STG_Univariate3mm_15>3'
+    'rwLeft_PrG_SSMatchnoself_combined'
+    %'rwLeft_PrG_All_Shared_Segments'
+    'rwLeft_PrG_All_Shared_Segments_hires'
+    };
+% mask_names{2} = {
+%             'rwLeft_Angular_Univariate_Interaction1'
+%         'rwLeft_Angular_Univariate_Interaction2'
+%     'rwLeft_Angular_Univariate_Interaction_combined'
+%     };
+
+for j = 3:4
+    for k = 1:length(mask_names)
+        for i = 1:length(mask_names{k})
+            all_data = [];
+            all_corrected_data = [];
+            all_corrected_data_nowritten = [];
+            for crun = 1:nrun
+                %ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+                ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/' mask_names{k}{i} '/RSA/spearman'];
+                if ~exist(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{1} '.mat']),'file')
+                    ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI' mask_names{k}{i} '/RSA/spearman']; % Stupid coding error earlier in analysis led to misnamed directories
+                end
+                for m = 1:length(this_model_name{j})
+                    try
+                        temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' this_model_name{j}{m} '.mat']));
+                        all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+                        RSA_ROI_data_exist(crun) = 1;
+                    catch
+                        warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+                        %error
+                        RSA_ROI_data_exist(crun) = 0;
+                        continue
+                    end
+                end
+            end
+            roi_names = temp_data.roi_names;
+            clear temp_data
+            disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
+            all_data(:,:,RSA_ROI_data_exist==0) = NaN;
+            
+            this_ROI = find(strcmp(mask_names{k}{i},roi_names));
+            all_corrected_data(:,this_ROI,group==1) = es_removeBetween_rotated(all_data(:,this_ROI,group==1),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here
+            all_corrected_data(:,this_ROI,group==2) = es_removeBetween_rotated(all_data(:,this_ROI,group==2),[3,1,2]); %Subjects, conditions, measures columns = 3,1,2 here            
+            
+            %Fit repeated measures ANOVA
+            RM_table = [table(group_names(group)','VariableNames',{'Diagnosis'}),array2table(squeeze(all_data(:,this_ROI,:))')];
+            factorNames = {'Condition'};
+            all_congruencies = {'1','2'};
+            withindesign = table(all_congruencies','VariableNames',factorNames);
+            rm = fitrm(RM_table,'Var1-Var2~Diagnosis','WithinDesign',withindesign);
+            ranovatbl = ranova(rm, 'WithinModel','Condition');
+            save([outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j)],'ranovatbl')
+            writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
+           writetable(RM_table,[outdir filesep 'rm_anova_data_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
+            
+            these_sigs = find(ranovatbl.pValueGG<0.05);
+            for this_sig = 1:length(these_sigs)
+                text(0.7,these_y_lims(2)-(this_sig*diff(these_y_lims/40)),[ranovatbl.Properties.RowNames{these_sigs(this_sig)} ', p = ' num2str(ranovatbl.pValueGG(these_sigs(this_sig)))], 'Color', 'r')
+            end
+            
+            figure
+            %             set(gcf,'Position',[100 100 1600 800]);
+            %             set(gcf, 'PaperPositionMode', 'auto');
+            %Reorder to match behaviour
+            all_subj_representations = squeeze(all_corrected_data(:,this_ROI,:))';
+            if j == 3
+            barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Partial Correlations in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Prediction Error','Phonology'});
+            elseif j == 4
+                barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Sparse comparisons in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Prediction Error','Phonology'});
+            end
+            ylim([(min(mean(all_subj_representations))-4*max(std(all_subj_representations)/sqrt(sum(group==2)))),(max(mean(all_subj_representations))+4*max(std(all_subj_representations)/sqrt(sum(group==2))))])
+            these_y_lims = ylim;
+            these_sigs = find(ranovatbl.pValueGG<0.05);
+            for this_sig = 1:length(these_sigs)
+                text(0.7,these_y_lims(1)+(this_sig*diff(these_y_lims/20)),[ranovatbl.Properties.RowNames{these_sigs(this_sig)} ', p = ' num2str(ranovatbl.pValueGG(these_sigs(this_sig)))], 'Color', 'r')
+            end
+            drawnow
+            saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf']);
+            saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png']);
+            
         end
     end
 end
-roi_names = temp_data.roi_names;
-clear temp_data
-disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
-all_data(:,:,RSA_ROI_data_exist==0) = NaN;
-
-addpath('./plotting')
-for m = 1:length(conditionnames)
-    figure
-    set(gcf,'Position',[100 100 1600 800]);
-    set(gcf, 'PaperPositionMode', 'auto');
-    hold on
-    %violin(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist))','x',[1:length(roi_names)]-0.1)
-    errorbar([1:length(roi_names)]-0.1,nanmean(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
-    errorbar([1:length(roi_names)]+0.1,nanmean(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
-    %violin(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist))','x',[1:length(roi_names)]+0.1)
-    xlim([0 length(roi_names)+1])
-    set(gca,'xtick',[1:length(roi_names)],'xticklabels',roi_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
-    data_bounds = [min(min(squeeze(all_data(m,:,:)))), max(max(squeeze(all_data(m,:,:))))];
-    %ylim([data_bounds(1) - (diff(data_bounds)/10) data_bounds(2) + (diff(data_bounds)/6)])
-    plot([0 length(roi_names)+1],[0,0],'k--')
-    title(conditionnames{m},'Interpreter','none')
-end
+% 
+% 
+% 
+% 
+% %% Now compare across ROI for each condition - WORK IN PROGRESS
+% GLMDir = [preprocessedpathstem subjects{1} '/stats4_multi_3_nowritten2']; %Template, first subject
+% temp = load([GLMDir filesep 'SPM.mat']);
+% labelnames = {};
+% for i = 1:length(temp.SPM.Sess(1).U)
+%     if ~strncmp(temp.SPM.Sess(1).U(i).name,{'Match','Mismatch','Written'},5)
+%         continue
+%     else
+%         labelnames(end+1) = temp.SPM.Sess(1).U(i).name;
+%     end
+% end
+% labelnames_denumbered = {};
+% for i = 1:length(labelnames)
+%     labelnames_denumbered{i} = labelnames{i}(isletter(labelnames{i})|isspace(labelnames{i}));
+% end
+% conditionnames = unique(labelnames_denumbered,'stable');
+% 
+% clear temp labelnames_denumbered labelnames
+% 
+% nrun = size(subjects,2); % enter the number of runs here
+% % First load in the similarities
+% RSA_ROI_data_exist = zeros(1,nrun);
+% all_data = [];
+% for crun = 1:nrun
+%     ROI_RSA_dir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2/TDTcrossnobis_ROI/RSA/spearman']; %Where are the results>
+%     for m = 1:length(conditionnames)
+%         try
+%             temp_data = load(fullfile(ROI_RSA_dir,['roi_effects_' conditionnames{m} '.mat']));
+%             all_data(m,:,crun) = temp_data.roi_effect; %Create a matrix of condition by ROI by subject
+%             RSA_ROI_data_exist(crun) = 1;
+%         catch
+%             warning(['No data for ' subjects{crun} ' probably because of SPM dropout, ignoring them'])
+%             RSA_ROI_data_exist(crun) = 0;
+%             continue
+%         end
+%     end
+% end
+% roi_names = temp_data.roi_names;
+% clear temp_data
+% disp(['Excluding subjects ' num2str(find(RSA_ROI_data_exist==0)) ' belonging to groups ' num2str(group(RSA_ROI_data_exist==0)) ' maybe check them'])
+% all_data(:,:,RSA_ROI_data_exist==0) = NaN;
+% 
+% addpath('./plotting')
+% for m = 1:length(conditionnames)
+%     figure
+%     set(gcf,'Position',[100 100 1600 800]);
+%     set(gcf, 'PaperPositionMode', 'auto');
+%     hold on
+%     %violin(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist))','x',[1:length(roi_names)]-0.1)
+%     errorbar([1:length(roi_names)]-0.1,nanmean(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(m,:,group==1&RSA_ROI_data_exist))')/sqrt(sum(group==1&RSA_ROI_data_exist)),'kx')
+%     errorbar([1:length(roi_names)]+0.1,nanmean(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist)),2),nanstd(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist))')/sqrt(sum(group==2&RSA_ROI_data_exist)),'rx')
+%     %violin(squeeze(all_data(m,:,group==2&RSA_ROI_data_exist))','x',[1:length(roi_names)]+0.1)
+%     xlim([0 length(roi_names)+1])
+%     set(gca,'xtick',[1:length(roi_names)],'xticklabels',roi_names,'XTickLabelRotation',45,'TickLabelInterpreter','none')
+%     data_bounds = [min(min(squeeze(all_data(m,:,:)))), max(max(squeeze(all_data(m,:,:))))];
+%     %ylim([data_bounds(1) - (diff(data_bounds)/10) data_bounds(2) + (diff(data_bounds)/6)])
+%     plot([0 length(roi_names)+1],[0,0],'k--')
+%     title(conditionnames{m},'Interpreter','none')
+% end
 
 %% Analyse in scanner behaviour
 graph_individuals = 0;
