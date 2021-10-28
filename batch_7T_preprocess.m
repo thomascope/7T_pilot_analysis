@@ -1186,8 +1186,8 @@ end
 %% Now create a ReML SPM without modelling the written word separately for future multivariate analysis (currently only implemented for 3 or 4 runs) - Native space (s3r)
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {};
-jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_lowthresh_job.m']};
-jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_lowthresh_job.m']};
+jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_job.m']};
+jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_job.m']};
 inputs = cell(0, nrun);
 
 for crun = 1:nrun
@@ -1197,9 +1197,9 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats5_multi_3_nowritten2_midthresh']);
+    inputs{1, crun} = cellstr([outpath 'stats4_multi_3_nowritten_coreg']);
     for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3topup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Note removed reslice, so coreged
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         for cond_num = 1:80
             inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
@@ -1232,8 +1232,8 @@ end
 
 nrun = size(subjects,2); % enter the number of runs here
 jobfile = {};
-jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_lowthresh_job.m']};
-jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_lowthresh_job.m']};
+jobfile{3} = {[scriptdir 'module_univariate_3runs_noabsent_job.m']};
+jobfile{4} = {[scriptdir 'module_univariate_4runs_noabsent_job.m']};
 inputs = cell(0, nrun);
 
 for crun = 1:nrun
@@ -1243,7 +1243,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats5_multi_8_nowritten2']);
+    inputs{1, crun} = cellstr([outpath 'stats4_multi_8_nowritten_coreg']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
