@@ -90,11 +90,12 @@ else
 end
 
 secondlevelworkedcorrectly = zeros(1,nrun);
+myWrapper = @(x) exist(x, 'file');
 
 parfor crun = 1:nrun
     if exist(fullfile(char(inputs{1, crun}),'SPM.mat'),'file')
         disp([fullfile(char(inputs{1, crun}),'SPM.mat') ' already exists, delete it if you want to re-make, otherwise moving on.'])
-    elseif ~all(cellfun(@exist,inputs{2, crun})) || ~all(cellfun(@exist,inputs{3, crun}))
+    elseif ~all(cellfun(myWrapper,inputs{2, crun})) || ~all(cellfun(myWrapper,inputs{3, crun}))
         disp(['Missing input files for ' char(inputs{1, crun}) ' moving on'])
     else
         spm('defaults', 'fMRI');

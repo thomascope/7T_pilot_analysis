@@ -162,8 +162,51 @@ end
 %     error('failed at realign');
 % end
 
-%% Now reslice all the images
+%% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
 
+coregisterworkedcorrectly = zeros(1,nrun);
+
+parfor crun = 1:nrun
+    job = struct
+    job.eoptions.cost_fun = 'nmi'
+    job.eoptions.tol = [repmat(0.02,1,3), repmat(0.01,1,6), repmat(0.001,1,3)];
+    job.eoptions.sep = [4 2];
+    job.eoptions.fwhm = [7 7];
+    
+    outpath = [preprocessedpathstem subjects{crun} '/'];
+    job.ref = {[outpath 'structural.nii,1']};
+    theseepis = find(strncmp(blocksout{crun},'Run',3));
+    job.source = {[outpath 'meantopup_' blocksin{crun}{theseepis(1)} ',1']};
+    
+    filestocoregister = cell(1,length(theseepis));
+    filestocoregister_list = [];
+    for i = 1:length(theseepis)
+        filestocoregister{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+        filestocoregister_list = [filestocoregister_list; filestocoregister{i}]
+    end
+    filestocoregister = cellstr(filestocoregister_list);
+    
+    job.other = filestocoregister
+    
+    try
+        spm_run_coreg(job)
+        
+        % Now co-register reslice the mean EPI
+        P = char(job.ref{:},job.source{:});
+        spm_reslice(P)
+        
+        coregisterworkedcorrectly(crun) = 1;
+    catch
+        coregisterworkedcorrectly(crun) = 0;
+    end
+end
+
+if ~all(coregisterworkedcorrectly)
+    error('failed at coregister');
+end
+
+%% Now reslice all the images
+backup_old = 1;
 resliceworkedcorrectly = zeros(1,nrun);
 parfor crun = 1:nrun
     theseepis = find(strncmp(blocksout{crun},'Run',3))
@@ -171,6 +214,9 @@ parfor crun = 1:nrun
     outpath = [preprocessedpathstem subjects{crun} '/'];
     for i = 1:length(theseepis)
         filestorealign{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
+        if backup_old == 1
+            movefile([outpath 'rtopup_' blocksin{crun}{theseepis(i)}],[outpath 'old_rtopup_' blocksin{crun}{theseepis(i)}]);
+        end
     end
     flags = struct
     flags.which = 2;
@@ -223,50 +269,6 @@ end
 if ~all(smoothworkedcorrectly)
     error('failed at native space smooth');
 end
-
-%% Now co-register estimate, using structural as reference, mean as source and epi as others, then reslice only the mean
-
-coregisterworkedcorrectly = zeros(1,nrun);
-
-parfor crun = 1:nrun
-    job = struct
-    job.eoptions.cost_fun = 'nmi'
-    job.eoptions.tol = [repmat(0.02,1,3), repmat(0.01,1,6), repmat(0.001,1,3)];
-    job.eoptions.sep = [4 2];
-    job.eoptions.fwhm = [7 7];
-    
-    outpath = [preprocessedpathstem subjects{crun} '/'];
-    job.ref = {[outpath 'structural.nii,1']};
-    theseepis = find(strncmp(blocksout{crun},'Run',3));
-    job.source = {[outpath 'meantopup_' blocksin{crun}{theseepis(1)} ',1']};
-    
-    filestocoregister = cell(1,length(theseepis));
-    filestocoregister_list = [];
-    for i = 1:length(theseepis)
-        filestocoregister{i} = spm_select('ExtFPList',outpath,['^topup_' blocksin{crun}{theseepis(i)}],1:minvols(crun));
-        filestocoregister_list = [filestocoregister_list; filestocoregister{i}]
-    end
-    filestocoregister = cellstr(filestocoregister_list);
-    
-    job.other = filestocoregister
-    
-    try
-        spm_run_coreg(job)
-        
-        % Now co-register reslice the mean EPI
-        P = char(job.ref{:},job.source{:});
-        spm_reslice(P)
-        
-        coregisterworkedcorrectly(crun) = 1;
-    catch
-        coregisterworkedcorrectly(crun) = 0;
-    end
-end
-
-if ~all(coregisterworkedcorrectly)
-    error('failed at coregister');
-end
-
 
 %% Now do cat12 normalisation of the structural to create deformation fields (works better than SPM segment deformation fields, which sometimes produce too-small brains)
 
@@ -1199,7 +1201,7 @@ for crun = 1:nrun
     
     inputs{1, crun} = cellstr([outpath 'stats4_multi_3_nowritten_coreg']);
     for sess = 1:length(theseepis)
-        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3topup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Note removed reslice, so coreged
+        filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Note removed reslice, so coreged
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
         for cond_num = 1:80
             inputs{(99*(sess-1))+2+cond_num, crun} = cat(2, tempDesign{sess}{cond_num})';
@@ -1340,10 +1342,10 @@ end
 %% Now run the cross validated Mahalanobis distance and RSM on each subject on the whole brain downsampled at 2 (quick)
 nrun = size(subjects,2); % enter the number of runs here
 mahalanobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
     try
         TDTCrossnobisAnalysis_1Subj(GLMDir,downsamp_ratio)
         mahalanobisworkedcorrectly(crun) = 1;
@@ -1368,7 +1370,7 @@ if run_not_downsampled
             parpool(Poolinfo,Poolinfo.NumWorkers);
         end
         addpath(genpath('./RSA_scripts'))
-        GLMDir = [preprocessedpathstem subjects{crun} '/stats5_multi_3_nowritten2'];
+        GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
         try
             TDTCrossnobisAnalysis_parallelsearch(GLMDir)
             mahalanobisparallelworkedcorrectly(crun) = 1;
@@ -1393,10 +1395,10 @@ end
 %% Do an RSA analysis separately if you want (already integrated into previous step for vowels, but now can compare new models etc without repeating the time consuming cross-nobis)
 nrun = size(subjects,2); % enter the number of runs here
 RSAnobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
     try
         module_make_effect_maps(GLMDir,downsamp_ratio)
         RSAnobisworkedcorrectly(crun) = 1;
@@ -1408,10 +1410,10 @@ end
 %% Do a partial-correlation based RSA analysis to tease apart the written and spoken word representations
 nrun = size(subjects,2); % enter the number of runs here
 partialRSAnobisworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
     try
         module_make_partial_effect_maps(GLMDir,downsamp_ratio)
         partialRSAnobisworkedcorrectly(crun) = 1;
@@ -1423,10 +1425,10 @@ end
 %% Now normalise the native space RSA maps into template space with CAT12 deformation fields calculated earlier
 nrun = size(subjects,2); % enter the number of runs here
 native2templateworkedcorrectly = zeros(1,nrun);
-downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
     outpath = [preprocessedpathstem subjects{crun} '/'];
     try
         module_nativemap_2_template(GLMDir,downsamp_ratio,outpath)
@@ -1439,11 +1441,11 @@ end
 %% Now do a second level analysis on the searchlights
 crun = 1;
 age_lookup = readtable('Pinfa_ages.csv');
-downsamp_ratio = 1; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 rmpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI') %Stops SPM getting defaults for second level if on path
 
-GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Template, first subject
-outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
+GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg']; %Template, first subject
+outpath = [preprocessedpathstem '/stats4_multi_3_nowritten_coreg/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
 
 % searchlightsecondlevel = []; % Sampling at 2mm isotropic
 % searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
