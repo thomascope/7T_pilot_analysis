@@ -29,7 +29,7 @@ if opennewanalysispool == 1
     
     %Open a parallel pool
     if numel(gcp('nocreate')) == 0
-        Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00 --exclude=node-i[01-15]');
+        Poolinfo = cbupool(workersrequested,'--mem-per-cpu=12G --time=167:00:00');
         parpool(Poolinfo,Poolinfo.NumWorkers);
     end
 end
@@ -1199,7 +1199,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats4_multi_3_nowritten_coreg']);
+    inputs{1, crun} = cellstr([outpath 'stats4_multi_3_nowritten2']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s3rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun)); %Note removed reslice, so coreged
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -1245,7 +1245,7 @@ for crun = 1:nrun
     
     tempDesign = module_get_complex_event_times_nowritten_AFC4(subjects{crun},dates{crun},length(theseepis),minvols(crun));
     
-    inputs{1, crun} = cellstr([outpath 'stats4_multi_8_nowritten_coreg']);
+    inputs{1, crun} = cellstr([outpath 'stats4_multi_8_nowritten2']);
     for sess = 1:length(theseepis)
         filestoanalyse{sess} = spm_select('ExtFPList',outpath,['^s8rtopup_' blocksin{crun}{theseepis(sess)}],1:minvols(crun));
         inputs{(99*(sess-1))+2, crun} = cellstr(filestoanalyse{sess});
@@ -1345,7 +1345,7 @@ mahalanobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     try
         TDTCrossnobisAnalysis_1Subj(GLMDir,downsamp_ratio)
         mahalanobisworkedcorrectly(crun) = 1;
@@ -1370,7 +1370,7 @@ if run_not_downsampled
             parpool(Poolinfo,Poolinfo.NumWorkers);
         end
         addpath(genpath('./RSA_scripts'))
-        GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
+        GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
         try
             TDTCrossnobisAnalysis_parallelsearch(GLMDir)
             mahalanobisparallelworkedcorrectly(crun) = 1;
@@ -1398,7 +1398,7 @@ RSAnobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     try
         module_make_effect_maps(GLMDir,downsamp_ratio)
         RSAnobisworkedcorrectly(crun) = 1;
@@ -1413,7 +1413,7 @@ partialRSAnobisworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     try
         module_make_partial_effect_maps(GLMDir,downsamp_ratio)
         partialRSAnobisworkedcorrectly(crun) = 1;
@@ -1428,7 +1428,7 @@ native2templateworkedcorrectly = zeros(1,nrun);
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
-    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg'];
+    GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2'];
     outpath = [preprocessedpathstem subjects{crun} '/'];
     try
         module_nativemap_2_template(GLMDir,downsamp_ratio,outpath)
@@ -1444,13 +1444,54 @@ age_lookup = readtable('Pinfa_ages.csv');
 downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
 rmpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI') %Stops SPM getting defaults for second level if on path
 
-GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten_coreg']; %Template, first subject
-outpath = [preprocessedpathstem '/stats4_multi_3_nowritten_coreg/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
+GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Template, first subject
+outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
 
 % searchlightsecondlevel = []; % Sampling at 2mm isotropic
 % searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
 searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
 searchlighthighressecondlevel = module_searchlight_secondlevel_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
+
+%% Now do a second level analysis of the interaction between expectations and sensory detail expected based on previous work
+crun = 1;
+age_lookup = readtable('Pinfa_ages.csv');
+downsamp_ratio = 2; %Downsampling in each dimension, must be an integer, 2 is 8 times faster than 1 (2 cubed).
+rmpath('/group/language/data/thomascope/7T_full_paradigm_pilot_analysis_scripts/RSA_scripts/es_scripts_fMRI') %Stops SPM getting defaults for second level if on path
+
+GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Template, first subject
+outpath = [preprocessedpathstem '/stats4_multi_3_nowritten2/searchlight/downsamp_' num2str(downsamp_ratio) filesep 'second_level']; %Results directory
+
+clear conds_top conds_bottom
+% First classic Davis interaction
+conds_top{1} = {
+    'Match Unclear shared_segments'
+    'Mismatch Clear shared_segments'
+    };
+
+conds_bottom{1} = {
+    'Mismatch Unclear shared_segments'
+    'Match Clear shared_segments'
+    };
+
+cond_names{1} = 'M3+MM15-MM3+M15';
+
+% Here new interaction accounting for consistent mismatch -> phonology
+% decodable in all except fully verified predicton
+conds_top{2} = {
+    'Match Unclear shared_segments'
+    'Mismatch Unclear shared_segments'
+    'Mismatch Clear shared_segments'
+    };
+
+conds_bottom{2} = {
+    'Match Clear shared_segments'
+    };
+cond_names{2} = 'M3+MM3+MM15-M15';
+
+% searchlightsecondlevel = []; % Sampling at 2mm isotropic
+% searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
+searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
+searchlighthighressecondlevel = module_searchlight_interaction_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio,conds_top,conds_bottom,cond_names);
 
 %% Now do a correlation analysis with the Bayesian perceptual model parameters against selected models
 model_run_date = '13-May-2021';
