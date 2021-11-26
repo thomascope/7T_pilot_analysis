@@ -404,6 +404,19 @@ catch
     save(['./freesurfer_stats/roi_thicknesses_' date '.mat'],'all_roi_thicknesses');
 end
 
+%% Now calculate Bayes factors for difference and null in each ROI
+
+addpath('./bayesFactor-master');
+installBayesFactor;
+
+for this_ROI = 1:length(all_roi_thicknesses.Properties.VariableNames)
+    [bf10,p] = bf.ttest2(all_roi_thicknesses{strncmp(all_roi_thicknesses.Properties.RowNames,'P7P',3),this_ROI},all_roi_thicknesses{strncmp(all_roi_thicknesses.Properties.RowNames,'P7C',3),this_ROI});
+    disp(['Bayes Factor for atrophy in ' all_roi_thicknesses.Properties.VariableNames{this_ROI} ' is ' num2str(bf10) ' compared to traditional p-value of ' num2str(p)])
+    [bf10,p] = bf.ttest2(all_roi_thicknesses{strncmp(all_roi_thicknesses.Properties.RowNames,'P7P',3),this_ROI},all_roi_thicknesses{strncmp(all_roi_thicknesses.Properties.RowNames,'P7C',3),this_ROI},'tail','left');
+    disp(['Bayes Factor for no atrophy in the same region ' num2str(1/bf10)])
+end
+    
+
 %% Now normalise write for visualisation and smooth at 3 and 8
 nrun = size(subjects,2); % enter the number of runs here
 %jobfile = {'/group/language/data/thomascope/vespa/SPM12version/Standalone preprocessing pipeline/tc_source/batch_forwardmodel_job_noheadpoints.m'};
@@ -1488,10 +1501,49 @@ conds_bottom{2} = {
     };
 cond_names{2} = 'M3+MM3+MM15-M15';
 
+% Now specifying written dissimilarity
+conds_top{3} = {
+    'Match Unclear shared_segments'
+    'Mismatch Clear shared_segments_mismatch'
+    };
+
+conds_bottom{3} = {
+    'Mismatch Unclear shared_segments_mismatch'
+    'Match Clear shared_segments'
+    };
+
+cond_names{3} = 'Written_M3+MM15-MM3+M15';
+
+conds_top{4} = {
+    'Match Unclear shared_segments'
+    'Mismatch Unclear shared_segments_mismatch'
+    'Mismatch Clear shared_segments_mismatch'
+    };
+
+conds_bottom{4} = {
+    'Match Clear shared_segments'
+    };
+cond_names{4} = 'Written_M3+MM3+MM15-M15';
+
+% Now testing Mismatch 3 as having lowest representational quality, as per
+% model combination of sensory detail and prediction error
+
+conds_top{5} = {
+    'Match Unclear shared_segments'
+    'Match Clear shared_segments'
+    'Mismatch Clear shared_segments_mismatch'
+    };
+
+conds_bottom{5} = {
+        'Mismatch Unclear shared_segments_mismatch'
+    };
+cond_names{5} = 'Written_M3+M15+MM15-MM3';
+
+
 % searchlightsecondlevel = []; % Sampling at 2mm isotropic
 % searchlightsecondlevel = module_searchlight_secondlevel(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio);
-searchlighthighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
-searchlighthighressecondlevel = module_searchlight_interaction_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio,conds_top,conds_bottom,cond_names);
+interactionhighressecondlevel = []; % Sampling at 1mm isotropic - preferable for REML
+interactionhighressecondlevel = module_searchlight_interaction_hires(GLMDir,subjects,group,age_lookup,outpath,downsamp_ratio,conds_top,conds_bottom,cond_names);
 
 %% Now do a correlation analysis with the Bayesian perceptual model parameters against selected models
 model_run_date = '13-May-2021';

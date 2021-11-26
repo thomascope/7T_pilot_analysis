@@ -1,5 +1,8 @@
 function all_roi_thicknesses = module_extract_freesurfer(Regions_of_interest,subjects,group)
 
+addpath('./bayesFactor-master');
+installBayesFactor;
+
 all_subj_names = strcat(subjects{:},' ');
 all_subj_names = strrep(all_subj_names,'P7',' P7');
 cmd = ['aparcstats2table --subjects' all_subj_names ' --hemi lh --meas thickness --tablefile ./freesurfer_stats/all_subj_thicknesses'];
@@ -21,6 +24,8 @@ hold on
 title('Thicknesses')
 h = [];
 p = [];
+bf10 = [];
+bf01 = [];
 stats = {};
 output_table = table();
 for i = 1:size(all_patient_thickness_table,2)
@@ -36,10 +41,15 @@ for i = 1:size(all_patient_thickness_table,2)
         errorbar(i+0.1,mean(all_control_thickness_table{:,i}),std(all_control_thickness_table{:,i})/sqrt(size(all_control_thickness_table,1)),'-s','MarkerSize',10,'MarkerEdgeColor','black','MarkerFaceColor','black','LineWidth',1,'color','black')
         
     end
-    output_table(end+1,:) = array2table([mean(all_patient_thickness_table{:,i}), std(all_patient_thickness_table{:,i})/sqrt(size(all_patient_thickness_table,1)), mean(all_control_thickness_table{:,i}), std(all_control_thickness_table{:,i})/sqrt(size(all_control_thickness_table,1)), stats{i}.tstat, stats{i}.df, p(i)]);
+        
+    [bf10(i),~] = bf.ttest2(all_patient_thickness_table{:,i},all_control_thickness_table{:,i}); % Test for difference in either direction
+    [bf10_temp,~] = bf.ttest2(all_patient_thickness_table{:,i},all_control_thickness_table{:,i},'tail','left'); % Test only for atrophy
+    bf01(i) = 1/bf10_temp;
+    
+    output_table(end+1,:) = array2table([mean(all_patient_thickness_table{:,i}), std(all_patient_thickness_table{:,i})/sqrt(size(all_patient_thickness_table,1)), mean(all_control_thickness_table{:,i}), std(all_control_thickness_table{:,i})/sqrt(size(all_control_thickness_table,1)), stats{i}.tstat, stats{i}.df, p(i), bf10(i), bf01(i)]);
 end
 output_table.Properties.RowNames = all_patient_thickness_table.Properties.VariableNames;
-output_table.Properties.VariableNames = {'Patient_Mean','Patient_SE','Control_Mean','Control_SE','t_stat','df','p_value'};
+output_table.Properties.VariableNames = {'Patient_Mean','Patient_SE','Control_Mean','Control_SE','t_stat','df','p_value','BF10','BF01'};
 set(gca,'XTick',1:i)
 set(gca,'XTickLabel',all_patient_thickness_table.Properties.VariableNames,'XTickLabelRotation',90,'TickLabelInterpreter','None')
 legend({'nfvPPA','Control'})
