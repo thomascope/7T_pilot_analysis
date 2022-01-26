@@ -1823,7 +1823,7 @@ parfor crun = 1:nrun
     addpath(genpath('./RSA_scripts'))
     GLMDir = [preprocessedpathstem subjects{crun} '/stats4_multi_3_nowritten2']; %Where is the SPM model?
     try
-        module_make_partial_roi_RSA(GLMDir,masks)
+        module_partial_roi_RSA(GLMDir,masks)
         partialRSAroiworkedcorrectly(crun) = 1;
     catch
         partialRSAroiworkedcorrectly(crun) = 0;
