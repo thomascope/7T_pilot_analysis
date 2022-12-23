@@ -198,41 +198,41 @@ try
         end
     end
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%-Execute user-specified defaults files
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-def = defaults;
-user_defaults = 'spm_my_defaults.m';
-if exist(user_defaults,'file')
-    if isdeployed && exist(fullfile(spm('Dir'),user_defaults),'file')
-        user_defaults_file = cellstr(fullfile(spm('Dir'),user_defaults));
-    else
-        user_defaults_file = cellstr(which(user_defaults,'-ALL'));
-    end
-    for i=1:numel(user_defaults_file)
-        try
-            spm('run', user_defaults_file{i});
-        catch
-            lr = lasterror;
-            warning(lr.message);
-        end
-    end
-    if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
-    else my_isequaln = @isequalwithequalnans; end
-    if ~my_isequaln(def,defaults)
-        fprintf('Defaults settings have been modified by file(s):\n');
-        for i=1:numel(user_defaults_file)
-            fprintf('  %s\n',user_defaults_file{i});
-        end
-        fn0 = fieldnames(def);
-        mf = fn0(~cellfun(@(x) my_isequaln(def.(x),defaults.(x)),fn0));
-        if ~isempty(mf)
-            fprintf('Modified fields: ');
-            for i=1:numel(mf)
-                fprintf('%s ',mf{i});
-            end
-            fprintf('\n');
-        end
-    end
-end
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %-Execute user-specified defaults files
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% def = defaults;
+% user_defaults = 'spm_my_defaults.m';
+% if exist(user_defaults,'file')
+%     if isdeployed && exist(fullfile(spm('Dir'),user_defaults),'file')
+%         user_defaults_file = cellstr(fullfile(spm('Dir'),user_defaults));
+%     else
+%         user_defaults_file = cellstr(which(user_defaults,'-ALL'));
+%     end
+%     for i=1:numel(user_defaults_file)
+%         try
+%             spm('run', user_defaults_file{i});
+%         catch
+%             lr = lasterror;
+%             warning(lr.message);
+%         end
+%     end
+%     if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
+%     else my_isequaln = @isequalwithequalnans; end
+%     if ~my_isequaln(def,defaults)
+%         fprintf('Defaults settings have been modified by file(s):\n');
+%         for i=1:numel(user_defaults_file)
+%             fprintf('  %s\n',user_defaults_file{i});
+%         end
+%         fn0 = fieldnames(def);
+%         mf = fn0(~cellfun(@(x) my_isequaln(def.(x),defaults.(x)),fn0));
+%         if ~isempty(mf)
+%             fprintf('Modified fields: ');
+%             for i=1:numel(mf)
+%                 fprintf('%s ',mf{i});
+%             end
+%             fprintf('\n');
+%         end
+%     end
+% end

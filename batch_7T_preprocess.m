@@ -2269,9 +2269,10 @@ end
 %% Re-plot the simple within condition effects as simple interactions and test with RM-ANOVAs
 nrun = size(subjects,2); % enter the number of runs here
 addpath('./plotting')
-outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm'];
+outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm/withpoints'];
 mkdir(outdir)
 group_names = {'Control','nfvPPA'};
+include_rawpoints = 1;
 clear this_model_name mask_names
 this_model_name{1} = { % NB: Models must be 2x2+1
     'Match Unclear shared_segments'
@@ -2289,7 +2290,7 @@ this_model_name{1} = { % NB: Models must be 2x2+1
 %     };
 
 mask_names{1} = {
-    %     'rwLeft_IFG_cross_group_cluster'
+         'rwLeft_IFG_cross_group_cluster'
     %     %     'rwLeft_Superior_Temporal_Gyrus';
     %     'rwL_STG_cross-segment_cluster'
     %     'rwBlank_2016_inflated'
@@ -2300,19 +2301,19 @@ mask_names{1} = {
     %             'rwLeft_Precentral_Univariate_Interaction2'
     %             'rwLeft_Precentral_Univariate_Interaction3'
     %     'rwLeft_Angular_Univariate_Interaction1'
-    %     'rwLeft_Angular_Univariate_Interaction2'
-    'rwLeft_Precentral_Univariate_Interaction_combined'
+         'rwLeft_Angular_Univariate_Interaction2'
+    %'rwLeft_Precentral_Univariate_Interaction_combined'
     %     'rwLeft_Angular_Univariate_Interaction_combined'
     %     'rwLeft_STG_Univariate8mm_15>3'
     'rwLeft_STG_Univariate3mm_15>3'
     'rwLeft_PrG_SSMatchnoself_combined'
     %'rwLeft_PrG_All_Shared_Segments'
-    'rwLeft_PrG_All_Shared_Segments_hires'
+    %'rwLeft_PrG_All_Shared_Segments_hires'
     };
 mask_names{2} = {
-            'rwLeft_Angular_Univariate_Interaction1'
-        'rwLeft_Angular_Univariate_Interaction2'
-    'rwLeft_Angular_Univariate_Interaction_combined'
+            %'rwLeft_Angular_Univariate_Interaction1'
+        %'rwLeft_Angular_Univariate_Interaction2'
+    %'rwLeft_Angular_Univariate_Interaction_combined'
     };
 
 for j = 1:length(this_model_name)
@@ -2366,7 +2367,7 @@ for j = 1:length(this_model_name)
             rm = fitrm(RM_table,[strrep(this_model_name{j}{1},' ','_') '-' strrep(this_model_name{j}{4},' ','_') '~Diagnosis'],'WithinDesign',withindesign);
             ranovatbl = ranova(rm, 'WithinModel','Congruency*Clarity');
             save([outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j)],'ranovatbl')
-            writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
+            %writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
             
             figure
             set(gcf,'Position',[100 100 1600 800]);
@@ -2424,6 +2425,17 @@ for j = 1:length(this_model_name)
             %Reorder to match behaviour
             all_subj_representations = squeeze(all_corrected_data([1,3,2,4,5],this_ROI,:))';
             barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Shared Segments in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Match 3';'MisMatch 3';'Match 15';'MisMatch 15';'Written'}) ;
+            if include_rawpoints == 1
+                legend off
+                for this_group = 1:2
+                    these_offsets = linspace(-0.45,0.45,size(all_subj_representations,2)+2);
+                    for this_condition = 1:size(all_subj_representations,2)
+                        these_raw_data = all_subj_representations(group==this_group,this_condition);
+                        hold on
+                        scatter((ones(1,length(these_raw_data))*this_group)+these_offsets(this_condition+1),these_raw_data,'filled')
+                    end
+                end
+            end
             ylim([(min(mean(all_subj_representations))-4*max(std(all_subj_representations)/sqrt(sum(group==2)))),(max(mean(all_subj_representations))+4*max(std(all_subj_representations)/sqrt(sum(group==2))))])
             these_y_lims = ylim;
             these_sigs = find(ranovatbl.pValueGG<0.05);
@@ -2440,6 +2452,17 @@ for j = 1:length(this_model_name)
             %Repeat without written to match behaviour
             all_subj_representations_nowritten = squeeze(all_corrected_data_nowritten([1,3,2,4],this_ROI,:))';
             barweb([mean(all_subj_representations_nowritten(group==1,:));mean(all_subj_representations_nowritten(group==2,:))],[std(all_subj_representations_nowritten(group==1,:))/sqrt(sum(group==1));std(all_subj_representations_nowritten(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Shared Segments in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Match 3';'MisMatch 3';'Match 15';'MisMatch 15'}) ;
+            if include_rawpoints == 1
+                legend off
+                for this_group = 1:2
+                    these_offsets = linspace(-0.45,0.45,size(all_subj_representations_nowritten,2)+2);
+                    for this_condition = 1:size(all_subj_representations_nowritten,2)
+                        these_raw_data = all_subj_representations_nowritten(group==this_group,this_condition);
+                        hold on
+                        scatter((ones(1,length(these_raw_data))*this_group)+these_offsets(this_condition+1),these_raw_data,'filled')
+                    end
+                end
+            end
             ylim([(min(mean(all_subj_representations_nowritten))-4*max(std(all_subj_representations_nowritten)/sqrt(sum(group==2)))),(max(mean(all_subj_representations_nowritten))+4*max(std(all_subj_representations_nowritten)/sqrt(sum(group==2))))])
             these_y_lims = ylim;
             these_sigs = find(ranovatbl.pValueGG<0.05);
@@ -2457,7 +2480,8 @@ end
 %% Re-plot the between condition effects as interactions and test with RM-ANOVAs
 nrun = size(subjects,2); % enter the number of runs here
 addpath('./plotting')
-outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm'];
+outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm/withpoints'];
+include_rawpoints = 1;
 mkdir(outdir)
 group_names = {'Control','nfvPPA'};
 clear this_model_name mask_names
@@ -2553,6 +2577,17 @@ for j = 2
             %Reorder to match behaviour
             all_subj_representations = squeeze(all_corrected_data(:,this_ROI,:))';
             barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Shared Segments in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Match 3 to Mismatch 3','Match 3 to Mismatch 15', 'Match 15 to Mismatch 3', 'Match 15 to Mismatch 15', 'Match 3 to Match 15', 'Mismatch 3 to Mismatch 15'});
+            if include_rawpoints == 1
+                legend off
+                for this_group = 1:2
+                    these_offsets = linspace(-0.45,0.45,size(all_subj_representations,2)+2);
+                    for this_condition = 1:size(all_subj_representations,2)
+                        these_raw_data = all_subj_representations(group==this_group,this_condition);
+                        hold on
+                        scatter((ones(1,length(these_raw_data))*this_group)+these_offsets(this_condition+1),these_raw_data,'filled')
+                    end
+                end
+            end
             ylim([(min(mean(all_subj_representations))-4*max(std(all_subj_representations)/sqrt(sum(group==2)))),(max(mean(all_subj_representations))+4*max(std(all_subj_representations)/sqrt(sum(group==2))))])
             these_y_lims = ylim;
             these_sigs = find(ranovatbl.pValueGG<0.05);
@@ -2570,7 +2605,8 @@ end
 %% Re-plot the prediction error effects as interactions and test with RM-ANOVAs
 nrun = size(subjects,2); % enter the number of runs here
 addpath('./plotting')
-outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm'];
+outdir = ['./ROI_figures/stats4_multi_3_nowritten2/2x2_rm/withpoints'];
+include_rawpoints = 1;
 mkdir(outdir)
 group_names = {'Control','nfvPPA'};
 clear this_model_name mask_names
@@ -2675,8 +2711,10 @@ for j = 3:5
     
             ranovatbl = ranova(rm, 'WithinModel','Condition');
             save([outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j)],'ranovatbl')
-            writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
-           writetable(RM_table,[outdir filesep 'rm_anova_data_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
+            %Writetable commented because of a cluster change making
+            %this error, and we already have these stats
+            %writetable(ranovatbl,[outdir filesep 'rm_anova_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
+           %writetable(RM_table,[outdir filesep 'rm_anova_data_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.csv'],'WriteRowNames',true)
             
             these_sigs = find(ranovatbl.pValueGG<0.05);
             for this_sig = 1:length(these_sigs)
@@ -2695,6 +2733,17 @@ for j = 3:5
             elseif j == 5
                 barweb([mean(all_subj_representations(group==1,:));mean(all_subj_representations(group==2,:))],[std(all_subj_representations(group==1,:))/sqrt(sum(group==1));std(all_subj_representations(group==1,:))/sqrt(sum(group==1))],[],{'Controls','Patients'},['Sparse comparisons in ' mask_names{k}{i}(3:end)],[],'RSA value',[],[],{'Prediction Error','Phonology'});
             end
+            if include_rawpoints == 1
+                legend off
+                for this_group = 1:2
+                    these_offsets = linspace(-0.45,0.45,size(all_subj_representations,2)+2);
+                    for this_condition = 1:size(all_subj_representations,2)
+                        these_raw_data = all_subj_representations(group==this_group,this_condition);
+                        hold on
+                        scatter((ones(1,length(these_raw_data))*this_group)+these_offsets(this_condition+1),these_raw_data,'filled')
+                    end
+                end
+            end
             ylim([(min(mean(all_subj_representations))-4*max(std(all_subj_representations)/sqrt(sum(group==2)))),(max(mean(all_subj_representations))+4*max(std(all_subj_representations)/sqrt(sum(group==2))))])
             these_y_lims = ylim;
             these_sigs = find(ranovatbl.pValueGG<0.05);
@@ -2704,7 +2753,12 @@ for j = 3:5
             drawnow
             saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf']);
             saveas(gcf, [outdir filesep 'Bar_Corrected_' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png']);
-            
+            if include_rawpoints == 1
+                ylim([floor(100*min(min(all_subj_representations)))/100,ceil(100*max(max(all_subj_representations)))/100])
+                drawnow
+                saveas(gcf, [outdir filesep 'Bar_Corrected_allpoints' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.pdf']);
+                saveas(gcf, [outdir filesep 'Bar_Corrected_allpoints' mask_names{k}{i}(3:end) '_Model_set_' num2str(j) '.png']);
+            end
         end
     end
 end
